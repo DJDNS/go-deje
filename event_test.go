@@ -16,14 +16,14 @@ func TestEvent_Serialize(t *testing.T) {
 	if err != nil {
 		t.Fatal("Serialization failed")
 	}
-	expected := []byte(strings.Join([]string{
-		"{\"parent\":[" + strings.Repeat("0,", 19) + "0],",
-		"\"handler\":\"handler_name\",",
-		"\"args\":{",
-		"\"before\":null,",
-		"\"hello\":[\"world\",5]",
-		"}}",
-	}, ""))
+	expected := []byte("{" +
+		"\"parent\":[" + strings.Repeat("0,", 19) + "0]," +
+		"\"handler\":\"handler_name\"," +
+		"\"args\":{" +
+		"\"before\":null," +
+		"\"hello\":[\"world\",5]" +
+		"}" +
+		"}")
 	if !bytes.Equal(serialized, expected) {
 		t.Fatal(string(serialized))
 	}
