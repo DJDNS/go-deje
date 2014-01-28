@@ -1,47 +1,26 @@
 package deje
 
-import (
-	"encoding/json"
-	"errors"
-)
+import "errors"
 
-type JSONObject map[string]interface{}
 type DocumentState JSONObject
 
-type UnsetFieldError struct {
-	FieldName string
-}
-
-func (e *UnsetFieldError) Error() string {
-	return "Field " + e.FieldName + " was not set."
-}
-
-func FillStruct(m JSONObject, s interface{}) error {
-	// Pass in &YourStructType{}
-	jstr, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(jstr, s)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s DocumentState) GetChannel() (*IRCLocation, error) {
-	data, ok := s["channel"]
+func (ds DocumentState) GetProperty(name string, s interface{}) error {
+	data, ok := ds[name]
 	if !ok {
-		return nil, errors.New("Document does not have channel data")
-	}
-	m, ok := data.(JSONObject)
-	if !ok {
-		return nil, errors.New("Channel data was wrong type")
+		return errors.New("Document does not have "+name+" property")
 	}
 
+    return CloneMarshal(data, s)
+}
+
+func (ds DocumentState) GetChannel() (*IRCLocation, error) {
 	channel := new(IRCLocation)
-	err := FillStruct(m, channel)
+    err := ds.GetProperty("channel", channel)
 	return channel, err
+}
+
+func (s DocumentState) GetURLs() (*DownloadURLs, error) {
+	urls := new(DownloadURLs)
+    err := s.GetProperty("urls", urls)
+	return urls, err
 }
