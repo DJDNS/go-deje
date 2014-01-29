@@ -1,8 +1,9 @@
 package deje
 
 type Document struct {
-	Events EventSet
-	Syncs  SyncSet
+	Events     EventSet
+	Syncs      SyncSet
+	Timestamps TimestampSet `json:""`
 }
 
 func NewDocument() Document {
