@@ -1,8 +1,8 @@
 package deje
 
 import (
-    "testing"
-    "reflect"
+	"reflect"
+	"testing"
 )
 
 func TestDSGetChannel(t *testing.T) {
@@ -56,8 +56,8 @@ func TestDSGetChannelBadData(t *testing.T) {
 func TestDSGetDownloads(t *testing.T) {
 	ds := NewDocumentState()
 
-    urls := []interface{}{"a", "b", "c"}
-    ds.Content["urls"] = urls
+	urls := []interface{}{"a", "b", "c"}
+	ds.Content["urls"] = urls
 
 	got, err := ds.GetURLs()
 	if err != nil {
@@ -84,7 +84,7 @@ func TestDSGetDownloadsBadData(t *testing.T) {
 		t.Fatal("GetURLs should have failed, but didn't")
 	}
 
-	ds.Content["urls"] = []interface{}{1,2,3}
+	ds.Content["urls"] = []interface{}{1, 2, 3}
 	_, err = ds.GetURLs()
 	if err == nil {
 		t.Fatal("GetURLs should have failed, but didn't")

@@ -1,7 +1,7 @@
 package deje
 
 import (
-    "testing"
+	"testing"
 )
 
 func TestCloneMarshal(t *testing.T) {

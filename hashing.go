@@ -2,8 +2,8 @@ package deje
 
 import (
 	"crypto/sha1"
-	"encoding/json"
 	"encoding/hex"
+	"encoding/json"
 )
 
 func HashObject(object interface{}) (string, error) {
@@ -12,6 +12,6 @@ func HashObject(object interface{}) (string, error) {
 		return "", err
 	}
 
-    sum := sha1.Sum(serialized)
+	sum := sha1.Sum(serialized)
 	return hex.EncodeToString(sum[:]), nil
 }

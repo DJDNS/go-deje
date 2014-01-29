@@ -33,7 +33,7 @@ func (s EventSet) Register(event Event) {
 func (s EventSet) GetRoot(tip Event) (event Event, ok bool) {
 	event = tip
 	ok = true
-	for (event.ParentHash != "") {
+	for event.ParentHash != "" {
 		event, ok = s[event.ParentHash]
 		if !ok {
 			return
