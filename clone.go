@@ -4,16 +4,13 @@ import "encoding/json"
 
 type JSONObject map[string]interface{}
 
-type UnsetFieldError struct {
-	FieldName string
-}
-
-func (e *UnsetFieldError) Error() string {
-	return "Field " + e.FieldName + " was not set."
-}
-
+// Uses json.Marshal and json.Unmarshal to copy from
+// one object to another. Excellent way to turn a JSONObject
+// into a struct, or vice-versa.
+//
+// This makes its changes in-place, so always pass in the
+// pointer to the struct object you're trying to fill.
 func CloneMarshal(m interface{}, s interface{}) error {
-	// Pass in &YourStructType{}
 	jstr, err := json.Marshal(m)
 	if err != nil {
 		return err
