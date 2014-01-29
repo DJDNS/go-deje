@@ -1,7 +1,6 @@
 package deje
 
 import (
-	"reflect"
 	"testing"
 )
 
