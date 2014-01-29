@@ -28,9 +28,3 @@ func (ds DocumentState) GetChannel() (*IRCLocation, error) {
 	err := ds.GetProperty("channel", channel)
 	return channel, err
 }
-
-func (s DocumentState) GetURLs() (*DownloadURLs, error) {
-	urls := new(DownloadURLs)
-	err := s.GetProperty("urls", urls)
-	return urls, err
-}
