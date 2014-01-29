@@ -3,15 +3,15 @@ package deje
 import (
 	"crypto/sha1"
 	"encoding/json"
+	"encoding/hex"
 )
 
-type SHA1Hash [20]byte
-
-func HashObject(object interface{}) (SHA1Hash, error) {
+func HashObject(object interface{}) (string, error) {
 	serialized, err := json.Marshal(object)
 	if err != nil {
-		return SHA1Hash{}, err
+		return "", err
 	}
 
-	return sha1.Sum(serialized), nil
+    sum := sha1.Sum(serialized)
+	return hex.EncodeToString(sum[:]), nil
 }

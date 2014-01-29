@@ -6,13 +6,14 @@ import (
 )
 
 func TestDSGetChannel(t *testing.T) {
-	ds := make(DocumentState)
+	ds := NewDocumentState()
 
 	channel := make(JSONObject)
 	channel["host"] = "some string"
 	channel["port"] = 9001
 	channel["channel"] = "go-nuts"
-	ds["channel"] = channel
+
+	ds.Content["channel"] = channel
 
 	loc, err := ds.GetChannel()
 	if err != nil {
@@ -30,14 +31,14 @@ func TestDSGetChannel(t *testing.T) {
 }
 
 func TestDSGetChannelBadData(t *testing.T) {
-	ds := make(DocumentState)
+	ds := NewDocumentState()
 
 	_, err := ds.GetChannel()
 	if err == nil {
 		t.Fatal("GetChannel should have failed, but didn't")
 	}
 
-	ds["channel"] = 4
+	ds.Content["channel"] = 4
 	_, err = ds.GetChannel()
 	if err == nil {
 		t.Fatal("GetChannel should have failed, but didn't")
@@ -45,7 +46,7 @@ func TestDSGetChannelBadData(t *testing.T) {
 
 	channel := make(JSONObject)
 	channel["port"] = "string port"
-	ds["channel"] = channel
+	ds.Content["channel"] = channel
 	_, err = ds.GetChannel()
 	if err == nil {
 		t.Fatal("GetChannel should have failed, but didn't")
@@ -53,10 +54,10 @@ func TestDSGetChannelBadData(t *testing.T) {
 }
 
 func TestDSGetDownloads(t *testing.T) {
-    ds := make(DocumentState)
+	ds := NewDocumentState()
 
     urls := []interface{}{"a", "b", "c"}
-    ds["urls"] = urls
+    ds.Content["urls"] = urls
 
 	got, err := ds.GetURLs()
 	if err != nil {
@@ -70,20 +71,20 @@ func TestDSGetDownloads(t *testing.T) {
 }
 
 func TestDSGetDownloadsBadData(t *testing.T) {
-	ds := make(DocumentState)
+	ds := NewDocumentState()
 
 	_, err := ds.GetURLs()
 	if err == nil {
 		t.Fatal("GetURLs should have failed, but didn't")
 	}
 
-	ds["urls"] = make(JSONObject)
+	ds.Content["urls"] = make(JSONObject)
 	_, err = ds.GetURLs()
 	if err == nil {
 		t.Fatal("GetURLs should have failed, but didn't")
 	}
 
-	ds["urls"] = []interface{}{1,2,3}
+	ds.Content["urls"] = []interface{}{1,2,3}
 	_, err = ds.GetURLs()
 	if err == nil {
 		t.Fatal("GetURLs should have failed, but didn't")

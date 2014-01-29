@@ -3,7 +3,6 @@ package deje
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"testing"
 )
 
@@ -17,7 +16,7 @@ func TestEvent_Serialize(t *testing.T) {
 		t.Fatal("Serialization failed")
 	}
 	expected := []byte("{" +
-		"\"parent\":[" + strings.Repeat("0,", 19) + "0]," +
+		"\"parent\":\"\"," +
 		"\"handler\":\"handler_name\"," +
 		"\"args\":{" +
 		"\"before\":null," +
@@ -32,7 +31,7 @@ func TestEvent_Serialize(t *testing.T) {
 func TestEventSet_GetRoot_NoElements(t *testing.T) {
 	set := make(EventSet)
 	ev := NewEvent("handler_name")
-	ev.ParentHash = SHA1Hash{1, 2, 3} // Not already root
+	ev.ParentHash = "blah blah blah" // Not already root
 
 	_, ok := set.GetRoot(ev)
 	if ok {
