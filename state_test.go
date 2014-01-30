@@ -4,50 +4,28 @@ import (
 	"testing"
 )
 
-func TestDSGetChannel(t *testing.T) {
+func TestGetProperty(t *testing.T) {
 	ds := NewDocumentState()
+	ds.Content["hello"] = "world"
 
-	channel := make(JSONObject)
-	channel["host"] = "some string"
-	channel["port"] = 9001
-	channel["channel"] = "go-nuts"
-
-	ds.Content["channel"] = channel
-
-	loc, err := ds.GetChannel()
+	var mystr string
+	err := ds.GetProperty("hello", &mystr)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("GetProperty failed: %v", err)
 	}
 
-	expected := IRCLocation{
-		Host:    "some string",
-		Port:    9001,
-		Channel: "go-nuts",
-	}
-	if *loc != expected {
-		t.Fatalf("Expected %v, got %v", expected, loc)
+	if mystr != "world" {
+		t.Fatal("GetProperty did not retrieve value")
 	}
 }
 
-func TestDSGetChannelBadData(t *testing.T) {
+func TestGetProperty_Missing(t *testing.T) {
 	ds := NewDocumentState()
 
-	_, err := ds.GetChannel()
-	if err == nil {
-		t.Fatal("GetChannel should have failed, but didn't")
-	}
+	var dummy []int
+	err := ds.GetProperty("stuff", dummy)
 
-	ds.Content["channel"] = 4
-	_, err = ds.GetChannel()
 	if err == nil {
-		t.Fatal("GetChannel should have failed, but didn't")
-	}
-
-	channel := make(JSONObject)
-	channel["port"] = "string port"
-	ds.Content["channel"] = channel
-	_, err = ds.GetChannel()
-	if err == nil {
-		t.Fatal("GetChannel should have failed, but didn't")
+		t.Fatal("GetProperty should have failed")
 	}
 }

@@ -22,9 +22,3 @@ func (ds DocumentState) GetProperty(name string, s interface{}) error {
 
 	return CloneMarshal(data, s)
 }
-
-func (ds DocumentState) GetChannel() (*IRCLocation, error) {
-	channel := new(IRCLocation)
-	err := ds.GetProperty("channel", channel)
-	return channel, err
-}

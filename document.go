@@ -1,6 +1,7 @@
 package deje
 
 type Document struct {
+	Channel    IRCLocation
 	Events     EventSet
 	Syncs      SyncSet
 	Timestamps TimestampSet `json:""`
