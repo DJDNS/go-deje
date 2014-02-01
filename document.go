@@ -12,7 +12,7 @@ type Document struct {
 	Channel    IRCLocation
 	Events     EventSet
 	Syncs      SyncSet
-	Timestamps TimestampSet `json:""`
+	Timestamps TimestampManager
 }
 
 // Used for serializing and deserializing docs to files.
