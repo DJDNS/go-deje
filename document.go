@@ -17,17 +17,6 @@ type Document struct {
 	Timestamps TimestampManager
 }
 
-// Used for serializing and deserializing docs to files.
-//
-// This allows us to use more complicated structures for actual
-// documents, that allow for storing Timestamps, and other data
-// that we must not trust the file to provide.
-type DocumentFile struct {
-	Channel serial.IRCLocation
-	Events  EventSet
-	Quorums serial.QuorumSet
-}
-
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
@@ -37,17 +26,27 @@ func NewDocument() Document {
 }
 
 // Copies the data from a DocumentFile into a Document.
-func (d *Document) FromFile(df *DocumentFile) {
+func (d *Document) FromFile(df *serial.DocumentFile) {
 	d.Channel = df.Channel
-	d.Events = df.Events
+	d.Events = make(EventSet)
 	d.Quorums = df.Quorums
+
+	for key, value := range df.Events {
+		d.Events[key] = EventFromSerial(value)
+	}
 }
 
 // Copies the data from a Document into a DocumentFile.
-func (d *Document) ToFile() *DocumentFile {
-	return &DocumentFile{
+func (d *Document) ToFile() *serial.DocumentFile {
+	df := &serial.DocumentFile{
 		Channel: d.Channel,
-		Events:  d.Events,
+		Events:  make(serial.EventSet),
 		Quorums: d.Quorums,
 	}
+
+	for key, value := range d.Events {
+		df.Events[key] = value.ToSerial()
+	}
+
+	return df
 }

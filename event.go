@@ -1,6 +1,9 @@
 package deje
 
-import "github.com/campadrenalin/go-deje/util"
+import (
+	"github.com/campadrenalin/go-deje/serial"
+	"github.com/campadrenalin/go-deje/util"
+)
 
 type Event struct {
 	ParentHash  string                 `json:"parent"`
@@ -15,6 +18,22 @@ func NewEvent(hname string) Event {
 		ParentHash:  "",
 		HandlerName: hname,
 		Arguments:   make(map[string]interface{}),
+	}
+}
+
+func EventFromSerial(se serial.Event) Event {
+	return Event{
+		ParentHash:  se.ParentHash,
+		HandlerName: se.HandlerName,
+		Arguments:   se.Arguments,
+	}
+}
+
+func (e *Event) ToSerial() serial.Event {
+	return serial.Event{
+		ParentHash:  e.ParentHash,
+		HandlerName: e.HandlerName,
+		Arguments:   e.Arguments,
 	}
 }
 
