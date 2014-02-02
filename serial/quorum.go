@@ -1,4 +1,4 @@
-package deje
+package serial
 
 // Represents a complete set of approvals for an event.
 // Quorums act as bridges between events and timestamps,

@@ -13,7 +13,7 @@ import "github.com/campadrenalin/go-deje/serial"
 type Document struct {
 	Channel    serial.IRCLocation
 	Events     EventSet
-	Quorums    QuorumSet
+	Quorums    serial.QuorumSet
 	Timestamps TimestampManager
 }
 
@@ -25,14 +25,14 @@ type Document struct {
 type DocumentFile struct {
 	Channel serial.IRCLocation
 	Events  EventSet
-	Quorums QuorumSet
+	Quorums serial.QuorumSet
 }
 
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
 		Events:  make(EventSet),
-		Quorums: make(QuorumSet),
+		Quorums: make(serial.QuorumSet),
 	}
 }
 
