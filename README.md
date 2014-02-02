@@ -19,17 +19,13 @@ This protocol's flagship use will be a decentralized DNS database, but it has ma
 
 ### Data model
 
-A document is made of a [DAG][dag] of events, each of which is an action signed by its author. It also has synchronization objects, which periodically tie the dominant event chain into the external timestamping service. Individual events do not need acceptor consensus, but syncs (which are an accumulation of events) do.
+A document is made of a [DAG][dag] of events, each of which is an action signed by its author. It also has quorum objects, which periodically tie the dominant event chain into the external timestamping service.
 
-A document has in its content, an IRC channel location, and an odd number of download URLs. During bootstrapping, these URLs are downloaded, and compared to each other. If a majority are consistent (they do not have to be identical to be consistent - they just have to not contain conflicting information), we use the union of the consistent serializations as our starting point, and reject information that conflicts with that. If no consistent majority exists in the downloaded files, bootstrapping fails, protecting the user from disinformation.
+A document has in its events, its quorums, and an IRC channel location. During bootstrapping, we start with the IRC location, request download URLs, and download these files. We also check the timestamping service for all relevant timestamps. Even if we get bad data in one or all the files, it will only manifest as irrelevant data (and a known absence of important data).
 
-The state structure, which is constructed from the application of a series of events upon an initial starting state, represents the contents of the document at the given point in time/history. This state is a JSON-compatible object, which includes metacontent such as the event handler, permissions information, and IRC channel location.
+The state structure, which is constructed from the application of a series of events upon an initial starting state, represents the contents of the document at the given point in time/history. This state is a JSON-compatible object, which includes metacontent such as the event handlers and permissions information.
 
 #### Event
-
- * ParentHash string
- * HandlerName string
- * Arguments map[string]interface{}
 
 There will be certain built-in event types, like setting/copying/deleting values in the document. Basic stuff. These will have UPPERCASE names, like "SET". There will also, at some point, be a facility for custom event handlers written in Lua.
 
@@ -39,46 +35,33 @@ The secondary reasoning is it allows for efficient expression of actions that ar
 
 Finally, it allows conceptually atomic (indivisible) changes to be atomic in the implementation. If you are expressing one *conceptual* change in the form of a bunch of low-level events, and someone builds off your halfway-broadcast event chain, and *their* chain becomes the official one... well, you just orphaned half of something that was intended to be transactional. That's one of the worst kinds of surprises, short of [sugar-free gummy bears][bears].
 
-#### Sync
+#### Quorum
 
- * EventHash string
- * Signatures []Signature
- * Confirmation ProofOfExistence
+Represents a full approval of an event, which acts as a bridge into the external timestamping service.
 
-There will be convenience methods involved to get the latest valid event, according to various degrees of pickiness.
+#### Timestamp
 
-#### Document
+A single timestamp in the external timestamping service. Imposes a mostly-reasonable, somewhat-arbitrary order on when quorums happened, and this order allows us to pick a single official chain of events.
 
- * Channel IRCLocation
- * Downloads map[string][string]
- * Events map[string]Event
- * Syncs map[string]Sync
+Timestamps are ordered first by their blockheight (timestamps in earlier blocks always happen before timestamps in later blocks), and then by a string sort of their hashes (as a tiebreaker for multiple timestamps in a single block).
 
-#### DocState
-
- * Version string // hash of last event applied, or "" if initial state
- * Content map[string]interface{}
+This allows for odd orders of confirmation sometimes - a child event may be confirmed earlier than its parent, for example - but this is harmless, those events will only be applied once.
 
 ### What is the correct latest event?
 
-This question is really, what is the confirmed sync object with the most parents (i.e. deepest history chain)? The sync will point to (and therefore include) a specific event object, and imply that that chain of history is both valid and official.
+We get all the timestamps for the document. Then we apply the following algorithm, iterating through timestamps in serialization order:
 
-To create a confirmed sync object:
+ * Get quorum and event info for TS.
+ * If TS is valid, apply events as necessary to catch up to TS.
+ * Continue until you run out of timestamps.
 
- * Propose a sync object in the channel
- * Acceptors broadcast their signatures of the sync object
- * When there are enough sigs, the sync is "approved"
- * The approval hash is put into the timestamping service (Bitcoin blockchain)
- * The Proof of Existence is about the approval, rather than the sync object itself.
+A TS may be invalid for any of the following reasons:
 
-Forks in the chain of confirmed syncs will be rare, since it requires the document's paxos Acceptors to agree on creating the fork (or at least be confused enough to create a fork) in the first place. However, even then, we can resolve such things by simply treating the longest chain as correct.
+ * Quorum is not valid according to list of acceptors at the time.
+ * Event chain is not compatible with chain already accepted so far (orphan fork).
+ * Any of the events fail while applying (roll back to last known good state).
 
-There is still a conceivable attack where the longest chain is hidden, or constructed in secret, such that it can suddenly be revealed and replace the previously correct fork. This still requires 2 conditions:
-
- 1. The bootstrap downloads are out of date or intentionally leave out the longest chain.
- 2. All current paxos Acceptors in the document conspire, or at least a sufficient quorum of them.
-
-The former can be solved by simply making sure that the Learners always update the bootstrap downloads every time a sync is confirmed. The latter is a false problem - if you cannot trust the Acceptors to not conspire in a secret channel, how can you trust them to perform their most basic validation functions? Such a document is doomed to failure anyways.
+This leaves us with a single event chain, a linked-list subset of the original event tree. The correct latest event is the last one in this list.
 
 [dag]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 [bears]: http://www.amazon.com/Haribo-Gummy-Candy-Sugarless-5-Pound/dp/B000EVQWKC/
