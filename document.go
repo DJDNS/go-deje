@@ -11,6 +11,7 @@ package deje
 type Document struct {
 	Channel    IRCLocation
 	Events     EventSet
+	Quorums    QuorumSet
 	Timestamps TimestampManager
 }
 
@@ -22,12 +23,14 @@ type Document struct {
 type DocumentFile struct {
 	Channel IRCLocation
 	Events  EventSet
+	Quorums QuorumSet
 }
 
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
-		Events: make(EventSet),
+		Events:  make(EventSet),
+		Quorums: make(QuorumSet),
 	}
 }
 
@@ -35,6 +38,7 @@ func NewDocument() Document {
 func (d *Document) FromFile(df *DocumentFile) {
 	d.Channel = df.Channel
 	d.Events = df.Events
+	d.Quorums = df.Quorums
 }
 
 // Copies the data from a Document into a DocumentFile.
@@ -42,5 +46,6 @@ func (d *Document) ToFile() *DocumentFile {
 	return &DocumentFile{
 		Channel: d.Channel,
 		Events:  d.Events,
+		Quorums: d.Quorums,
 	}
 }
