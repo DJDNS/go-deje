@@ -1,5 +1,7 @@
 package deje
 
+import "github.com/campadrenalin/go-deje/serial"
+
 // A document is a single managed DEJE object, associated with
 // a single immutable IRCLocation, and self-describing its
 // actions and permissions as part of the content.
@@ -9,7 +11,7 @@ package deje
 // Bitcoin ledger is the result of playing through the transactions
 // in every block of the longest valid blockchain.
 type Document struct {
-	Channel    IRCLocation
+	Channel    serial.IRCLocation
 	Events     EventSet
 	Quorums    QuorumSet
 	Timestamps TimestampManager
@@ -21,7 +23,7 @@ type Document struct {
 // documents, that allow for storing Timestamps, and other data
 // that we must not trust the file to provide.
 type DocumentFile struct {
-	Channel IRCLocation
+	Channel serial.IRCLocation
 	Events  EventSet
 	Quorums QuorumSet
 }

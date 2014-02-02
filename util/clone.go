@@ -1,8 +1,6 @@
-package deje
+package util
 
 import "encoding/json"
-
-type JSONObject map[string]interface{}
 
 // Uses json.Marshal and json.Unmarshal to copy from
 // one object to another. Excellent way to turn a JSONObject

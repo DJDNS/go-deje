@@ -1,5 +1,7 @@
 package deje
 
+import "github.com/campadrenalin/go-deje/util"
+
 type Event struct {
 	ParentHash  string                 `json:"parent"`
 	HandlerName string                 `json:"handler"`
@@ -17,7 +19,7 @@ func NewEvent(hname string) Event {
 }
 
 func (e *Event) SetParent(p Event) error {
-	hash, err := HashObject(p)
+	hash, err := util.HashObject(p)
 	if err != nil {
 		return err
 	}
@@ -63,12 +65,12 @@ func (s EventSet) GetCommonAncestor(A, B *Event) *Event {
 }
 
 func (s EventSet) Register(event Event) {
-	hash, _ := HashObject(event)
+	hash, _ := util.HashObject(event)
 	s[hash] = event
 }
 
 func (s EventSet) Contains(event Event) bool {
-	hash, _ := HashObject(event)
+	hash, _ := util.HashObject(event)
 	_, ok := s[hash]
 
 	return ok

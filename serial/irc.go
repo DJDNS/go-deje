@@ -1,4 +1,4 @@
-package deje
+package serial
 
 type IRCLocation struct {
 	Host    string `json:"host"`

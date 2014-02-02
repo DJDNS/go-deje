@@ -1,16 +1,20 @@
 package deje
 
-import "errors"
+import (
+	"errors"
+	"github.com/campadrenalin/go-deje/serial"
+	"github.com/campadrenalin/go-deje/util"
+)
 
 type DocumentState struct {
 	Version string
-	Content JSONObject
+	Content serial.JSONObject
 }
 
 func NewDocumentState() DocumentState {
 	return DocumentState{
 		Version: "",
-		Content: make(JSONObject),
+		Content: make(serial.JSONObject),
 	}
 }
 
@@ -20,5 +24,5 @@ func (ds DocumentState) GetProperty(name string, s interface{}) error {
 		return errors.New("Document does not have " + name + " property")
 	}
 
-	return CloneMarshal(data, s)
+	return util.CloneMarshal(data, s)
 }

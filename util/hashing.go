@@ -1,4 +1,4 @@
-package deje
+package util
 
 import (
 	"crypto/sha1"
