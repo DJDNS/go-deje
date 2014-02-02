@@ -4,12 +4,12 @@ import "testing"
 
 func TestTimestampComparison(t *testing.T) {
 	A := Timestamp{
-		SyncHash: "xyz",
-		Time:     5,
+		QHash: "xyz",
+		Time:  5,
 	}
 	B := Timestamp{
-		SyncHash: "abc",
-		Time:     4,
+		QHash: "abc",
+		Time:  4,
 	}
 
 	if !(B.WasBefore(A) && !A.WasBefore(B)) {
@@ -32,24 +32,24 @@ func TestTimestampComparison(t *testing.T) {
 func TestTimestampSetContains(t *testing.T) {
 	ts := make(TimestampSet)
 	A := &Timestamp{
-		SyncHash: "xyz",
-		Time:     5,
+		QHash: "xyz",
+		Time:  5,
 	}
 	B := &Timestamp{
-		SyncHash: "abc",
-		Time:     5,
+		QHash: "abc",
+		Time:  5,
 	}
 
 	if ts.Contains(A) {
 		t.Fatal("ts doesn't actually contain A")
 	}
 
-	ts[A.SyncHash] = B
+	ts[A.QHash] = B
 	if ts.Contains(A) {
 		t.Fatal("ts doesn't actually contain A, but has key for A")
 	}
 
-	ts[A.SyncHash] = A
+	ts[A.QHash] = A
 	if !ts.Contains(A) {
 		t.Fatal("ts actually does contain A")
 	}
@@ -64,8 +64,8 @@ func TestTimestampManagerGetBlock(t *testing.T) {
 	}
 
 	ts := Timestamp{
-		SyncHash: "xyz",
-		Time:     5,
+		QHash: "xyz",
+		Time:  5,
 	}
 	m.Register(&ts)
 
@@ -78,7 +78,7 @@ func TestTimestampManagerGetBlock(t *testing.T) {
 		t.Fatal("block should not have been empty")
 	}
 
-	if block[ts.SyncHash] != &ts {
+	if block[ts.QHash] != &ts {
 		t.Fatal("block contents should have contained &ts")
 	}
 
@@ -91,12 +91,12 @@ func TestTimestampManagerRegister(t *testing.T) {
 	m := NewTimestampManager()
 
 	A := &Timestamp{
-		SyncHash: "xyz",
-		Time:     5,
+		QHash: "xyz",
+		Time:  5,
 	}
 	B := &Timestamp{
-		SyncHash: "abc",
-		Time:     5,
+		QHash: "abc",
+		Time:  5,
 	}
 
 	m.Register(A)
@@ -112,12 +112,12 @@ func TestTimestampManagerUnregister(t *testing.T) {
 	m := NewTimestampManager()
 
 	A := &Timestamp{
-		SyncHash: "xyz",
-		Time:     5,
+		QHash: "xyz",
+		Time:  5,
 	}
 	B := &Timestamp{
-		SyncHash: "abc",
-		Time:     5,
+		QHash: "abc",
+		Time:  5,
 	}
 
 	m.Register(A)

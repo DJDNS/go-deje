@@ -3,8 +3,8 @@ package deje
 type BlockHeight uint64
 
 type Timestamp struct {
-	SyncHash string
-	Time     BlockHeight
+	QHash string
+	Time  BlockHeight
 }
 
 type TimestampSet map[string]*Timestamp
@@ -17,14 +17,14 @@ type TimestampManager struct {
 
 func (t Timestamp) WasBefore(other Timestamp) bool {
 	if t.Time == other.Time {
-		return t.SyncHash < other.SyncHash
+		return t.QHash < other.QHash
 	} else {
 		return t.Time < other.Time
 	}
 }
 
 func (ts TimestampSet) Contains(t *Timestamp) bool {
-	return ts[t.SyncHash] == t
+	return ts[t.QHash] == t
 }
 
 func NewTimestampManager() TimestampManager {
@@ -46,7 +46,7 @@ func (m *TimestampManager) GetBlock(time BlockHeight) TimestampSet {
 }
 
 func (m *TimestampManager) Register(ts *Timestamp) {
-	hash := ts.SyncHash
+	hash := ts.QHash
 	m.Stamps[hash] = ts
 
 	block := m.GetBlock(ts.Time)
@@ -54,7 +54,7 @@ func (m *TimestampManager) Register(ts *Timestamp) {
 }
 
 func (m *TimestampManager) Unregister(ts *Timestamp) {
-	hash := ts.SyncHash
+	hash := ts.QHash
 	delete(m.Stamps, hash)
 
 	block := m.GetBlock(ts.Time)
