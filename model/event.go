@@ -6,9 +6,9 @@ import (
 )
 
 type Event struct {
-	ParentHash  string                 `json:"parent"`
-	HandlerName string                 `json:"handler"`
-	Arguments   map[string]interface{} `json:"args"`
+	ParentHash  string
+	HandlerName string
+	Arguments   map[string]interface{}
 }
 
 type EventSet map[string]Event

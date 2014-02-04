@@ -2,6 +2,7 @@ package deje
 
 import (
 	"github.com/campadrenalin/go-deje/serial"
+	"github.com/campadrenalin/go-deje/util"
 	"testing"
 )
 
@@ -47,5 +48,37 @@ func TestFromFile(t *testing.T) {
 	ev_from_d := d.Events["example"]
 	if ev_from_d.Hash() != ev_from_s.Hash() {
 		t.Fatalf("%v != %v", ev_from_d, ev_from_s)
+	}
+}
+
+func TestToFile(t *testing.T) {
+	d := NewDocument()
+
+	d.Channel = serial.IRCLocation{
+		Host:    "some host",
+		Port:    5555,
+		Channel: "some channel",
+	}
+
+	ev := NewEvent("handler name")
+	ev.Arguments["hello"] = "world"
+	d.Events["example"] = ev
+
+	df := d.ToFile()
+
+	if df.Channel != d.Channel {
+		t.Fatal("Channels differ")
+	}
+
+	if len(df.Events) != 1 {
+		t.Fatal("Event conversion failure - wrong num events")
+	}
+
+	ev_to_s := ev.ToSerial()
+	ev_df := df.Events["example"]
+	hash1, _ := util.HashObject(ev_to_s)
+	hash2, _ := util.HashObject(ev_df)
+	if hash1 != hash2 {
+		t.Fatalf("%v != %v", ev_to_s, ev_df)
 	}
 }
