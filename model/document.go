@@ -20,8 +20,9 @@ type Document struct {
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
-		Events:  make(EventSet),
-		Quorums: make(serial.QuorumSet),
+		Events:     make(EventSet),
+		Quorums:    make(serial.QuorumSet),
+		Timestamps: NewTimestampManager(),
 	}
 }
 

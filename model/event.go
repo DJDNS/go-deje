@@ -37,13 +37,14 @@ func (e *Event) ToSerial() serial.Event {
 	}
 }
 
-func (e *Event) SetParent(p Event) error {
-	hash, err := util.HashObject(p)
-	if err != nil {
-		return err
-	}
-	e.ParentHash = hash
-	return nil
+func (e *Event) SetParent(p Event) {
+	e.ParentHash = p.Hash()
+}
+
+// Get the hash of the Event object.
+func (e Event) Hash() string {
+	hash, _ := util.HashObject(e)
+	return hash
 }
 
 // Given a set of Events, and two specific ones to trace,
@@ -84,12 +85,12 @@ func (s EventSet) GetCommonAncestor(A, B *Event) *Event {
 }
 
 func (s EventSet) Register(event Event) {
-	hash, _ := util.HashObject(event)
+	hash := event.Hash()
 	s[hash] = event
 }
 
 func (s EventSet) Contains(event Event) bool {
-	hash, _ := util.HashObject(event)
+	hash := event.Hash()
 	_, ok := s[hash]
 
 	return ok

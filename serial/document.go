@@ -10,3 +10,10 @@ type DocumentFile struct {
 	Events  EventSet
 	Quorums QuorumSet
 }
+
+func NewDocumentFile() DocumentFile {
+	return DocumentFile{
+		Events:  make(EventSet),
+		Quorums: make(QuorumSet),
+	}
+}
