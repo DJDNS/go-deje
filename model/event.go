@@ -94,6 +94,12 @@ func (tip Event) GetRoot(d Document) (event Event, ok bool) {
 	return
 }
 
+// Get a list of the children of an Event.
+func (e Event) GetChildren(d Document) ManageableSet {
+	group_key := e.Hash()
+	return d.Events.GetGroup(group_key)
+}
+
 // Serialization
 
 func EventFromSerial(se serial.Event) Event {
