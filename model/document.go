@@ -1,4 +1,4 @@
-package deje
+package model
 
 import "github.com/campadrenalin/go-deje/serial"
 
@@ -13,7 +13,7 @@ import "github.com/campadrenalin/go-deje/serial"
 type Document struct {
 	Channel    serial.IRCLocation
 	Events     ObjectManager
-	Quorums    serial.QuorumSet
+	Quorums    ObjectManager
 	Timestamps ObjectManager
 }
 
@@ -21,7 +21,7 @@ type Document struct {
 func NewDocument() Document {
 	return Document{
 		Events:     NewObjectManager(),
-		Quorums:    make(serial.QuorumSet),
+		Quorums:    NewObjectManager(),
 		Timestamps: NewObjectManager(),
 	}
 }
@@ -29,28 +29,15 @@ func NewDocument() Document {
 // Copies the data from a DocumentFile into a Document.
 func (d *Document) FromFile(df *serial.DocumentFile) {
 	d.Channel = df.Channel
-	d.Events = NewObjectManager()
-	d.Quorums = df.Quorums
-
-	for _, value := range df.Events {
-		d.Events.Register(EventFromSerial(value))
-	}
+	d.Events = ObjectManagerFromEventSet(df.Events)
+	d.Quorums = ObjectManagerFromQuorumSet(df.Quorums)
 }
 
 // Copies the data from a Document into a DocumentFile.
 func (d *Document) ToFile() *serial.DocumentFile {
-	df := &serial.DocumentFile{
+	return &serial.DocumentFile{
 		Channel: d.Channel,
-		Events:  make(serial.EventSet),
-		Quorums: d.Quorums,
+		Events:  EventSetFromObjectManager(d.Events),
+		Quorums: QuorumSetFromObjectManager(d.Quorums),
 	}
-
-	for key, value := range d.Events.GetItems() {
-		ev, ok := value.(Event)
-		if ok {
-			df.Events[key] = ev.ToSerial()
-		}
-	}
-
-	return df
 }

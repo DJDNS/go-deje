@@ -1,4 +1,4 @@
-package deje
+package model
 
 import (
 	"github.com/campadrenalin/go-deje/serial"
@@ -16,22 +16,6 @@ func NewEvent(hname string) Event {
 		ParentHash:  "",
 		HandlerName: hname,
 		Arguments:   make(map[string]interface{}),
-	}
-}
-
-func EventFromSerial(se serial.Event) Event {
-	return Event{
-		ParentHash:  se.ParentHash,
-		HandlerName: se.HandlerName,
-		Arguments:   se.Arguments,
-	}
-}
-
-func (e *Event) ToSerial() serial.Event {
-	return serial.Event{
-		ParentHash:  e.ParentHash,
-		HandlerName: e.HandlerName,
-		Arguments:   e.Arguments,
 	}
 }
 
@@ -108,4 +92,45 @@ func (tip Event) GetRoot(d Document) (event Event, ok bool) {
 		event = parent.(Event)
 	}
 	return
+}
+
+// Serialization
+
+func EventFromSerial(se serial.Event) Event {
+	return Event{
+		ParentHash:  se.ParentHash,
+		HandlerName: se.HandlerName,
+		Arguments:   se.Arguments,
+	}
+}
+
+func (e *Event) ToSerial() serial.Event {
+	return serial.Event{
+		ParentHash:  e.ParentHash,
+		HandlerName: e.HandlerName,
+		Arguments:   e.Arguments,
+	}
+}
+
+func EventSetFromObjectManager(om ObjectManager) serial.EventSet {
+	es := make(serial.EventSet)
+
+	for key, value := range om.GetItems() {
+		ev, ok := value.(Event)
+		if ok {
+			es[key] = ev.ToSerial()
+		}
+	}
+
+	return es
+}
+
+func ObjectManagerFromEventSet(es serial.EventSet) ObjectManager {
+	om := NewObjectManager()
+
+	for _, value := range es {
+		om.Register(EventFromSerial(value))
+	}
+
+	return om
 }

@@ -1,4 +1,4 @@
-package deje
+package model
 
 import (
 	"github.com/campadrenalin/go-deje/serial"
@@ -12,8 +12,8 @@ func TestNewDocument(t *testing.T) {
 	if d.Events.by_key == nil {
 		t.Fatal("d.Events.by_key == nil")
 	}
-	if d.Quorums == nil {
-		t.Fatal("d.Quorums == nil")
+	if d.Quorums.by_key == nil {
+		t.Fatal("d.Quorums.by_key == nil")
 	}
 	if d.Timestamps.by_key == nil {
 		t.Fatal("d.Timestamps.by_key == nil")
@@ -38,14 +38,15 @@ func TestFromFile(t *testing.T) {
 		t.Fatal("Channels differ")
 	}
 
-	if d.Events.Length() != 1 {
-		t.Fatal("Event conversion failure - wrong num events")
-	}
-	ev_from_s := EventFromSerial(ev)
 	_, ok := d.Events.GetByKey("hello")
 	if ok {
 		t.Fatal("Event added under the wrong key")
 	}
+
+	if d.Events.Length() != 1 {
+		t.Fatal("Event conversion failure - wrong num events")
+	}
+	ev_from_s := EventFromSerial(ev)
 	ev_from_d, ok := d.Events.GetByKey(ev_from_s.Hash())
 	if !ok {
 		t.Fatal("Could not get event from Document")

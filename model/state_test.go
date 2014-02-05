@@ -1,4 +1,4 @@
-package deje
+package model
 
 import (
 	"testing"
