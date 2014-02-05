@@ -10,16 +10,13 @@ func TestNewDocument(t *testing.T) {
 	d := NewDocument()
 
 	if d.Events.by_key == nil {
-		t.Fatal("d.Events == nil")
+		t.Fatal("d.Events.by_key == nil")
 	}
 	if d.Quorums == nil {
 		t.Fatal("d.Quorums == nil")
 	}
-	if d.Timestamps.Stamps == nil {
-		t.Fatal("d.Timestamps.Stamps == nil")
-	}
-	if d.Timestamps.PerBlock == nil {
-		t.Fatal("d.Timestamps.PerBlock == nil")
+	if d.Timestamps.by_key == nil {
+		t.Fatal("d.Timestamps.by_key == nil")
 	}
 }
 

@@ -14,7 +14,7 @@ type Document struct {
 	Channel    serial.IRCLocation
 	Events     ObjectManager
 	Quorums    serial.QuorumSet
-	Timestamps TimestampManager
+	Timestamps ObjectManager
 }
 
 // Create a new, blank Document, with fields initialized.
@@ -22,7 +22,7 @@ func NewDocument() Document {
 	return Document{
 		Events:     NewObjectManager(),
 		Quorums:    make(serial.QuorumSet),
-		Timestamps: NewTimestampManager(),
+		Timestamps: NewObjectManager(),
 	}
 }
 

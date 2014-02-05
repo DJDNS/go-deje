@@ -43,6 +43,13 @@ func (e Event) GetKey() string {
 func (e Event) GetGroupKey() string {
 	return e.ParentHash
 }
+func (e Event) Eq(other Manageable) bool {
+	other_event, ok := other.(Event)
+	if !ok {
+		return false
+	}
+	return e.Hash() == other_event.Hash()
+}
 
 // Get the hash of the Event object.
 func (e Event) Hash() string {

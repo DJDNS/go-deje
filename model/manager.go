@@ -3,9 +3,16 @@ package deje
 type Manageable interface {
 	GetKey() string
 	GetGroupKey() string
+
+	Eq(Manageable) bool
 }
 
 type ManageableSet map[string]Manageable
+
+func (ms ManageableSet) Contains(m Manageable) bool {
+	stored, ok := ms[m.GetKey()]
+	return ok && stored.Eq(m)
+}
 
 type ObjectManager struct {
 	by_key   ManageableSet
@@ -25,6 +32,10 @@ func (om *ObjectManager) GetItems() ManageableSet {
 
 func (om *ObjectManager) Length() int {
 	return len(om.by_key)
+}
+
+func (om *ObjectManager) Contains(m Manageable) bool {
+	return om.by_key.Contains(m)
 }
 
 func (om *ObjectManager) GetByKey(key string) (Manageable, bool) {
