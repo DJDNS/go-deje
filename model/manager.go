@@ -1,51 +1,31 @@
 package deje
 
 type Manageable interface {
-	GetId() string
-	GetParentId() string
-
-	ProvenWrong() bool
-	SetProvenWrong()
+	GetKey() string
+	GetGroupKey() string
 }
 
 type ManageableSet map[string]Manageable
 
 type ObjectManager struct {
-	by_id     ManageableSet
-	by_parent map[string]ManageableSet
+	by_key   ManageableSet
+	by_group map[string]ManageableSet
 }
 
 func (om *ObjectManager) Register(m Manageable) {
-	id := m.GetId()
-	om.by_id[id] = m
+	k := m.GetKey()
+	gk := m.GetGroupKey()
+	group := om.by_group[gk]
 
-	pid := m.GetParentId()
-	pchildren := om.by_parent[pid]
-	pchildren[id] = m
+	om.by_key[k] = m
+	group[k] = m
 }
 
 func (om *ObjectManager) Unregister(m Manageable) {
-	id := m.GetId()
-	pid := m.GetParentId()
+	k := m.GetKey()
+	gk := m.GetGroupKey()
+	group := om.by_group[gk]
 
-	delete(om.by_id, id)
-	pchildren := om.by_parent[pid]
-	delete(pchildren, id)
-}
-
-func (om *ObjectManager) GetParent(m Manageable) (Manageable, bool) {
-	pid := m.GetParentId()
-	p, ok := om.by_id[pid]
-	return p, ok
-}
-
-func (om *ObjectManager) GetRoot(m Manageable) Manageable {
-	for {
-		parent, had_p := om.GetParent(m)
-		if had_p {
-			m = parent
-		} else {
-			return m
-		}
-	}
+	delete(om.by_key, k)
+	delete(group, k)
 }
