@@ -52,14 +52,14 @@ func TestEventSetContains(t *testing.T) {
 		set.Register(ev)
 	}
 
-    if ! set.Contains(first) {
-        t.Fatal("set should contain first")
-    }
-    if ! set.Contains(third) {
-        t.Fatal("set should contain third")
-    }
+	if !set.Contains(first) {
+		t.Fatal("set should contain first")
+	}
+	if !set.Contains(third) {
+		t.Fatal("set should contain third")
+	}
 
-    if set.Contains(second) {
-        t.Fatal("set should contain second")
-    }
+	if set.Contains(second) {
+		t.Fatal("set should contain second")
+	}
 }

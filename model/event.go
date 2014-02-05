@@ -37,14 +37,21 @@ func (e *Event) ToSerial() serial.Event {
 	}
 }
 
-func (e *Event) SetParent(p Event) {
-	e.ParentHash = p.Hash()
+func (e Event) GetKey() string {
+	return e.Hash()
+}
+func (e Event) GetGroupKey() string {
+	return e.ParentHash
 }
 
 // Get the hash of the Event object.
 func (e Event) Hash() string {
 	hash, _ := util.HashObject(e)
 	return hash
+}
+
+func (e *Event) SetParent(p Event) {
+	e.ParentHash = p.Hash()
 }
 
 // Given a set of Events, and two specific ones to trace,

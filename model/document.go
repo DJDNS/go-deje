@@ -12,7 +12,7 @@ import "github.com/campadrenalin/go-deje/serial"
 // in every block of the longest valid blockchain.
 type Document struct {
 	Channel    serial.IRCLocation
-	Events     EventSet
+	Events     ObjectManager
 	Quorums    serial.QuorumSet
 	Timestamps TimestampManager
 }
@@ -20,7 +20,7 @@ type Document struct {
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
-		Events:     make(EventSet),
+		Events:     NewObjectManager(),
 		Quorums:    make(serial.QuorumSet),
 		Timestamps: NewTimestampManager(),
 	}
@@ -29,11 +29,11 @@ func NewDocument() Document {
 // Copies the data from a DocumentFile into a Document.
 func (d *Document) FromFile(df *serial.DocumentFile) {
 	d.Channel = df.Channel
-	d.Events = make(EventSet)
+	d.Events = NewObjectManager()
 	d.Quorums = df.Quorums
 
-	for key, value := range df.Events {
-		d.Events[key] = EventFromSerial(value)
+	for _, value := range df.Events {
+		d.Events.Register(EventFromSerial(value))
 	}
 }
 
@@ -45,8 +45,11 @@ func (d *Document) ToFile() *serial.DocumentFile {
 		Quorums: d.Quorums,
 	}
 
-	for key, value := range d.Events {
-		df.Events[key] = value.ToSerial()
+	for key, value := range d.Events.GetItems() {
+		ev, ok := value.(Event)
+		if ok {
+			df.Events[key] = ev.ToSerial()
+		}
 	}
 
 	return df
