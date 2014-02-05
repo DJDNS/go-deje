@@ -11,8 +11,6 @@ type Event struct {
 	Arguments   map[string]interface{}
 }
 
-type EventSet map[string]Event
-
 func NewEvent(hname string) Event {
 	return Event{
 		ParentHash:  "",
@@ -74,23 +72,23 @@ func (e *Event) SetParent(p Event) {
 //
 // There may not be a common ancestor. In this event, we return
 // a nil pointer.
-func (s EventSet) GetCommonAncestor(A, B *Event) *Event {
-	AncestorsA := make(EventSet)
-	AncestorsB := make(EventSet)
+func (A Event) GetCommonAncestor(d Document, B Event) (Event, bool) {
+	AncestorsA := make(map[string]bool)
+	AncestorsB := make(map[string]bool)
 
-	AncestorsA.Register(*A)
-	AncestorsB.Register(*B)
+	AncestorsA[A.Hash()] = true
+	AncestorsB[B.Hash()] = true
 
 	for {
-		anc, ok := s[A.ParentHash]
+		anc, ok := d.Events.GetByKey(A.ParentHash)
 		if !ok {
-			return nil
+			return Event{}, false
 		}
-		A = &anc
-		if AncestorsB.Contains(*A) {
-			return A
+		A = anc.(Event)
+		if AncestorsB[A.Hash()] {
+			return A, true
 		} else {
-			AncestorsA.Register(*A)
+			AncestorsA[A.Hash()] = true
 		}
 
 		A, B = B, A
@@ -98,26 +96,16 @@ func (s EventSet) GetCommonAncestor(A, B *Event) *Event {
 	}
 }
 
-func (s EventSet) Register(event Event) {
-	hash := event.Hash()
-	s[hash] = event
-}
-
-func (s EventSet) Contains(event Event) bool {
-	hash := event.Hash()
-	_, ok := s[hash]
-
-	return ok
-}
-
-func (s EventSet) GetRoot(tip Event) (event Event, ok bool) {
+func (tip Event) GetRoot(d Document) (event Event, ok bool) {
+	var parent Manageable
 	event = tip
 	ok = true
 	for event.ParentHash != "" {
-		event, ok = s[event.ParentHash]
+		parent, ok = d.Events.GetByKey(event.ParentHash)
 		if !ok {
 			return
 		}
+		event = parent.(Event)
 	}
 	return
 }
