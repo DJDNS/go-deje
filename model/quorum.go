@@ -15,6 +15,13 @@ type Quorum struct {
 	Signatures map[string]string
 }
 
+func NewQuorum(evhash string) Quorum {
+	return Quorum{
+		EventHash:  evhash,
+		Signatures: make(map[string]string),
+	}
+}
+
 func (q Quorum) GetKey() string {
 	return q.Hash()
 }
@@ -37,17 +44,17 @@ func (q Quorum) Hash() string {
 
 // Serialization
 
-func QuorumFromSerial(sq serial.Quorum) Quorum {
-	return Quorum{
-		EventHash:  sq.EventHash,
-		Signatures: sq.Signatures,
-	}
-}
-
 func (q Quorum) ToSerial() serial.Quorum {
 	return serial.Quorum{
 		EventHash:  q.EventHash,
 		Signatures: q.Signatures,
+	}
+}
+
+func QuorumFromSerial(sq serial.Quorum) Quorum {
+	return Quorum{
+		EventHash:  sq.EventHash,
+		Signatures: sq.Signatures,
 	}
 }
 

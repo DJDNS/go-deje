@@ -2,7 +2,7 @@ package model
 
 import "testing"
 
-func TestEventSet_GetRoot_NoElements(t *testing.T) {
+func TestEvent_GetRoot_NoElements(t *testing.T) {
 	d := NewDocument()
 	ev := NewEvent("handler_name")
 	ev.ParentHash = "blah blah blah" // Not already root
