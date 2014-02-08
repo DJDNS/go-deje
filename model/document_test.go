@@ -44,7 +44,7 @@ func TestFromFile(t *testing.T) {
 	}
 
 	if d.Events.Length() != 1 {
-		t.Fatal("Event conversion failure - wrong num events")
+		t.Fatalf("Wrong num events - expected 1, got %d", d.Events.Length())
 	}
 	ev_from_s := EventFromSerial(ev)
 	ev_from_d, ok := d.Events.GetByKey(ev_from_s.Hash())

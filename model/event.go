@@ -117,26 +117,3 @@ func (e *Event) ToSerial() serial.Event {
 		Arguments:   e.Arguments,
 	}
 }
-
-func EventSetFromObjectManager(om ObjectManager) serial.EventSet {
-	es := make(serial.EventSet)
-
-	for key, value := range om.GetItems() {
-		ev, ok := value.(Event)
-		if ok {
-			es[key] = ev.ToSerial()
-		}
-	}
-
-	return es
-}
-
-func ObjectManagerFromEventSet(es serial.EventSet) ObjectManager {
-	om := NewObjectManager()
-
-	for _, value := range es {
-		om.Register(EventFromSerial(value))
-	}
-
-	return om
-}

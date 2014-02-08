@@ -14,8 +14,8 @@ func TestObjectManagerRegister(t *testing.T) {
 		Time:  5,
 	}
 
-	m.Register(A)
-	m.Register(B)
+	m.register(A)
+	m.register(B)
 
 	group := m.GetGroup("5")
 	if !(group.Contains(A) && group.Contains(B)) {
@@ -35,9 +35,9 @@ func TestObjectManagerUnregister(t *testing.T) {
 		Time:  5,
 	}
 
-	m.Register(A)
-	m.Register(B)
-	m.Unregister(A)
+	m.register(A)
+	m.register(B)
+	m.unregister(A)
 
 	group := m.GetGroup("5")
 	if group.Contains(A) || !group.Contains(B) || m.Length() != 1 {
@@ -82,7 +82,7 @@ func TestObjectManagerContains(t *testing.T) {
 		Time:  5,
 	}
 
-	m.Register(A)
+	m.register(A)
 
 	if !m.Contains(A) {
 		t.Fatal("m should contain A")
@@ -104,7 +104,7 @@ func TestObjectManagerGetGroup(t *testing.T) {
 		QHash: "xyz",
 		Time:  5,
 	}
-	m.Register(&ts)
+	m.register(&ts)
 
 	group = m.GetGroup("20")
 	if len(group) != 0 {

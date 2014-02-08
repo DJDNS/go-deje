@@ -57,26 +57,3 @@ func QuorumFromSerial(sq serial.Quorum) Quorum {
 		Signatures: sq.Signatures,
 	}
 }
-
-func QuorumSetFromObjectManager(om ObjectManager) serial.QuorumSet {
-	qs := make(serial.QuorumSet)
-
-	for key, value := range om.GetItems() {
-		q, ok := value.(Quorum)
-		if ok {
-			qs[key] = q.ToSerial()
-		}
-	}
-
-	return qs
-}
-
-func ObjectManagerFromQuorumSet(qs serial.QuorumSet) ObjectManager {
-	om := NewObjectManager()
-
-	for _, value := range qs {
-		om.Register(QuorumFromSerial(value))
-	}
-
-	return om
-}

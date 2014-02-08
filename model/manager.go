@@ -51,7 +51,7 @@ func (om *ObjectManager) GetGroup(key string) ManageableSet {
 	return om.by_group[key]
 }
 
-func (om *ObjectManager) Register(m Manageable) {
+func (om *ObjectManager) register(m Manageable) {
 	k := m.GetKey()
 	gk := m.GetGroupKey()
 	group := om.GetGroup(gk)
@@ -60,7 +60,7 @@ func (om *ObjectManager) Register(m Manageable) {
 	group[k] = m
 }
 
-func (om *ObjectManager) Unregister(m Manageable) {
+func (om *ObjectManager) unregister(m Manageable) {
 	k := m.GetKey()
 	gk := m.GetGroupKey()
 	group := om.GetGroup(gk)
