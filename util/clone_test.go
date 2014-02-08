@@ -36,8 +36,16 @@ func TestCloneMarshalBadData(t *testing.T) {
 		t.Fatal("CloneMarshal got picky about extra/missing data")
 	}
 
+	// Test structure mismatch
 	m["host"] = 5
 	err = CloneMarshal(m, loc)
+	if err == nil {
+		t.Fatal("CloneMarshal should have failed, but didn't")
+	}
+
+	// Test unserializable object
+	c := make(chan int)
+	err = CloneMarshal(c, loc)
 	if err == nil {
 		t.Fatal("CloneMarshal should have failed, but didn't")
 	}
