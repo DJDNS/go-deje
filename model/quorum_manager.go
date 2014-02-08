@@ -11,22 +11,22 @@ func NewQuorumManager() QuorumManager {
 	return QuorumManager{om}
 }
 
-func (em *QuorumManager) Register(quorum Quorum) {
-	em.register(quorum)
+func (qm *QuorumManager) Register(quorum Quorum) {
+	qm.register(quorum)
 }
 
-func (em *QuorumManager) Unregister(quorum Quorum) {
-	em.unregister(quorum)
+func (qm *QuorumManager) Unregister(quorum Quorum) {
+	qm.unregister(quorum)
 }
 
-func (em *QuorumManager) DeserializeFrom(items map[string]serial.Quorum) {
+func (qm *QuorumManager) DeserializeFrom(items map[string]serial.Quorum) {
 	for _, value := range items {
-		em.Register(QuorumFromSerial(value))
+		qm.Register(QuorumFromSerial(value))
 	}
 }
 
-func (em *QuorumManager) SerializeTo(items map[string]serial.Quorum) {
-	for key, value := range em.GetItems() {
+func (qm *QuorumManager) SerializeTo(items map[string]serial.Quorum) {
+	for key, value := range qm.GetItems() {
 		ev := value.(Quorum)
 		items[key] = ev.ToSerial()
 	}

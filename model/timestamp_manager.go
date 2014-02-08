@@ -9,10 +9,10 @@ func NewTimestampManager() TimestampManager {
 	return TimestampManager{om}
 }
 
-func (em *TimestampManager) Register(timestamp Timestamp) {
-	em.register(timestamp)
+func (tm *TimestampManager) Register(timestamp Timestamp) {
+	tm.register(timestamp)
 }
 
-func (em *TimestampManager) Unregister(timestamp Timestamp) {
-	em.unregister(timestamp)
+func (tm *TimestampManager) Unregister(timestamp Timestamp) {
+	tm.unregister(timestamp)
 }
