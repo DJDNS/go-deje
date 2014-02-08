@@ -2,6 +2,37 @@ package model
 
 import "testing"
 
+func TestEvent_Eq(t *testing.T) {
+	A := NewEvent("hello")
+	B := NewEvent("hello")
+	C := NewEvent("hello")
+	D := NewEvent("hello")
+
+	if !(A.Eq(A) && A.Eq(B) && A.Eq(C) && A.Eq(D)) {
+		t.Fatal("Freshly initialized events are not equal")
+	}
+
+	B.ParentHash = "Ezekiel Wigglesworth"
+	if A.Eq(B) {
+		t.Fatal("A should not equal B")
+	}
+
+	C.HandlerName = "Ezekiel Wigglesworth"
+	if A.Eq(B) {
+		t.Fatal("A should not equal C")
+	}
+
+	D.Arguments["Ezekiel"] = "Wigglesworth"
+	if A.Eq(B) {
+		t.Fatal("A should not equal D")
+	}
+
+	Q := NewQuorum("hello")
+	if A.Eq(Q) {
+		t.Fatal("A should not equal Q")
+	}
+}
+
 func TestEvent_GetRoot_NoElements(t *testing.T) {
 	d := NewDocument()
 	ev := NewEvent("handler_name")

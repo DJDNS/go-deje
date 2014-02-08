@@ -56,6 +56,10 @@ func (e *Event) SetParent(p Event) {
 //
 // There may not be a common ancestor. In this event, we return
 // a nil pointer.
+//
+// Placeholder right now, because I need to think through the
+// invariant cases, and write tests.
+/*
 func (A Event) GetCommonAncestor(d Document, B Event) (Event, bool) {
 	AncestorsA := make(map[string]bool)
 	AncestorsB := make(map[string]bool)
@@ -79,6 +83,7 @@ func (A Event) GetCommonAncestor(d Document, B Event) (Event, bool) {
 		AncestorsA, AncestorsB = AncestorsB, AncestorsA
 	}
 }
+*/
 
 func (tip Event) GetRoot(d Document) (event Event, ok bool) {
 	var parent Manageable

@@ -42,6 +42,7 @@ func TestTimestampEq(t *testing.T) {
 		QHash: "xyz",
 		Time:  5,
 	}
+	Q := NewQuorum("whatever")
 
 	if !Manageable(A).Eq(A) {
 		t.Fatal("A should equal A")
@@ -51,5 +52,8 @@ func TestTimestampEq(t *testing.T) {
 	}
 	if !Manageable(A).Eq(C) {
 		t.Fatal("A should equal C")
+	}
+	if Manageable(A).Eq(Q) {
+		t.Fatal("A should not equal Q")
 	}
 }
