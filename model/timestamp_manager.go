@@ -27,6 +27,7 @@ type Uint64Slice []uint64
 func (s Uint64Slice) Len() int           { return len(s) }
 func (s Uint64Slice) Less(i, j int) bool { return s[i] < s[j] }
 func (s Uint64Slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s Uint64Slice) Sort()              { sort.Sort(s) }
 
 type chan_ts chan Timestamp
 
@@ -36,27 +37,26 @@ func (tm *TimestampManager) emitBlock(c chan_ts, block ManageableSet) {
 	i := 0
 	for str, _ := range block {
 		keys[i] = str
+		i++
 	}
 	sort.Strings(keys)
 
 	// Output to chan
 	for _, key := range keys {
-		ts, ok := tm.GetByKey(key)
-		if ok {
-			c <- ts.(Timestamp)
-		}
+		ts := block[key]
+		c <- ts.(Timestamp)
 	}
 }
 
 func (tm *TimestampManager) emitTimestamps(c chan_ts, bh []uint64) {
 	// Iterate through blocks
-	for h := range bh {
+	for _, h := range bh {
 		block := tm.GetGroup(strconv.FormatUint(uint64(h), 10))
 		tm.emitBlock(c, block)
 	}
 }
 
-func (tm *TimestampManager) sortedBlocks() Uint64Slice {
+func (tm *TimestampManager) sortedBlocks() (Uint64Slice, error) {
 	blocks := tm.ObjectManager.by_group
 
 	// Get list of block heights
@@ -65,19 +65,27 @@ func (tm *TimestampManager) sortedBlocks() Uint64Slice {
 	for h := range blocks {
 		int_height, err := strconv.ParseUint(h, 10, 64)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		block_heights[i] = int_height
 		i++
 	}
 
 	// Sort and return
-	sort.Sort(block_heights)
-	return block_heights
+	block_heights.Sort()
+	return block_heights, nil
 }
 
-func (tm *TimestampManager) Iter() <-chan Timestamp {
+func (tm *TimestampManager) Iter() (<-chan Timestamp, error) {
 	c := make(chan Timestamp)
-	go tm.emitTimestamps(c, tm.sortedBlocks())
-	return c
+	sorted_blocks, err := tm.sortedBlocks()
+	if err != nil {
+		return c, err
+	}
+
+	go func() {
+		defer close(c)
+		tm.emitTimestamps(c, sorted_blocks)
+	}()
+	return c, nil
 }
