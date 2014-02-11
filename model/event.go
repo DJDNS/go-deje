@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"github.com/campadrenalin/go-deje/serial"
 	"github.com/campadrenalin/go-deje/util"
 )
@@ -55,35 +56,40 @@ func (e *Event) SetParent(p Event) {
 // incompatible branches of the Event chain.
 //
 // There may not be a common ancestor. In this event, we return
-// a nil pointer.
-//
-// Placeholder right now, because I need to think through the
-// invariant cases, and write tests.
-/*
-func (A Event) GetCommonAncestor(d Document, B Event) (Event, bool) {
-	AncestorsA := make(map[string]bool)
-	AncestorsB := make(map[string]bool)
+// an error.
+func (A Event) GetCommonAncestor(d Document, B Event) (Event, error) {
+	ancestors := make(map[string]bool)
+	trails := make(chan Event, 2)
+	var current Event
 
-	AncestorsA[A.Hash()] = true
-	AncestorsB[B.Hash()] = true
+	trails <- A
+	trails <- B
 
 	for {
-		anc, ok := d.Events.GetByKey(A.ParentHash)
-		if !ok {
-			return Event{}, false
-		}
-		A = anc.(Event)
-		if AncestorsB[A.Hash()] {
-			return A, true
-		} else {
-			AncestorsA[A.Hash()] = true
-		}
+		select {
+		case current = <-trails:
+			// Check current
+			current_key := current.GetKey()
+			if ancestors[current_key] {
+				return current, nil
+			} else {
+				ancestors[current_key] = true
+			}
 
-		A, B = B, A
-		AncestorsA, AncestorsB = AncestorsB, AncestorsA
+			// Get parent, add to trails
+			if current.ParentHash == "" {
+				continue
+			}
+			parent, ok := d.Events.GetByKey(current.ParentHash)
+			if !ok {
+				return current, errors.New("Bad parent hash")
+			}
+			trails <- parent.(Event)
+		default:
+			return current, errors.New("No common ancestor")
+		}
 	}
 }
-*/
 
 func (tip Event) GetRoot(d Document) (event Event, ok bool) {
 	var parent Manageable
