@@ -1,23 +1,20 @@
 package util
 
-import (
-	"github.com/campadrenalin/go-deje/serial"
-	"testing"
-)
+import "testing"
 
 func TestCloneMarshal(t *testing.T) {
-	m := make(serial.JSONObject)
+	m := make(JSONObject)
 	m["host"] = "some string"
 	m["port"] = 9001
 	m["channel"] = "go-nuts"
 
-	loc := new(serial.IRCLocation)
+	loc := new(IRCLocation)
 	err := CloneMarshal(m, loc)
 	if err != nil {
 		t.Fatal("Error in CloneMarshal: %v", err)
 	}
 
-	expected := serial.IRCLocation{
+	expected := IRCLocation{
 		Host:    "some string",
 		Port:    9001,
 		Channel: "go-nuts",
@@ -28,9 +25,9 @@ func TestCloneMarshal(t *testing.T) {
 }
 
 func TestCloneMarshalBadData(t *testing.T) {
-	m := make(serial.JSONObject)
+	m := make(JSONObject)
 	m["ghost"] = "Whatever"
-	loc := new(serial.IRCLocation)
+	loc := new(IRCLocation)
 	err := CloneMarshal(m, loc)
 	if err != nil {
 		t.Fatal("CloneMarshal got picky about extra/missing data")

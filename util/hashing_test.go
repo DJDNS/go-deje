@@ -2,12 +2,11 @@ package util
 
 import (
 	"encoding/json"
-	"github.com/campadrenalin/go-deje/serial"
 	"testing"
 )
 
 func TestHashObjectBasic(t *testing.T) {
-	obj := make(serial.JSONObject)
+	obj := make(JSONObject)
 	obj["x"] = "y"
 	obj["z"] = []interface{}{8, 9, nil, true}
 
@@ -34,7 +33,7 @@ func TestHashObjectBasic(t *testing.T) {
 }
 
 func TestHashObjectEmpty(t *testing.T) {
-	loc := new(serial.IRCLocation)
+	loc := new(IRCLocation)
 	hash, err := HashObject(loc)
 	if err != nil {
 		t.Fatal(err)
@@ -58,7 +57,7 @@ func TestHashObjectEmpty(t *testing.T) {
 }
 
 func TestHashObjectPopulated(t *testing.T) {
-	loc := new(serial.IRCLocation)
+	loc := new(IRCLocation)
 	loc.Host = "example.com"
 	loc.Port = 666
 	loc.Channel = "mtv"

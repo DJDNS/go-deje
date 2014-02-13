@@ -1,12 +1,5 @@
 package model
 
-type Manageable interface {
-	GetKey() string
-	GetGroupKey() string
-
-	Eq(Manageable) bool
-}
-
 type ManageableSet map[string]Manageable
 
 func (ms ManageableSet) Contains(m Manageable) bool {

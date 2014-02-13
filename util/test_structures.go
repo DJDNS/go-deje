@@ -1,4 +1,6 @@
-package serial
+package util
+
+type JSONObject map[string]interface{}
 
 type IRCLocation struct {
 	Host    string `json:"host"`
