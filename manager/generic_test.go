@@ -1,21 +1,65 @@
-package model
+package manager
 
-import "testing"
+import (
+	"github.com/campadrenalin/go-deje/model"
+	"testing"
+)
 
-func TestObjectManagerRegister(t *testing.T) {
+func setup_om_with_ab() (ObjectManager, model.Timestamp, model.Timestamp) {
 	m := NewObjectManager()
 
-	A := Timestamp{
+	A := model.Timestamp{
 		QHash: "xyz",
 		Time:  5,
 	}
-	B := Timestamp{
+	B := model.Timestamp{
 		QHash: "abc",
 		Time:  5,
 	}
 
 	m.register(A)
 	m.register(B)
+
+	return m, A, B
+}
+
+func TestObjectManagerGetItems(t *testing.T) {
+	m, A, B := setup_om_with_ab()
+
+	items := m.GetItems()
+	if len(items) != 2 {
+		t.Fatalf("Expected 2 items, got %d", len(items))
+	}
+
+	for _, ts := range []model.Timestamp{A, B} {
+		key := ts.GetKey()
+		item, ok := items[key]
+		if !ok {
+			t.Fatalf("Missing item %s", key)
+		}
+		if !ts.Eq(item) {
+			t.Fatalf("TS %#v does not equal %#v", ts, item)
+		}
+	}
+}
+
+func TestObjectManagerGetByKey(t *testing.T) {
+	m, A, B := setup_om_with_ab()
+
+	for _, ts := range []model.Timestamp{A, B} {
+		key := ts.GetKey()
+		item, ok := m.GetByKey(key)
+		if !ok {
+			t.Fatalf("Missing item %s", key)
+		}
+		if !ts.Eq(item) {
+			t.Fatalf("TS %#v does not equal %#v", ts, item)
+		}
+	}
+}
+
+func TestObjectManagerRegister(t *testing.T) {
+	m, A, B := setup_om_with_ab()
 
 	group := m.GetGroup("5")
 	if !(group.Contains(A) && group.Contains(B)) {
@@ -24,19 +68,8 @@ func TestObjectManagerRegister(t *testing.T) {
 }
 
 func TestObjectManagerUnregister(t *testing.T) {
-	m := NewObjectManager()
+	m, A, B := setup_om_with_ab()
 
-	A := Timestamp{
-		QHash: "xyz",
-		Time:  5,
-	}
-	B := Timestamp{
-		QHash: "abc",
-		Time:  5,
-	}
-
-	m.register(A)
-	m.register(B)
 	m.unregister(A)
 
 	group := m.GetGroup("5")
@@ -46,38 +79,38 @@ func TestObjectManagerUnregister(t *testing.T) {
 }
 
 func TestManagableSetContains(t *testing.T) {
-	ts := make(ManageableSet)
-	A := Timestamp{
+	ms := make(ManageableSet)
+	A := model.Timestamp{
 		QHash: "xyz",
 		Time:  5,
 	}
-	B := Timestamp{
+	B := model.Timestamp{
 		QHash: "abc",
 		Time:  5,
 	}
 
-	if ts.Contains(A) {
-		t.Fatal("ts shouldn't contain A")
+	if ms.Contains(A) {
+		t.Fatal("ms shouldn't contain A")
 	}
 
-	ts[A.QHash] = B
-	if ts.Contains(A) {
-		t.Fatal("ts shouldn't contain A, but has key for A")
+	ms[A.QHash] = B
+	if ms.Contains(A) {
+		t.Fatal("ms shouldn't contain A, but has key for A")
 	}
 
-	ts[A.QHash] = A
-	if !ts.Contains(A) {
-		t.Fatal("ts should contain A")
+	ms[A.QHash] = A
+	if !ms.Contains(A) {
+		t.Fatal("ms should contain A")
 	}
 }
 
 func TestObjectManagerContains(t *testing.T) {
 	m := NewObjectManager()
-	A := Timestamp{
+	A := model.Timestamp{
 		QHash: "xyz",
 		Time:  5,
 	}
-	B := Timestamp{
+	B := model.Timestamp{
 		QHash: "abc",
 		Time:  5,
 	}
@@ -100,7 +133,7 @@ func TestObjectManagerGetGroup(t *testing.T) {
 		t.Fatal("group should have been empty")
 	}
 
-	ts := Timestamp{
+	ts := model.Timestamp{
 		QHash: "xyz",
 		Time:  5,
 	}

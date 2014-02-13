@@ -1,10 +1,13 @@
-package model
+package manager
 
-import "testing"
+import (
+	"github.com/campadrenalin/go-deje/model"
+	"testing"
+)
 
 func TestQuorumManager_Register(t *testing.T) {
 	m := NewQuorumManager()
-	q := NewQuorum("evhash")
+	q := model.NewQuorum("evhash")
 
 	if m.Contains(q) {
 		t.Fatal("m should not contain q yet")
@@ -17,7 +20,7 @@ func TestQuorumManager_Register(t *testing.T) {
 
 func TestQuorumManager_Unregister(t *testing.T) {
 	m := NewQuorumManager()
-	q := NewQuorum("evhash")
+	q := model.NewQuorum("evhash")
 	m.Register(q)
 
 	if !m.Contains(q) {

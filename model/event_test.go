@@ -33,31 +33,31 @@ func TestEvent_GetKey(t *testing.T) {
 	ev.Arguments["hello"] = []interface{}{"world", 5}
 	ev.Arguments["before"] = nil
 
-    key := ev.GetKey()
+	key := ev.GetKey()
 
-    // Obtained via:
-    // echo -n '{"parent":"","handler":"handler_name","args":{"before":null,"hello":["world",5]}}' | sha1sum
-    expected := "86e5db5fcf8c749146f2adcc23c728769ef2bd98"
+	// Obtained via:
+	// echo -n '{"parent":"","handler":"handler_name","args":{"before":null,"hello":["world",5]}}' | sha1sum
+	expected := "86e5db5fcf8c749146f2adcc23c728769ef2bd98"
 
-    if key != expected {
-        t.Fatalf("Expected %v, got %v", expected, key)
-    }
+	if key != expected {
+		t.Fatalf("Expected %v, got %v", expected, key)
+	}
 }
 
 func TestEvent_GetGroupKey(t *testing.T) {
-    ev := NewEvent("SET")
+	ev := NewEvent("SET")
 
-    gk := ev.GetGroupKey()
-    if gk != "" {
-        t.Fatalf("Expected empty group key, got %v", gk)
-    }
+	gk := ev.GetGroupKey()
+	if gk != "" {
+		t.Fatalf("Expected empty group key, got %v", gk)
+	}
 
-    expected := "Hurpdeburp"
-    ev.ParentHash = expected
-    gk = ev.GetGroupKey()
-    if gk != expected {
-        t.Fatalf("Expected group key %v, got %v", expected, gk)
-    }
+	expected := "Hurpdeburp"
+	ev.ParentHash = expected
+	gk = ev.GetGroupKey()
+	if gk != expected {
+		t.Fatalf("Expected group key %v, got %v", expected, gk)
+	}
 }
 
 func TestEvent_Eq(t *testing.T) {
@@ -90,4 +90,3 @@ func TestEvent_Eq(t *testing.T) {
 		t.Fatal("A should not equal Q")
 	}
 }
-

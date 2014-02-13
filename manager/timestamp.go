@@ -1,6 +1,7 @@
-package model
+package manager
 
 import (
+	"github.com/campadrenalin/go-deje/model"
 	"sort"
 	"strconv"
 )
@@ -14,11 +15,11 @@ func NewTimestampManager() TimestampManager {
 	return TimestampManager{om}
 }
 
-func (tm *TimestampManager) Register(timestamp Timestamp) {
+func (tm *TimestampManager) Register(timestamp model.Timestamp) {
 	tm.register(timestamp)
 }
 
-func (tm *TimestampManager) Unregister(timestamp Timestamp) {
+func (tm *TimestampManager) Unregister(timestamp model.Timestamp) {
 	tm.unregister(timestamp)
 }
 
@@ -29,7 +30,7 @@ func (s Uint64Slice) Less(i, j int) bool { return s[i] < s[j] }
 func (s Uint64Slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s Uint64Slice) Sort()              { sort.Sort(s) }
 
-type chan_ts chan Timestamp
+type chan_ts chan model.Timestamp
 
 func (tm *TimestampManager) emitBlock(c chan_ts, block ManageableSet) {
 	// Sort keys within block
@@ -44,7 +45,7 @@ func (tm *TimestampManager) emitBlock(c chan_ts, block ManageableSet) {
 	// Output to chan
 	for _, key := range keys {
 		ts := block[key]
-		c <- ts.(Timestamp)
+		c <- ts.(model.Timestamp)
 	}
 }
 
@@ -76,8 +77,8 @@ func (tm *TimestampManager) sortedBlocks() (Uint64Slice, error) {
 	return block_heights, nil
 }
 
-func (tm *TimestampManager) Iter() (<-chan Timestamp, error) {
-	c := make(chan Timestamp)
+func (tm *TimestampManager) Iter() (<-chan model.Timestamp, error) {
+	c := make(chan model.Timestamp)
 	sorted_blocks, err := tm.sortedBlocks()
 	if err != nil {
 		return c, err

@@ -1,10 +1,13 @@
-package model
+package manager
 
-import "testing"
+import (
+	"github.com/campadrenalin/go-deje/model"
+	"testing"
+)
 
 func TestEventManager_Register(t *testing.T) {
 	m := NewEventManager()
-	e := NewEvent("handler name")
+	e := model.NewEvent("handler name")
 
 	if m.Contains(e) {
 		t.Fatal("m should not contain e yet")
@@ -17,7 +20,7 @@ func TestEventManager_Register(t *testing.T) {
 
 func TestEventManager_Unregister(t *testing.T) {
 	m := NewEventManager()
-	e := NewEvent("handler name")
+	e := model.NewEvent("handler name")
 	m.Register(e)
 
 	if !m.Contains(e) {

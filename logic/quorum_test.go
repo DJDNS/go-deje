@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 )
+
 func TestQuorum_ToSerial(t *testing.T) {
 	Q := NewQuorum("example")
 	Q.Signatures["key"] = "value"

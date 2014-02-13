@@ -1,5 +1,8 @@
-package model
+package manager
 
+import "github.com/campadrenalin/go-deje/model"
+
+type Manageable model.Manageable
 type ManageableSet map[string]Manageable
 
 func (ms ManageableSet) Contains(m Manageable) bool {

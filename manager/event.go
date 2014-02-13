@@ -1,6 +1,6 @@
-package model
+package manager
 
-import "github.com/campadrenalin/go-deje/serial"
+import "github.com/campadrenalin/go-deje/model"
 
 type EventManager struct {
 	ObjectManager
@@ -11,23 +11,10 @@ func NewEventManager() EventManager {
 	return EventManager{om}
 }
 
-func (em *EventManager) Register(event Event) {
+func (em *EventManager) Register(event model.Event) {
 	em.register(event)
 }
 
-func (em *EventManager) Unregister(event Event) {
+func (em *EventManager) Unregister(event model.Event) {
 	em.unregister(event)
-}
-
-func (em *EventManager) DeserializeFrom(items map[string]serial.Event) {
-	for _, value := range items {
-		em.Register(EventFromSerial(value))
-	}
-}
-
-func (em *EventManager) SerializeTo(items map[string]serial.Event) {
-	for key, value := range em.GetItems() {
-		ev := value.(Event)
-		items[key] = ev.ToSerial()
-	}
 }

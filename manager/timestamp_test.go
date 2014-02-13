@@ -1,13 +1,14 @@
-package model
+package manager
 
 import (
+	"github.com/campadrenalin/go-deje/model"
 	"reflect"
 	"testing"
 )
 
 func TestTimestampManager_Register(t *testing.T) {
 	m := NewTimestampManager()
-	ts := Timestamp{
+	ts := model.Timestamp{
 		QHash: "Bubba",
 		Time:  25,
 	}
@@ -23,7 +24,7 @@ func TestTimestampManager_Register(t *testing.T) {
 
 func TestTimestampManager_Unregister(t *testing.T) {
 	m := NewTimestampManager()
-	ts := Timestamp{
+	ts := model.Timestamp{
 		QHash: "Bubba",
 		Time:  25,
 	}
@@ -58,19 +59,19 @@ func setup_TSM_iter() (chan_ts, TimestampManager) {
 	c := make(chan_ts)
 	tm := NewTimestampManager()
 
-	tm.Register(Timestamp{
+	tm.Register(model.Timestamp{
 		QHash: "hello",
 		Time:  51,
 	})
-	tm.Register(Timestamp{
+	tm.Register(model.Timestamp{
 		QHash: "world",
 		Time:  51,
 	})
-	tm.Register(Timestamp{
+	tm.Register(model.Timestamp{
 		QHash: "an early hash",
 		Time:  51,
 	})
-	tm.Register(Timestamp{
+	tm.Register(model.Timestamp{
 		QHash: "an unrelated quorum",
 		Time:  52,
 	})

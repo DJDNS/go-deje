@@ -7,7 +7,6 @@ import (
 
 type Quorum model.Quorum
 
-
 // Serialization
 
 func (q Quorum) ToSerial() serial.Quorum {
