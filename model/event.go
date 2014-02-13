@@ -1,5 +1,7 @@
 package model
 
+import "github.com/campadrenalin/go-deje/util"
+
 type Event struct {
 	ParentHash  string                 `json:"parent"`
 	HandlerName string                 `json:"handler"`
