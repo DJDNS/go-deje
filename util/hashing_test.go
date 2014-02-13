@@ -6,7 +6,7 @@ import (
 )
 
 func TestHashObjectBasic(t *testing.T) {
-	obj := make(JSONObject)
+	obj := make(jsonObject)
 	obj["x"] = "y"
 	obj["z"] = []interface{}{8, 9, nil, true}
 
@@ -33,7 +33,7 @@ func TestHashObjectBasic(t *testing.T) {
 }
 
 func TestHashObjectEmpty(t *testing.T) {
-	loc := new(IRCLocation)
+	loc := new(ircLocation)
 	hash, err := HashObject(loc)
 	if err != nil {
 		t.Fatal(err)
@@ -57,7 +57,7 @@ func TestHashObjectEmpty(t *testing.T) {
 }
 
 func TestHashObjectPopulated(t *testing.T) {
-	loc := new(IRCLocation)
+	loc := new(ircLocation)
 	loc.Host = "example.com"
 	loc.Port = 666
 	loc.Channel = "mtv"

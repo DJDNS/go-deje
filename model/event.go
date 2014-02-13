@@ -2,6 +2,10 @@ package model
 
 import "github.com/campadrenalin/go-deje/util"
 
+// An Event is an action that can be applied to a DEJE doc,
+// including a set of parameters. In practice, custom Event
+// types may be defined for a document, as well as permissions
+// for which users are allowed to perform which types of Events.
 type Event struct {
 	ParentHash  string                 `json:"parent"`
 	HandlerName string                 `json:"handler"`

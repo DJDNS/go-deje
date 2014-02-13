@@ -1,8 +1,8 @@
 package util
 
-type JSONObject map[string]interface{}
+type jsonObject map[string]interface{}
 
-type IRCLocation struct {
+type ircLocation struct {
 	Host    string `json:"host"`
 	Port    uint32 `json:"port"`
 	Channel string `json:"channel"`

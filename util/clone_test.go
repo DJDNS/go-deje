@@ -3,18 +3,18 @@ package util
 import "testing"
 
 func TestCloneMarshal(t *testing.T) {
-	m := make(JSONObject)
+	m := make(jsonObject)
 	m["host"] = "some string"
 	m["port"] = 9001
 	m["channel"] = "go-nuts"
 
-	loc := new(IRCLocation)
+	loc := new(ircLocation)
 	err := CloneMarshal(m, loc)
 	if err != nil {
 		t.Fatal("Error in CloneMarshal: %v", err)
 	}
 
-	expected := IRCLocation{
+	expected := ircLocation{
 		Host:    "some string",
 		Port:    9001,
 		Channel: "go-nuts",
@@ -25,9 +25,9 @@ func TestCloneMarshal(t *testing.T) {
 }
 
 func TestCloneMarshalBadData(t *testing.T) {
-	m := make(JSONObject)
+	m := make(jsonObject)
 	m["ghost"] = "Whatever"
-	loc := new(IRCLocation)
+	loc := new(ircLocation)
 	err := CloneMarshal(m, loc)
 	if err != nil {
 		t.Fatal("CloneMarshal got picky about extra/missing data")
