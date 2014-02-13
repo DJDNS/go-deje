@@ -7,11 +7,11 @@ import (
 )
 
 type TimestampManager struct {
-	GenericManager
+	genericManager
 }
 
 func NewTimestampManager() TimestampManager {
-	om := NewGenericManager()
+	om := newGenericManager()
 	return TimestampManager{om}
 }
 
@@ -23,12 +23,12 @@ func (tm *TimestampManager) Unregister(timestamp model.Timestamp) {
 	tm.unregister(timestamp)
 }
 
-type Uint64Slice []uint64
+type uint64Slice []uint64
 
-func (s Uint64Slice) Len() int           { return len(s) }
-func (s Uint64Slice) Less(i, j int) bool { return s[i] < s[j] }
-func (s Uint64Slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s Uint64Slice) Sort()              { sort.Sort(s) }
+func (s uint64Slice) Len() int           { return len(s) }
+func (s uint64Slice) Less(i, j int) bool { return s[i] < s[j] }
+func (s uint64Slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s uint64Slice) Sort()              { sort.Sort(s) }
 
 type chan_ts chan model.Timestamp
 
@@ -57,11 +57,11 @@ func (tm *TimestampManager) emitTimestamps(c chan_ts, bh []uint64) {
 	}
 }
 
-func (tm *TimestampManager) sortedBlocks() (Uint64Slice, error) {
-	blocks := tm.GenericManager.by_group
+func (tm *TimestampManager) sortedBlocks() (uint64Slice, error) {
+	blocks := tm.genericManager.by_group
 
 	// Get list of block heights
-	block_heights := make(Uint64Slice, len(blocks))
+	block_heights := make(uint64Slice, len(blocks))
 	i := 0
 	for h := range blocks {
 		int_height, err := strconv.ParseUint(h, 10, 64)

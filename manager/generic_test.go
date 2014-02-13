@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func setup_om_with_ab() (GenericManager, model.Timestamp, model.Timestamp) {
-	m := NewGenericManager()
+func setup_om_with_ab() (genericManager, model.Timestamp, model.Timestamp) {
+	m := newGenericManager()
 
 	A := model.Timestamp{
 		QHash: "xyz",
@@ -23,7 +23,7 @@ func setup_om_with_ab() (GenericManager, model.Timestamp, model.Timestamp) {
 	return m, A, B
 }
 
-func TestGenericManagerGetItems(t *testing.T) {
+func TestgenericManagerGetItems(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	items := m.GetItems()
@@ -43,7 +43,7 @@ func TestGenericManagerGetItems(t *testing.T) {
 	}
 }
 
-func TestGenericManagerGetByKey(t *testing.T) {
+func TestgenericManagerGetByKey(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	for _, ts := range []model.Timestamp{A, B} {
@@ -58,7 +58,7 @@ func TestGenericManagerGetByKey(t *testing.T) {
 	}
 }
 
-func TestGenericManagerRegister(t *testing.T) {
+func TestgenericManagerRegister(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	group := m.GetGroup("5")
@@ -67,7 +67,7 @@ func TestGenericManagerRegister(t *testing.T) {
 	}
 }
 
-func TestGenericManagerUnregister(t *testing.T) {
+func TestgenericManagerUnregister(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	m.unregister(A)
@@ -104,8 +104,8 @@ func TestManagableSetContains(t *testing.T) {
 	}
 }
 
-func TestGenericManagerContains(t *testing.T) {
-	m := NewGenericManager()
+func TestgenericManagerContains(t *testing.T) {
+	m := newGenericManager()
 	A := model.Timestamp{
 		QHash: "xyz",
 		Time:  5,
@@ -125,8 +125,8 @@ func TestGenericManagerContains(t *testing.T) {
 	}
 }
 
-func TestGenericManagerGetGroup(t *testing.T) {
-	m := NewGenericManager()
+func TestgenericManagerGetGroup(t *testing.T) {
+	m := newGenericManager()
 	group := m.GetGroup("5")
 
 	if len(group) != 0 {

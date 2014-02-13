@@ -46,10 +46,10 @@ func TestTimestampManager_Unregister(t *testing.T) {
 }
 
 func TestUint64Slice_Sort(t *testing.T) {
-	uints := Uint64Slice{5, 0, 1000, 17}
+	uints := uint64Slice{5, 0, 1000, 17}
 	uints.Sort()
 
-	expected := Uint64Slice{0, 5, 17, 1000}
+	expected := uint64Slice{0, 5, 17, 1000}
 	if !reflect.DeepEqual(uints, expected) {
 		t.Fatalf("Expected %v, got %v", expected, uints)
 	}
@@ -104,7 +104,7 @@ func TestTimestampManager_emitBlock(t *testing.T) {
 
 func TestTimestampManager_emitTimestamps(t *testing.T) {
 	c, tm := setup_TSM_iter()
-	bh := Uint64Slice{3, 52, 51} // Crazy order, including empty blocks
+	bh := uint64Slice{3, 52, 51} // Crazy order, including empty blocks
 
 	go func() {
 		tm.emitTimestamps(c, bh)
@@ -134,7 +134,7 @@ func TestTimestampManager_sortedBlocks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := Uint64Slice{4, 51, 52}
+	expected := uint64Slice{4, 51, 52}
 	if !reflect.DeepEqual(sorted_blocks, expected) {
 		t.Fatalf("Expected %v, got %v", expected, sorted_blocks)
 	}
