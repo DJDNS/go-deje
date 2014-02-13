@@ -7,11 +7,11 @@ import (
 )
 
 type TimestampManager struct {
-	ObjectManager
+	GenericManager
 }
 
 func NewTimestampManager() TimestampManager {
-	om := NewObjectManager()
+	om := NewGenericManager()
 	return TimestampManager{om}
 }
 
@@ -58,7 +58,7 @@ func (tm *TimestampManager) emitTimestamps(c chan_ts, bh []uint64) {
 }
 
 func (tm *TimestampManager) sortedBlocks() (Uint64Slice, error) {
-	blocks := tm.ObjectManager.by_group
+	blocks := tm.GenericManager.by_group
 
 	// Get list of block heights
 	block_heights := make(Uint64Slice, len(blocks))

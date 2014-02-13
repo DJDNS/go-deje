@@ -3,11 +3,11 @@ package manager
 import "github.com/campadrenalin/go-deje/model"
 
 type EventManager struct {
-	ObjectManager
+	GenericManager
 }
 
 func NewEventManager() EventManager {
-	om := NewObjectManager()
+	om := NewGenericManager()
 	return EventManager{om}
 }
 

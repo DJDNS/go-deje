@@ -10,36 +10,36 @@ func (ms ManageableSet) Contains(m Manageable) bool {
 	return ok && stored.Eq(m)
 }
 
-type ObjectManager struct {
+type GenericManager struct {
 	by_key   ManageableSet
 	by_group map[string]ManageableSet
 }
 
-func NewObjectManager() ObjectManager {
-	return ObjectManager{
+func NewGenericManager() GenericManager {
+	return GenericManager{
 		by_key:   make(ManageableSet),
 		by_group: make(map[string]ManageableSet),
 	}
 }
 
-func (om *ObjectManager) GetItems() ManageableSet {
+func (om *GenericManager) GetItems() ManageableSet {
 	return om.by_key
 }
 
-func (om *ObjectManager) Length() int {
+func (om *GenericManager) Length() int {
 	return len(om.by_key)
 }
 
-func (om *ObjectManager) Contains(m Manageable) bool {
+func (om *GenericManager) Contains(m Manageable) bool {
 	return om.by_key.Contains(m)
 }
 
-func (om *ObjectManager) GetByKey(key string) (Manageable, bool) {
+func (om *GenericManager) GetByKey(key string) (Manageable, bool) {
 	m, ok := om.by_key[key]
 	return m, ok
 }
 
-func (om *ObjectManager) GetGroup(key string) ManageableSet {
+func (om *GenericManager) GetGroup(key string) ManageableSet {
 	_, ok := om.by_group[key]
 	if !ok {
 		om.by_group[key] = make(ManageableSet)
@@ -47,7 +47,7 @@ func (om *ObjectManager) GetGroup(key string) ManageableSet {
 	return om.by_group[key]
 }
 
-func (om *ObjectManager) register(m Manageable) {
+func (om *GenericManager) register(m Manageable) {
 	k := m.GetKey()
 	gk := m.GetGroupKey()
 	group := om.GetGroup(gk)
@@ -56,7 +56,7 @@ func (om *ObjectManager) register(m Manageable) {
 	group[k] = m
 }
 
-func (om *ObjectManager) unregister(m Manageable) {
+func (om *GenericManager) unregister(m Manageable) {
 	k := m.GetKey()
 	gk := m.GetGroupKey()
 	group := om.GetGroup(gk)

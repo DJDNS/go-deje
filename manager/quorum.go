@@ -3,11 +3,11 @@ package manager
 import "github.com/campadrenalin/go-deje/model"
 
 type QuorumManager struct {
-	ObjectManager
+	GenericManager
 }
 
 func NewQuorumManager() QuorumManager {
-	om := NewObjectManager()
+	om := NewGenericManager()
 	return QuorumManager{om}
 }
 
