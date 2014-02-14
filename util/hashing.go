@@ -18,6 +18,9 @@ func HashObject(object interface{}) (string, error) {
 		return "", err
 	}
 
-	sum := sha1.Sum(serialized)
+	hasher := sha1.New()
+	_, _ = hasher.Write(serialized)
+
+	sum := hasher.Sum(nil)
 	return hex.EncodeToString(sum[:]), nil
 }
