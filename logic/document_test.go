@@ -90,11 +90,11 @@ func TestToFile(t *testing.T) {
 
 	ev := d.NewEvent("handler name")
 	ev.Arguments["hello"] = "world"
-	d.Events.Register(ev.Event)
+	ev.Register()
 
 	q := d.NewQuorum("evhash")
 	q.Signatures["x"] = "y"
-	d.Quorums.Register(q.Quorum)
+	q.Register()
 
 	df := d.ToFile()
 

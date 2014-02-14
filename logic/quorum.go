@@ -15,3 +15,7 @@ func (doc *Document) NewQuorum(evhash string) Quorum {
 		doc,
 	}
 }
+
+func (q Quorum) Register() {
+	q.Doc.Quorums.Register(q.Quorum)
+}

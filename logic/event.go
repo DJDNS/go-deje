@@ -21,6 +21,10 @@ func (e *Event) SetParent(p Event) {
 	e.ParentHash = p.Hash()
 }
 
+func (e *Event) Register() {
+	e.Doc.Events.Register(e.Event)
+}
+
 // Given a set of Events, and two specific ones to trace,
 // find the most recent common parent between the two chains.
 //

@@ -20,7 +20,7 @@ func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_ab.Eq(ev_root) {
+	if !anc_ab.Eq(ev_root.Event) {
 		t.Fatal("Common ancestor of A and B should be root")
 	}
 
@@ -28,7 +28,7 @@ func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_ba.Eq(ev_root) {
+	if !anc_ba.Eq(ev_root.Event) {
 		t.Fatal("Common ancestor of A and B should be root")
 	}
 }
@@ -69,7 +69,7 @@ func TestEvent_GetCommonAncestor_RootVSFarChild(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_rb.Eq(ev_root) {
+	if !anc_rb.Eq(ev_root.Event) {
 		t.Fatal("Common ancestor of root and B should be root")
 	}
 
@@ -77,7 +77,7 @@ func TestEvent_GetCommonAncestor_RootVSFarChild(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_br.Eq(ev_root) {
+	if !anc_br.Eq(ev_root.Event) {
 		t.Fatal("Common ancestor of root and B should be root")
 	}
 }
@@ -109,7 +109,7 @@ func TestEvent_GetCommonAncestor_ComparedToSelf(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc.Eq(ev) {
+	if !anc.Eq(ev.Event) {
 		t.Fatal("Common ancestor of self should be self")
 	}
 }
@@ -169,7 +169,7 @@ func TestEvent_GetChildren(t *testing.T) {
 	if len(children) != 2 {
 		t.Fatal("first has wrong number of children")
 	}
-	if !(children.Contains(second) && children.Contains(fork)) {
+	if !(children.Contains(second.Event) && children.Contains(fork.Event)) {
 		t.Fatal("first has wrong children", children)
 	}
 
@@ -177,7 +177,7 @@ func TestEvent_GetChildren(t *testing.T) {
 	if len(children) != 1 {
 		t.Fatal("second has wrong number of children")
 	}
-	if !children.Contains(third) {
+	if !children.Contains(third.Event) {
 		t.Fatal("second has wrong children", children)
 	}
 
