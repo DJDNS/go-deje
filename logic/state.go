@@ -1,20 +1,20 @@
-package model
+package logic
 
 import (
 	"errors"
-	"github.com/campadrenalin/go-deje/serial"
+	"github.com/campadrenalin/go-deje/model"
 	"github.com/campadrenalin/go-deje/util"
 )
 
 type DocumentState struct {
 	Version string
-	Content serial.JSONObject
+	Content model.JSONObject
 }
 
 func NewDocumentState() DocumentState {
 	return DocumentState{
 		Version: "",
-		Content: make(serial.JSONObject),
+		Content: make(model.JSONObject),
 	}
 }
 

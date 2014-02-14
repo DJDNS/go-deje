@@ -13,3 +13,9 @@ type Manageable interface {
 
 	Eq(Manageable) bool
 }
+type ManageableSet map[string]Manageable
+
+func (ms ManageableSet) Contains(m Manageable) bool {
+	stored, ok := ms[m.GetKey()]
+	return ok && stored.Eq(m)
+}

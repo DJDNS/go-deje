@@ -32,7 +32,7 @@ func (s uint64Slice) Sort()              { sort.Sort(s) }
 
 type chan_ts chan model.Timestamp
 
-func (tm *TimestampManager) emitBlock(c chan_ts, block ManageableSet) {
+func (tm *TimestampManager) emitBlock(c chan_ts, block model.ManageableSet) {
 	// Sort keys within block
 	keys := make([]string, len(block))
 	i := 0

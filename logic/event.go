@@ -1,12 +1,21 @@
-package model
+package logic
 
 import (
 	"errors"
 	"github.com/campadrenalin/go-deje/model"
-	"github.com/campadrenalin/go-deje/util"
 )
 
-type Event model.Event
+type Event struct {
+	model.Event
+	Doc *Document
+}
+
+func (doc *Document) NewEvent(handler_name string) Event {
+	return Event{
+		model.NewEvent(handler_name),
+		doc,
+	}
+}
 
 func (e *Event) SetParent(p Event) {
 	e.ParentHash = p.Hash()
@@ -25,7 +34,8 @@ func (e *Event) SetParent(p Event) {
 //
 // There may not be a common ancestor. In this event, we return
 // an error.
-func (A Event) GetCommonAncestor(d Document, B Event) (Event, error) {
+func (A Event) GetCommonAncestor(B Event) (Event, error) {
+	d := A.Doc
 	ancestors := make(map[string]bool)
 	trails := make(chan Event, 2)
 	var current Event
@@ -45,54 +55,38 @@ func (A Event) GetCommonAncestor(d Document, B Event) (Event, error) {
 			}
 
 			// Get parent, add to trails
-			if current.ParentHash == "" {
+			if current.Event.ParentHash == "" {
 				continue
 			}
 			parent, ok := d.Events.GetByKey(current.ParentHash)
 			if !ok {
 				return current, errors.New("Bad parent hash")
 			}
-			trails <- parent.(Event)
+			trails <- Event{parent.(model.Event), d}
 		default:
 			return current, errors.New("No common ancestor")
 		}
 	}
 }
 
-func (tip Event) GetRoot(d Document) (event Event, ok bool) {
-	var parent Manageable
+func (tip Event) GetRoot() (event Event, ok bool) {
+	var parent model.Manageable
 	event = tip
 	ok = true
-	for event.ParentHash != "" {
-		parent, ok = d.Events.GetByKey(event.ParentHash)
+	d := tip.Doc
+
+	for event.Event.ParentHash != "" {
+		parent, ok = d.Events.GetByKey(event.Event.ParentHash)
 		if !ok {
 			return
 		}
-		event = parent.(Event)
+		event = Event{parent.(model.Event), d}
 	}
 	return
 }
 
 // Get a list of the children of an Event.
-func (e Event) GetChildren(d Document) ManageableSet {
+func (e Event) GetChildren() model.ManageableSet {
 	group_key := e.Hash()
-	return d.Events.GetGroup(group_key)
-}
-
-// Serialization
-
-func EventFromSerial(se serial.Event) Event {
-	return Event{
-		ParentHash:  se.ParentHash,
-		HandlerName: se.HandlerName,
-		Arguments:   se.Arguments,
-	}
-}
-
-func (e *Event) ToSerial() serial.Event {
-	return serial.Event{
-		ParentHash:  e.ParentHash,
-		HandlerName: e.HandlerName,
-		Arguments:   e.Arguments,
-	}
+	return e.Doc.Events.GetGroup(group_key)
 }

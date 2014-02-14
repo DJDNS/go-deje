@@ -23,7 +23,7 @@ func setup_om_with_ab() (genericManager, model.Timestamp, model.Timestamp) {
 	return m, A, B
 }
 
-func TestgenericManagerGetItems(t *testing.T) {
+func TestGenericManagerGetItems(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	items := m.GetItems()
@@ -43,7 +43,7 @@ func TestgenericManagerGetItems(t *testing.T) {
 	}
 }
 
-func TestgenericManagerGetByKey(t *testing.T) {
+func TestGenericManagerGetByKey(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	for _, ts := range []model.Timestamp{A, B} {
@@ -58,7 +58,7 @@ func TestgenericManagerGetByKey(t *testing.T) {
 	}
 }
 
-func TestgenericManagerRegister(t *testing.T) {
+func TestGenericManagerRegister(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	group := m.GetGroup("5")
@@ -67,7 +67,7 @@ func TestgenericManagerRegister(t *testing.T) {
 	}
 }
 
-func TestgenericManagerUnregister(t *testing.T) {
+func TestGenericManagerUnregister(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
 	m.unregister(A)
@@ -79,7 +79,7 @@ func TestgenericManagerUnregister(t *testing.T) {
 }
 
 func TestManagableSetContains(t *testing.T) {
-	ms := make(ManageableSet)
+	ms := make(model.ManageableSet)
 	A := model.Timestamp{
 		QHash: "xyz",
 		Time:  5,
@@ -104,7 +104,7 @@ func TestManagableSetContains(t *testing.T) {
 	}
 }
 
-func TestgenericManagerContains(t *testing.T) {
+func TestGenericManagerContains(t *testing.T) {
 	m := newGenericManager()
 	A := model.Timestamp{
 		QHash: "xyz",
@@ -125,7 +125,7 @@ func TestgenericManagerContains(t *testing.T) {
 	}
 }
 
-func TestgenericManagerGetGroup(t *testing.T) {
+func TestGenericManagerGetGroup(t *testing.T) {
 	m := newGenericManager()
 	group := m.GetGroup("5")
 
@@ -137,7 +137,7 @@ func TestgenericManagerGetGroup(t *testing.T) {
 		QHash: "xyz",
 		Time:  5,
 	}
-	m.register(&ts)
+	m.register(ts)
 
 	group = m.GetGroup("20")
 	if len(group) != 0 {
@@ -148,8 +148,8 @@ func TestgenericManagerGetGroup(t *testing.T) {
 		t.Fatal("group should not have been empty")
 	}
 
-	if group[ts.QHash] != &ts {
-		t.Fatal("group contents should have contained &ts")
+	if !ts.Eq(group[ts.QHash]) {
+		t.Fatalf("group %#v should have contained %#v", group, ts)
 	}
 
 	if len(m.by_group) != 2 {

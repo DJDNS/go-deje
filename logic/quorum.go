@@ -1,24 +1,17 @@
-package model
+package logic
 
 import (
-	"github.com/campadrenalin/go-deje/serial"
-	"github.com/campadrenalin/go-deje/util"
+	"github.com/campadrenalin/go-deje/model"
 )
 
-type Quorum model.Quorum
-
-// Serialization
-
-func (q Quorum) ToSerial() serial.Quorum {
-	return serial.Quorum{
-		EventHash:  q.EventHash,
-		Signatures: q.Signatures,
-	}
+type Quorum struct {
+	model.Quorum
+	Doc *Document
 }
 
-func QuorumFromSerial(sq serial.Quorum) Quorum {
+func (doc *Document) NewQuorum(evhash string) Quorum {
 	return Quorum{
-		EventHash:  sq.EventHash,
-		Signatures: sq.Signatures,
+		model.NewQuorum(evhash),
+		doc,
 	}
 }

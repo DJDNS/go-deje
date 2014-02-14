@@ -1,8 +1,6 @@
-package model
+package logic
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestGetProperty(t *testing.T) {
 	ds := NewDocumentState()
