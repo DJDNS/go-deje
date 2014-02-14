@@ -10,7 +10,7 @@
 package deje
 
 import "github.com/campadrenalin/go-deje/model"
-import "github.com/campadrenalin/go-deje/serial"
+import "github.com/campadrenalin/go-deje/logic"
 
 // Contains the clients for network communication and
 // timestamp retrieval. Use this to create or sync to documents.
@@ -26,8 +26,8 @@ type DEJEController struct {
 // This will create a blank document, if none exists.
 // See the model.Document documentation for more information
 // about how to use this object.
-func (c *DEJEController) GetDocument(serial.IRCLocation) model.Document {
-	return model.NewDocument()
+func (c *DEJEController) GetDocument(model.IRCLocation) logic.Document {
+	return logic.NewDocument()
 }
 
 // Different types of TimestampServices can be used,
@@ -48,7 +48,7 @@ type TimestampService interface {
 // You should generally never need a custom IRCService,
 // but you can provide one, if you really want.
 type IRCService interface {
-	GetChannel(serial.IRCLocation) IRCChannel
+	GetChannel(model.IRCLocation) IRCChannel
 }
 
 // An IRCChannel represents a connection to a specific
@@ -60,6 +60,6 @@ type IRCService interface {
 // IRC implementation, allowing for transparent reuse of
 // client connections.
 type IRCChannel struct {
-	Location serial.IRCLocation
+	Location model.IRCLocation
 	Channel  chan string
 }

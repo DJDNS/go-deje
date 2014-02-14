@@ -1,11 +1,11 @@
 package deje
 
 import (
-	"github.com/campadrenalin/go-deje/serial"
+	"github.com/campadrenalin/go-deje/model"
 	"testing"
 )
 
 func TestGetDocument(t *testing.T) {
 	con := DEJEController{}
-	con.GetDocument(serial.IRCLocation{})
+	con.GetDocument(model.IRCLocation{})
 }

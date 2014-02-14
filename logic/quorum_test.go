@@ -1,6 +1,5 @@
 package logic
 
-/*
 import (
 	"encoding/json"
 	"github.com/campadrenalin/go-deje/model"
@@ -14,7 +13,7 @@ func TestQuorum_ToSerial(t *testing.T) {
 	Q.Signatures["key"] = "value"
 	Q.Signatures["this"] = "that"
 
-	SQ := Q.ToSerial()
+	SQ := Q.Quorum
 	expected := "{" +
 		"\"event_hash\":\"example\"," +
 		"\"sigs\":{" +
@@ -32,13 +31,14 @@ func TestQuorum_ToSerial(t *testing.T) {
 }
 
 func TestQuorumFromSerial(t *testing.T) {
+	d := NewDocument()
 	SQ := model.Quorum{
 		EventHash:  "example",
 		Signatures: make(map[string]string),
 	}
 	SQ.Signatures["hello"] = "world"
 
-	Q := QuorumFromSerial(SQ)
+	Q := Quorum{SQ, &d}
 
 	if Q.EventHash != SQ.EventHash {
 		t.Fatalf("EventHash differs: %v vs %v", Q.EventHash, SQ.EventHash)
@@ -47,4 +47,3 @@ func TestQuorumFromSerial(t *testing.T) {
 		t.Fatalf("Signatures differ: %v vs %v", Q.Signatures, SQ.Signatures)
 	}
 }
-*/
