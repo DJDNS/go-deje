@@ -35,8 +35,8 @@ func (d *Document) FromFile(df *model.DocumentFile) {
 	d.Events = manager.NewEventManager()
 	d.Quorums = manager.NewQuorumManager()
 
-	//d.Events.DeserializeFrom(df.Events)
-	//d.Quorums.DeserializeFrom(df.Quorums)
+	d.Events.DeserializeFrom(df.Events)
+	d.Quorums.DeserializeFrom(df.Quorums)
 }
 
 // Copies the data from a Document into a DocumentFile.
@@ -47,8 +47,8 @@ func (d *Document) ToFile() *model.DocumentFile {
 		Quorums: make(model.QuorumSet),
 	}
 
-	//d.Events.SerializeTo(df.Events)
-	//d.Quorums.SerializeTo(df.Quorums)
+	d.Events.SerializeTo(df.Events)
+	d.Quorums.SerializeTo(df.Quorums)
 
 	return df
 }
