@@ -124,6 +124,54 @@ func TestEvent_GetRoot_NoElements(t *testing.T) {
 	}
 }
 
+func assert_ev_compatible(A, B Event, t *testing.T) {
+	compatible, err := A.CompatibleWith(B)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !compatible {
+		t.Fatalf("%s should be compatible with %s", A.Event.HandlerName, B.Event.HandlerName)
+	}
+}
+
+func assert_ev_incompatible(A, B Event, t *testing.T) {
+	compatible, err := A.CompatibleWith(B)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if compatible {
+		t.Fatalf("%s should be incompatible with %s", A.Event.HandlerName, B.Event.HandlerName)
+	}
+}
+
+func TestEvent_CompatibleWith(t *testing.T) {
+	d := NewDocument()
+	first := d.NewEvent("first")
+	second := d.NewEvent("second")
+	third := d.NewEvent("third")
+	fork := d.NewEvent("fork")
+
+	second.SetParent(first)
+	third.SetParent(second)
+	fork.SetParent(first)
+
+	_, err := fork.CompatibleWith(first)
+	if err == nil {
+		t.Fatal("Events not registered yet, should have failed")
+	}
+
+	for _, e := range []Event{first, second, third, fork} {
+		e.Register()
+	}
+
+	assert_ev_compatible(first, second, t)
+	assert_ev_compatible(first, third, t)
+	assert_ev_compatible(first, fork, t)
+
+	assert_ev_incompatible(fork, second, t)
+	assert_ev_incompatible(fork, third, t)
+}
+
 func TestEvent_GetRoot(t *testing.T) {
 	d := NewDocument()
 	first := d.NewEvent("first")

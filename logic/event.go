@@ -73,6 +73,19 @@ func (A Event) GetCommonAncestor(B Event) (Event, error) {
 	}
 }
 
+// Returns whether two events are on compatible forks.
+//
+// This means that they are on the same fork. This means
+// one is the parent of the other (or the events are equal).
+func (A Event) CompatibleWith(B Event) (bool, error) {
+	parent, err := A.GetCommonAncestor(B)
+	if err != nil {
+		return false, err
+	}
+
+	return (parent.Eq(A.Event) || parent.Eq(B.Event)), nil
+}
+
 func (tip Event) GetRoot() (event Event, ok bool) {
 	var parent model.Manageable
 	event = tip
