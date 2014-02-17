@@ -6,6 +6,6 @@ import (
 )
 
 func TestGetDocument(t *testing.T) {
-	con := DEJEController{}
+	con := NewDEJEController()
 	con.GetDocument(model.IRCLocation{})
 }

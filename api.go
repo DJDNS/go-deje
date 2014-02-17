@@ -9,16 +9,26 @@
 // fog.
 package deje
 
-import "github.com/campadrenalin/go-deje/model"
-import "github.com/campadrenalin/go-deje/logic"
+import (
+	"github.com/campadrenalin/go-deje/logic"
+	"github.com/campadrenalin/go-deje/model"
+	"github.com/campadrenalin/go-deje/services"
+)
 
 // Contains the clients for network communication and
 // timestamp retrieval. Use this to create or sync to documents.
 //
 // You generally only want one of these per program.
 type DEJEController struct {
-	Timestamper TimestampService
-	Networker   IRCService
+	Timestamper services.TimestampService
+	Networker   services.IRCService
+}
+
+func NewDEJEController() *DEJEController {
+	return &DEJEController{
+		Timestamper: services.DummyTimestampService{},
+		Networker:   services.DummyIRCService{},
+	}
 }
 
 // Get a Document based on an IRCLocation.
@@ -28,38 +38,4 @@ type DEJEController struct {
 // about how to use this object.
 func (c *DEJEController) GetDocument(model.IRCLocation) logic.Document {
 	return logic.NewDocument()
-}
-
-// Different types of TimestampServices can be used,
-// but the default implemetation makes use of the
-// Bitcoin blockchain, given a bitcoind JSON-RPC location.
-// Alternative timestamping services can simply be alternative
-// blockchains, such as Litecoin, or something more exotic
-// (if it can be made to fit the TimestampService interface).
-//
-// See https://en.bitcoin.it/wiki/API_reference_%28JSON-RPC%29
-// for more information about this API.
-type TimestampService interface {
-	GetTimestampsAfter(dochash string, after model.BlockHeight)
-
-	MakeTimestamp(dochash string, qhash string)
-}
-
-// You should generally never need a custom IRCService,
-// but you can provide one, if you really want.
-type IRCService interface {
-	GetChannel(model.IRCLocation) IRCChannel
-}
-
-// An IRCChannel represents a connection to a specific
-// channel on a specific IRC network. The .Channel will
-// output any messages from the IRC channel, and you can
-// broadcast any message by sending it to the .Channel.
-//
-// This provides a convenient abstraction over the underlying
-// IRC implementation, allowing for transparent reuse of
-// client connections.
-type IRCChannel struct {
-	Location model.IRCLocation
-	Channel  chan string
 }
