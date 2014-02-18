@@ -36,6 +36,9 @@ func NewDEJEController() *DEJEController {
 // This will create a blank document, if none exists.
 // See the model.Document documentation for more information
 // about how to use this object.
-func (c *DEJEController) GetDocument(model.IRCLocation) logic.Document {
-	return logic.NewDocument()
+func (c *DEJEController) GetDocument(loc model.IRCLocation) logic.Document {
+	doc := logic.NewDocument()
+	doc.Channel = loc
+
+	return doc
 }
