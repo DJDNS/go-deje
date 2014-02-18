@@ -6,9 +6,9 @@ type QuorumManager struct {
 	genericManager
 }
 
-func NewQuorumManager() QuorumManager {
+func NewQuorumManager() *QuorumManager {
 	om := newGenericManager()
-	return QuorumManager{om}
+	return &QuorumManager{om}
 }
 
 func (qm *QuorumManager) Register(quorum model.Quorum) {

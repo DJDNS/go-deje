@@ -10,9 +10,9 @@ type TimestampManager struct {
 	genericManager
 }
 
-func NewTimestampManager() TimestampManager {
+func NewTimestampManager() *TimestampManager {
 	om := newGenericManager()
-	return TimestampManager{om}
+	return &TimestampManager{om}
 }
 
 func (tm *TimestampManager) Register(timestamp model.Timestamp) {

@@ -6,9 +6,9 @@ type EventManager struct {
 	genericManager
 }
 
-func NewEventManager() EventManager {
+func NewEventManager() *EventManager {
 	om := newGenericManager()
-	return EventManager{om}
+	return &EventManager{om}
 }
 
 func (em *EventManager) Register(event model.Event) {

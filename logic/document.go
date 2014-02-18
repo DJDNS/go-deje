@@ -15,9 +15,9 @@ import (
 // in every block of the longest valid blockchain.
 type Document struct {
 	Channel    model.IRCLocation
-	Events     manager.EventManager
-	Quorums    manager.QuorumManager
-	Timestamps manager.TimestampManager
+	Events     *manager.EventManager
+	Quorums    *manager.QuorumManager
+	Timestamps *manager.TimestampManager
 }
 
 // Create a new, blank Document, with fields initialized.

@@ -55,7 +55,7 @@ func TestUint64Slice_Sort(t *testing.T) {
 	}
 }
 
-func setup_TSM_iter() (chan_ts, TimestampManager) {
+func setup_TSM_iter() (chan_ts, *TimestampManager) {
 	c := make(chan_ts)
 	tm := NewTimestampManager()
 
