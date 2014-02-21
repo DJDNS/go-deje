@@ -18,7 +18,8 @@ type IRCService interface {
 // client connections.
 type IRCChannel struct {
 	Location model.IRCLocation
-	Channel  chan string
+	Incoming chan string
+	Outgoing chan string
 }
 
 type DummyIRCService struct{}
@@ -26,6 +27,7 @@ type DummyIRCService struct{}
 func (dis DummyIRCService) GetChannel(location model.IRCLocation) IRCChannel {
 	return IRCChannel{
 		Location: location,
-		Channel:  make(chan string),
+		Incoming: make(chan string),
+		Outgoing: make(chan string),
 	}
 }

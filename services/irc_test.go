@@ -14,8 +14,11 @@ func TestDIS_GetChannel(t *testing.T) {
 	dis := DummyIRCService{}
 	channel := dis.GetChannel(location)
 
-	if channel.Channel == nil {
-		t.Fatal("channel.Channel not initialized")
+	if channel.Incoming == nil {
+		t.Fatal("channel.Incoming not initialized")
+	}
+	if channel.Outgoing == nil {
+		t.Fatal("channel.Outgoing not initialized")
 	}
 	if channel.Location != location {
 		t.Fatalf(
