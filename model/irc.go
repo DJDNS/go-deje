@@ -1,6 +1,10 @@
 package model
 
-import "strconv"
+import (
+	"net"
+	"net/url"
+	"strconv"
+)
 
 // Describes an IRC Server+Channel combo. Every DEJE doc has an
 // IRC location for broadcast communication.
@@ -13,4 +17,26 @@ type IRCLocation struct {
 func (loc IRCLocation) GetURL() string {
 	str_port := strconv.FormatUint(uint64(loc.Port), 10)
 	return "irc://" + loc.Host + ":" + str_port + "/#" + loc.Channel
+}
+
+func (loc *IRCLocation) ParseFrom(urlstr string) error {
+	urlobj, err := url.Parse(urlstr)
+	if err != nil {
+		return err
+	}
+
+	host, port, err := net.SplitHostPort(urlobj.Host)
+	if err != nil {
+		host, port = urlobj.Host, "6667"
+	}
+	portint, err := strconv.ParseUint(port, 10, 32)
+	if err != nil {
+		return err
+	}
+
+	loc.Host = host
+	loc.Port = uint32(portint)
+	loc.Channel = urlobj.Fragment
+
+	return nil
 }
