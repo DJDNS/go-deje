@@ -12,6 +12,16 @@ func TestIRCLocation_GetURL(t *testing.T) {
 	}
 }
 
+func TestIRCLocation_GetVariables(t *testing.T) {
+	location := IRCLocation{"example.com", 9999, "thechannel"}
+	vars := location.GetVariables()
+	expected := "host=example.com&port=9999&channel=thechannel"
+
+	if vars != expected {
+		t.Fatalf("Expected %s, got %s", expected, vars)
+	}
+}
+
 type loc_parse_test struct {
 	URL    string
 	Result IRCLocation
