@@ -22,12 +22,14 @@ import (
 type DEJEController struct {
 	Timestamper services.TimestampService
 	Networker   services.IRCService
+	documents   map[model.IRCLocation]logic.Document
 }
 
 func NewDEJEController() *DEJEController {
 	return &DEJEController{
 		Timestamper: services.DummyTimestampService{},
 		Networker:   services.DummyIRCService{},
+		documents:   make(map[model.IRCLocation]logic.Document),
 	}
 }
 
@@ -37,8 +39,12 @@ func NewDEJEController() *DEJEController {
 // See the model.Document documentation for more information
 // about how to use this object.
 func (c *DEJEController) GetDocument(loc model.IRCLocation) logic.Document {
-	doc := logic.NewDocument()
-	doc.Channel = loc
+	doc, ok := c.documents[loc]
+	if !ok {
+		doc = logic.NewDocument()
+		doc.Channel = loc
 
+		c.documents[loc] = doc
+	}
 	return doc
 }
