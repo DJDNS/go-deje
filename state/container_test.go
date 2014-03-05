@@ -17,3 +17,12 @@ func TestMakeContainer_InvalidMap(t *testing.T) {
 		t.Fatal("MakeContainer should fail for invalid map type")
 	}
 }
+
+// Similarly, test for non-interface{} slices
+func TestMakeContainer_InvalidSlice(t *testing.T) {
+	original := make([]string, 0)
+	_, err := MakeContainer(original)
+	if err == nil {
+		t.Fatal("MakeContainer should fail for invalid slice type")
+	}
+}
