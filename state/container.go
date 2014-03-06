@@ -40,3 +40,16 @@ func MakeContainer(value interface{}) (Container, error) {
 		return nil, errors.New("Invalid type for containing")
 	}
 }
+
+// Find a child based on a series of child keys.
+// Will return an error for bad key types, unset keys, etc.
+func Traverse(c Container, keys []interface{}) (Container, error) {
+	var err error
+	for _, key := range keys {
+		c, err = c.GetChild(key)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return c, nil
+}

@@ -30,10 +30,21 @@ func MakeSliceContainer(s []interface{}) (Container, error) {
 	return &c, nil
 }
 
+func (c *SliceContainer) castKey(key interface{}) (uint, error) {
+	switch k := key.(type) {
+	case uint:
+		return k, nil
+	case int:
+		return uint(k), nil
+	default:
+		return uint(0), errors.New("Cannot cast key to uint")
+	}
+}
+
 func (c *SliceContainer) GetChild(key interface{}) (Container, error) {
-	key_int, ok := key.(uint)
-	if !ok {
-		return nil, errors.New("Key was not uint type")
+	key_int, err := c.castKey(key)
+	if err != nil {
+		return nil, err
 	}
 	child, ok := c.Value[key_int]
 	if !ok {
@@ -50,9 +61,9 @@ func (c *SliceContainer) Remove() error {
 }
 
 func (c *SliceContainer) RemoveChild(key interface{}) error {
-	key_int, ok := key.(uint)
-	if !ok {
-		return errors.New("Key was not uint type")
+	key_int, err := c.castKey(key)
+	if err != nil {
+		return err
 	}
 	delete(c.Value, key_int)
 	for key, value := range c.Value {
@@ -70,9 +81,9 @@ func (c *SliceContainer) SetParentage(p Container, key interface{}) {
 }
 
 func (c *SliceContainer) Set(key, value interface{}) error {
-	key_int, ok := key.(uint)
-	if !ok {
-		return errors.New("Key was not uint type")
+	key_int, err := c.castKey(key)
+	if err != nil {
+		return err
 	}
 	child, err := MakeContainer(value)
 	if err != nil {
