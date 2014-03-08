@@ -3,6 +3,7 @@ package logic
 import (
 	"errors"
 	"github.com/campadrenalin/go-deje/model"
+	"github.com/campadrenalin/go-deje/state"
 )
 
 type Event struct {
@@ -106,4 +107,37 @@ func (tip Event) GetRoot() (event Event, ok bool) {
 func (e Event) GetChildren() model.ManageableSet {
 	group_key := e.Hash()
 	return e.Doc.Events.GetGroup(group_key)
+}
+
+// Translate this event into a set of primitives.
+//
+// Custom events may fail to translate, due to failures
+// in the Lua interpreter environment, or attempting to get
+// the event's primitives when the document's state is not
+// on the event's parent.
+//
+// Builtin events (SET and DELETE) should always be able to
+// be translated into a primitive, regardless of doc state,
+// as long as the event's properties are sufficient to populate
+// the struct primitive.
+func (e Event) getPrimitives() ([]state.Primitive, error) {
+	path_interface, ok := e.Arguments["path"]
+	if !ok {
+		return nil, errors.New("No path provided")
+	}
+	path, ok := path_interface.([]interface{})
+	if !ok {
+		return nil, errors.New("Bad path value")
+	}
+	value, ok := e.Arguments["value"]
+	if !ok {
+		return nil, errors.New("No value provided")
+	}
+	primitives := []state.Primitive{
+		&state.SetPrimitive{
+			Path:  path,
+			Value: value,
+		},
+	}
+	return primitives, nil
 }

@@ -1,6 +1,10 @@
 package logic
 
-import "testing"
+import (
+	"github.com/campadrenalin/go-deje/state"
+	"reflect"
+	"testing"
+)
 
 func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 	d := NewDocument()
@@ -232,5 +236,81 @@ func TestEvent_GetChildren(t *testing.T) {
 	children = third.GetChildren()
 	if len(children) != 0 {
 		t.Fatal("third has wrong number of children")
+	}
+}
+
+type eventToPrimitivesTest struct {
+	HandlerName string
+	Arguments   map[string]interface{}
+	Expected    []state.Primitive
+	ShouldFail  bool
+	FailureMsg  string
+}
+
+func (test *eventToPrimitivesTest) Run(t *testing.T) {
+	d := NewDocument()
+	setter := d.NewEvent(test.HandlerName)
+	setter.Arguments = test.Arguments
+
+	primitives, err := setter.getPrimitives()
+	if test.ShouldFail && err == nil {
+		t.Error(test.FailureMsg)
+		t.Fatal("Event.getPrimitives should have failed, didn't")
+	} else if !test.ShouldFail && err != nil {
+		t.Error(test.FailureMsg)
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(primitives, test.Expected) {
+		t.Error(test.FailureMsg)
+		t.Fatalf("Expected %#v, got %#v", test.Expected, primitives)
+	}
+}
+
+func TestEvent_getPrimitives_Set(t *testing.T) {
+	tests := []eventToPrimitivesTest{
+		eventToPrimitivesTest{
+			"SET",
+			map[string]interface{}{
+				"path":  []interface{}{"hello"},
+				"value": "world",
+			},
+			[]state.Primitive{
+				&state.SetPrimitive{
+					Path:  []interface{}{"hello"},
+					Value: "world",
+				},
+			},
+			false,
+			"Basic SET event with reasonable params",
+		},
+		eventToPrimitivesTest{
+			"SET",
+			map[string]interface{}{
+				"value": "world",
+			},
+			nil, true,
+			"SET with no path",
+		},
+		eventToPrimitivesTest{
+			"SET",
+			map[string]interface{}{
+				"path":  7,
+				"value": "world",
+			},
+			nil, true,
+			"SET with bad path",
+		},
+		eventToPrimitivesTest{
+			"SET",
+			map[string]interface{}{
+				"path": []interface{}{"hello"},
+			},
+			nil, true,
+			"SET with no value", // Like an obscure altcoin
+		},
+	}
+	for _, test := range tests {
+		test.Run(t)
 	}
 }
