@@ -10,19 +10,15 @@ import "errors"
 // still not so bad, and certainly not as bad as implementing the
 // Set method for a []Container slice.
 type SliceContainer struct {
-	Parent    Container
-	ParentKey interface{}
-	Value     map[uint]Container
+	Value map[uint]Container
 }
 
 func MakeSliceContainer(s []interface{}) (Container, error) {
 	c := SliceContainer{
-		nil,
-		nil,
 		make(map[uint]Container),
 	}
 	for key, value := range s {
-		err := c.Set(uint(key), value)
+		err := c.SetChild(uint(key), value)
 		if err != nil {
 			return nil, err
 		}
@@ -53,11 +49,17 @@ func (c *SliceContainer) GetChild(key interface{}) (Container, error) {
 	return child, nil
 }
 
-func (c *SliceContainer) Remove() error {
-	if c.Parent == nil {
-		return errors.New("No parent")
+func (c *SliceContainer) SetChild(key, value interface{}) error {
+	key_int, err := c.castKey(key)
+	if err != nil {
+		return err
 	}
-	return c.Parent.RemoveChild(c.ParentKey)
+	child, err := MakeContainer(value)
+	if err != nil {
+		return err
+	}
+	c.Value[key_int] = child
+	return nil
 }
 
 func (c *SliceContainer) RemoveChild(key interface{}) error {
@@ -72,25 +74,6 @@ func (c *SliceContainer) RemoveChild(key interface{}) error {
 			c.Value[key-1] = value
 		}
 	}
-	return nil
-}
-
-func (c *SliceContainer) SetParentage(p Container, key interface{}) {
-	c.Parent = p
-	c.ParentKey = key
-}
-
-func (c *SliceContainer) Set(key, value interface{}) error {
-	key_int, err := c.castKey(key)
-	if err != nil {
-		return err
-	}
-	child, err := MakeContainer(value)
-	if err != nil {
-		return err
-	}
-	child.SetParentage(c, key_int)
-	c.Value[key_int] = child
 	return nil
 }
 

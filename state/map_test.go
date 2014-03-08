@@ -55,47 +55,28 @@ func TestMapContainer_GetChild(t *testing.T) {
 	}
 }
 
-func TestMapContainer_Remove_NoParent(t *testing.T) {
-	original := map[string]interface{}{
-		"hello": "world",
-		"recursive": map[string]interface{}{
-			"deep": "path",
-		},
-	}
-	c, err := MakeMapContainer(original)
+func TestMapContainer_SetChild(t *testing.T) {
+	c, err := MakeMapContainer(map[string]interface{}{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.Remove()
+	err = c.SetChild(0, 0)
 	if err == nil {
-		t.Fatal("MapContainer.Remove should fail when no parent")
+		t.Fatal("MapContainer.SetChild with non-str key should always fail")
 	}
-}
-
-func TestMapContainer_Remove_WithParent(t *testing.T) {
-	original := map[string]interface{}{
-		"hello": "world",
-		"recursive": map[string]interface{}{
-			"deep": "path",
-		},
+	err = c.SetChild("some_key", make(chan int))
+	if err == nil {
+		t.Fatal("MapContainer.SetChild with non-containable value should fail")
 	}
-	c, err := MakeMapContainer(original)
-	if err != nil {
-		t.Fatal(err)
-	}
-	child, err := c.GetChild("recursive")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = child.Remove()
+	err = c.SetChild("some_key", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	expected := map[string]interface{}{
-		"hello": "world",
+		"some_key": 0,
 	}
 	if !reflect.DeepEqual(c.Export(), expected) {
-		t.Fatal("Item should be removed")
+		t.Fatal("Expected %#v, got %#v", expected, c.Export())
 	}
 }
 
@@ -129,52 +110,6 @@ func TestMapContainer_RemoveChild(t *testing.T) {
 	}
 	if !reflect.DeepEqual(c.Export(), expected) {
 		t.Fatal("Item should be removed")
-	}
-}
-
-func TestMapContainer_SetParentage(t *testing.T) {
-	c, err := MakeMapContainer(map[string]interface{}{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Break the rules a bit :)
-	p, err := MakeScalarContainer("parent")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	c.SetParentage(p, true)
-	if c.(*MapContainer).Parent != p {
-		t.Fatal("c.Parent should equal p")
-	}
-	if c.(*MapContainer).ParentKey != true {
-		t.Fatal("c.ParentKey should equal true")
-	}
-}
-
-func TestMapContainer_Set(t *testing.T) {
-	c, err := MakeMapContainer(map[string]interface{}{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = c.Set(0, 0)
-	if err == nil {
-		t.Fatal("MapContainer.Set with non-str key should always fail")
-	}
-	err = c.Set("some_key", make(chan int))
-	if err == nil {
-		t.Fatal("MapContainer.Set with non-containable value should fail")
-	}
-	err = c.Set("some_key", 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := map[string]interface{}{
-		"some_key": 0,
-	}
-	if !reflect.DeepEqual(c.Export(), expected) {
-		t.Fatal("Expected %#v, got %#v", expected, c.Export())
 	}
 }
 

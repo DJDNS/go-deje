@@ -20,7 +20,7 @@ func (p *SetPrimitive) Apply(ds *DocumentState) error {
 	if err != nil {
 		return err
 	}
-	return parent.Set(last, p.Value)
+	return parent.SetChild(last, p.Value)
 }
 
 func (p *SetPrimitive) Reverse(ds *DocumentState) (Primitive, error) {

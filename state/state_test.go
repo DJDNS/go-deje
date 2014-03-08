@@ -27,7 +27,7 @@ func TestNewDocumentState(t *testing.T) {
 
 func TestDocumentState_Export(t *testing.T) {
 	ds := NewDocumentState()
-	err := ds.Value.Set("hello", "world")
+	err := ds.Value.SetChild("hello", "world")
 	if err != nil {
 		t.Fatal(err)
 	}

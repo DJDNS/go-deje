@@ -7,11 +7,9 @@ import (
 
 type Container interface {
 	GetChild(interface{}) (Container, error)
-	Remove() error
+	SetChild(key, value interface{}) error
 	RemoveChild(interface{}) error
-	SetParentage(Container, interface{})
 
-	Set(key, value interface{}) error
 	Export() interface{}
 }
 

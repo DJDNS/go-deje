@@ -52,43 +52,28 @@ func TestSliceContainer_GetChild(t *testing.T) {
 	}
 }
 
-func TestSliceContainer_Remove_NoParent(t *testing.T) {
-	original := []interface{}{
-		"hello", "world",
-	}
-	c, err := MakeSliceContainer(original)
+func TestSliceContainer_SetChild(t *testing.T) {
+	c, err := MakeSliceContainer([]interface{}{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.Remove()
+	err = c.SetChild("hi", 0)
 	if err == nil {
-		t.Fatal("SliceContainer.Remove should fail when no parent")
+		t.Fatal("SliceContainer.SetChild with non-uint key should always fail")
 	}
-}
-
-func TestSliceContainer_Remove_WithParent(t *testing.T) {
-	original := []interface{}{
-		"hello",
-		[]interface{}{"sublist", "items"},
-		"world",
+	err = c.SetChild(uint(9), make(chan int))
+	if err == nil {
+		t.Fatal("SliceContainer.SetChild with non-containable value should fail")
 	}
-	c, err := MakeSliceContainer(original)
-	if err != nil {
-		t.Fatal(err)
-	}
-	child, err := c.GetChild(uint(1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = child.Remove()
+	err = c.SetChild(uint(5), 89)
 	if err != nil {
 		t.Fatal(err)
 	}
 	expected := []interface{}{
-		"hello", "world",
+		nil, nil, nil, nil, nil, 89,
 	}
 	if !reflect.DeepEqual(c.Export(), expected) {
-		t.Fatalf("Expected %#v, got %#v", expected, c.Export())
+		t.Fatal("Expected %#v, got %#v", expected, c.Export())
 	}
 }
 
@@ -117,52 +102,6 @@ func TestSliceContainer_RemoveChild(t *testing.T) {
 	}
 	if !reflect.DeepEqual(c.Export(), expected) {
 		t.Fatalf("Expected %#v, got %#v", expected, c.Export())
-	}
-}
-
-func TestSliceContainer_SetParentage(t *testing.T) {
-	c, err := MakeSliceContainer([]interface{}{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Break the rules a bit :)
-	p, err := MakeScalarContainer("parent")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	c.SetParentage(p, true)
-	if c.(*SliceContainer).Parent != p {
-		t.Fatal("c.Parent should equal p")
-	}
-	if c.(*SliceContainer).ParentKey != true {
-		t.Fatal("c.ParentKey should equal true")
-	}
-}
-
-func TestSliceContainer_Set(t *testing.T) {
-	c, err := MakeSliceContainer([]interface{}{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = c.Set("hi", 0)
-	if err == nil {
-		t.Fatal("SliceContainer.Set with non-uint key should always fail")
-	}
-	err = c.Set(uint(9), make(chan int))
-	if err == nil {
-		t.Fatal("SliceContainer.Set with non-containable value should fail")
-	}
-	err = c.Set(uint(5), 89)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := []interface{}{
-		nil, nil, nil, nil, nil, 89,
-	}
-	if !reflect.DeepEqual(c.Export(), expected) {
-		t.Fatal("Expected %#v, got %#v", expected, c.Export())
 	}
 }
 
