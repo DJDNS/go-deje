@@ -9,6 +9,9 @@ import (
 func TestNewDocument(t *testing.T) {
 	d := NewDocument()
 
+	if d.State.Value == nil {
+		t.Fatal("d.State.Value == nil")
+	}
 	if d.Events.GetItems() == nil {
 		t.Fatal("d.Events.GetItems() == nil")
 	}

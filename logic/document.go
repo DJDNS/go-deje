@@ -3,6 +3,7 @@ package logic
 import (
 	"github.com/campadrenalin/go-deje/manager"
 	"github.com/campadrenalin/go-deje/model"
+	"github.com/campadrenalin/go-deje/state"
 )
 
 // A document is a single managed DEJE object, associated with
@@ -15,6 +16,7 @@ import (
 // in every block of the longest valid blockchain.
 type Document struct {
 	Channel    model.IRCLocation
+	State      *state.DocumentState
 	Events     *manager.EventManager
 	Quorums    *manager.QuorumManager
 	Timestamps *manager.TimestampManager
@@ -23,6 +25,7 @@ type Document struct {
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
+		State:      state.NewDocumentState(),
 		Events:     manager.NewEventManager(),
 		Quorums:    manager.NewQuorumManager(),
 		Timestamps: manager.NewTimestampManager(),
