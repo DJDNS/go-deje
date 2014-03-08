@@ -10,18 +10,11 @@ func TestNewDocumentState(t *testing.T) {
 	if ds.Value == nil {
 		t.Fatal("ds.Value is not supposed to be nil")
 	}
-	if ds.Applied == nil {
-		t.Fatal("ds.Applied is not supposed to be nil")
-	}
 
 	expected := make(map[string]interface{})
 	exported := ds.Value.Export()
 	if !reflect.DeepEqual(exported, expected) {
 		t.Fatal("Expected %#v, got %#v", expected, exported)
-	}
-
-	if len(ds.Applied) != 0 {
-		t.Fatal("Length of ds.Applied should be 0, was %d", len(ds.Applied))
 	}
 }
 

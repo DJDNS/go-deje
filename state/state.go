@@ -1,13 +1,7 @@
 package state
 
-type EventPrimitives struct {
-	Id         string
-	Primitives []Primitive
-}
-
 type DocumentState struct {
-	Value   Container
-	Applied []EventPrimitives
+	Value Container
 }
 
 func NewDocumentState() *DocumentState {
@@ -15,7 +9,6 @@ func NewDocumentState() *DocumentState {
 	container, _ := MakeContainer(map[string]interface{}{})
 	return &DocumentState{
 		container,
-		make([]EventPrimitives, 0),
 	}
 }
 
