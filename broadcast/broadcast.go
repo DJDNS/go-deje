@@ -65,6 +65,7 @@ type Broadcaster struct {
 	subscriptions map[int]Subscription
 	max_key       int
 	mutex         *sync.Mutex
+	closed        bool
 }
 
 // Create a new Broadcaster object, with proper starting parameters
@@ -75,6 +76,7 @@ func NewBroadcaster() *Broadcaster {
 		subscriptions: make(map[int]Subscription),
 		max_key:       0,
 		mutex:         new(sync.Mutex),
+		closed:        false,
 	}
 	go b.run()
 	return b
@@ -90,22 +92,34 @@ func (b *Broadcaster) Subscribe() Subscription {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
+	if b.closed {
+		panic("Attempt to subscribe to closed Broadcaster")
+	}
+
 	key := b.max_key
 	b.max_key = key + 1
 	sub := Subscription{
 		channels.NewInfiniteChannel(),
-		0,
+		key,
 		b,
 	}
 	b.subscriptions[key] = sub
 	return sub
 }
 
-// Close input channel, thus shutting down internal goroutine
+// Close input channel, thus shutting down internal goroutine.
+//
+// ALWAYS use this, rather than close(b.In()). That way you are
+// protected from race conditions with Broadcaster.Subscribe.
 func (b *Broadcaster) Close() {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	b.closed = true
 	close(b.input)
 }
 
+// Secret goroutine that runs until broadcaster is closed.
 func (b *Broadcaster) run() {
 	for {
 		data, ok := <-b.input
@@ -121,5 +135,8 @@ func (b *Broadcaster) run() {
 			}
 		}
 		b.mutex.Unlock()
+	}
+	for _, sub := range b.subscriptions {
+		sub.Close()
 	}
 }

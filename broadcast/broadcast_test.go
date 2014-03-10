@@ -1,6 +1,7 @@
 package broadcast
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
@@ -175,5 +176,60 @@ func TestBroadcaster_UnsubscribeUgly(t *testing.T) {
 
 	if len(b.subscriptions) > 0 {
 		t.Fatal("Sub should be removed from list on send iteration")
+	}
+}
+
+func TestBroadcaster_UnsubscribeCorrectSub(t *testing.T) {
+	b := NewBroadcaster()
+	defer b.Close()
+
+	happy := b.Subscribe()
+	doomed := b.Subscribe()
+	indifferent := b.Subscribe()
+	doomed.Close()
+
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	expected := map[int]Subscription{
+		happy.key:       happy,
+		indifferent.key: indifferent,
+	}
+	if !reflect.DeepEqual(b.subscriptions, expected) {
+		t.Errorf("Expected %#v", expected)
+		t.Fatalf("Got %#v", b.subscriptions)
+	}
+}
+
+func TestBroadcaster_CleansUpSubscriptions(t *testing.T) {
+	b := NewBroadcaster()
+	_ = b.Subscribe()
+	b.Close()
+
+	// Allow some time for loop, make sure we're synced
+	<-time.After(timeout)
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	if len(b.subscriptions) > 0 {
+		t.Fatal("Still has subscriptions after closing!")
+	}
+}
+
+func TestBroadcaster_SubscribeAfterClose(t *testing.T) {
+	b := NewBroadcaster()
+	b.Close()
+
+	paniced := false
+	defer func() {
+		if r := recover(); r != nil {
+			paniced = true
+		}
+	}()
+
+	_ = b.Subscribe()
+
+	if !paniced {
+		t.Fatal("Should panic on Subscribe-after-Close")
 	}
 }
