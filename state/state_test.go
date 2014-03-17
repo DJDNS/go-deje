@@ -3,6 +3,7 @@ package state
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestNewDocumentState(t *testing.T) {
@@ -37,11 +38,31 @@ func TestDocumentState_Reset(t *testing.T) {
 		t.Fatalf("Expected %#v, got %#v", expected, exported)
 	}
 
+	sub := ds.Subscribe()
 	ds.Reset()
+
 	expected = map[string]interface{}{}
 	exported = ds.Export()
 	if !reflect.DeepEqual(exported, expected) {
 		t.Fatalf("Expected %#v, got %#v", expected, exported)
+	}
+
+	select {
+	case primitive := <-sub.Out():
+		expected_p := &SetPrimitive{
+			Path:  []interface{}{},
+			Value: map[string]interface{}{},
+		}
+		if !reflect.DeepEqual(primitive, expected_p) {
+			t.Fatalf("Expected %#v, got %#v", expected_p, primitive)
+		}
+		/*
+		   if sub.Len() != 0 {
+		       t.Errorf("sub should be empty, still %d left", sub.Len())
+		   }
+		*/
+	case <-time.After(time.Millisecond):
+		t.Fatal("No primitive received")
 	}
 }
 

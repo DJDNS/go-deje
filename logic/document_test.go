@@ -124,3 +124,20 @@ func TestToFile(t *testing.T) {
 		t.Fatalf("%v != %v", q_to_s, q_df)
 	}
 }
+
+/*
+func TestDocument_Goto(t *testing.T) {
+	d := NewDocument()
+
+	d.Channel = model.IRCLocation{
+		Host:    "some host",
+		Port:    5555,
+		Channel: "some channel",
+	}
+
+	ev := d.NewEvent("SET")
+	ev.Arguments["path"] = []interface{}{"hello"}
+	ev.Arguments["value"] = "world"
+	ev.Register()
+}
+*/
