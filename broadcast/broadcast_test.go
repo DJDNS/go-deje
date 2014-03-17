@@ -10,11 +10,7 @@ var timeout = time.Millisecond
 
 func TestNewBroadcaster(t *testing.T) {
 	b := NewBroadcaster()
-	defer b.Close()
 
-	if b.input == nil {
-		t.Fatal("b.input not initialized")
-	}
 	if b.subscriptions == nil {
 		t.Fatal("b.subscriptions not initialized")
 	}
@@ -35,13 +31,7 @@ func TestBroadcaster_Send_NoSubs(t *testing.T) {
 	b := NewBroadcaster()
 	defer b.Close()
 
-	input := b.In()
-
-	select {
-	case input <- "hello":
-	case <-time.After(timeout):
-		t.Fatal("Send should not have blocked")
-	}
+	b.Send("hello")
 }
 
 func TestBroadcaster_Send_OneSub(t *testing.T) {
@@ -49,9 +39,8 @@ func TestBroadcaster_Send_OneSub(t *testing.T) {
 	defer b.Close()
 
 	data := "example"
-	input := b.In()
 	sub := b.Subscribe()
-	input <- data
+	b.Send(data)
 
 	select {
 	case recvd := <-sub.Out():
@@ -74,7 +63,7 @@ func TestBroadcaster_Send_MultipleSubs(t *testing.T) {
 		subs[i] = b.Subscribe()
 	}
 
-	b.In() <- data
+	b.Send(data)
 
 	for i, sub := range subs {
 		select {
@@ -95,9 +84,8 @@ func TestBroadcaster_Send_MultipleData(t *testing.T) {
 	// Use a ton of data to stress-test ordering
 	max_data := 200
 	sub := b.Subscribe()
-	input := b.In()
 	for i := 0; i < max_data; i++ {
-		input <- i
+		b.Send(i)
 	}
 
 	for i := 0; i < max_data; i++ {
@@ -135,7 +123,7 @@ func TestBroadcaster_SubscribeVsBroadcast(t *testing.T) {
 
 	go b.Subscribe()
 	go func() {
-		b.In() <- "some data"
+		b.Send("some data")
 	}()
 
 	// Keep broadcaster alive awhile
@@ -167,7 +155,7 @@ func TestBroadcaster_UnsubscribeUgly(t *testing.T) {
 		t.Fatal("Shouldn't be immediately removed - b can't know")
 	}
 
-	b.In() <- "some data"
+	b.Send("some data")
 
 	// Allow some time for loop, make sure we're synced
 	<-time.After(timeout)

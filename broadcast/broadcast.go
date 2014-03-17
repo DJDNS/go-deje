@@ -48,6 +48,11 @@ func (sub Subscription) remove() {
 	delete(sub.source.subscriptions, sub.key)
 }
 
+func (sub Subscription) do_close() {
+	sub.remove()
+	sub.InfiniteChannel.Close()
+}
+
 // Close a subscription and immediately remove it from the
 // Broadcaster's list of subscriptions.
 //
@@ -62,8 +67,7 @@ func (sub Subscription) Close() {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	sub.remove()
-	sub.InfiniteChannel.Close()
+	sub.do_close()
 }
 
 // Ever wanted to send a message to a whole bunch of channels,
@@ -75,7 +79,6 @@ func (sub Subscription) Close() {
 // subscribers, without having to worry about slowing down your
 // writing goroutine.
 type Broadcaster struct {
-	input         chan interface{}
 	subscriptions map[int]Subscription
 	max_key       int
 	mutex         *sync.Mutex
@@ -86,19 +89,12 @@ type Broadcaster struct {
 // and an underlying goroutine running behind the scenes.
 func NewBroadcaster() *Broadcaster {
 	b := &Broadcaster{
-		input:         make(chan interface{}),
 		subscriptions: make(map[int]Subscription),
 		max_key:       0,
 		mutex:         new(sync.Mutex),
 		closed:        false,
 	}
-	go b.run()
 	return b
-}
-
-// Get input channel, for broadcasting values to all subscribers.
-func (b *Broadcaster) In() chan<- interface{} {
-	return b.input
 }
 
 // Create a new Subscription object, which will recieve broadcasts.
@@ -121,36 +117,28 @@ func (b *Broadcaster) Subscribe() Subscription {
 	return sub
 }
 
-// Close input channel, thus shutting down internal goroutine.
-//
-// ALWAYS use this, rather than close(b.In()). That way you are
-// protected from race conditions with Broadcaster.Subscribe.
+// Close all subscriptions (for draining), and reject new subs.
 func (b *Broadcaster) Close() {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
 	b.closed = true
-	close(b.input)
+	for _, sub := range b.subscriptions {
+		sub.do_close()
+	}
 }
 
-// Secret goroutine that runs until broadcaster is closed.
-func (b *Broadcaster) run() {
-	for {
-		data, ok := <-b.input
-		if !ok {
-			break
-		}
+// Send data to all subscribers.
+//
+// Should never block.
+func (b *Broadcaster) Send(data interface{}) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
 
-		b.mutex.Lock()
-		for _, sub := range b.subscriptions {
-			open := sub.Send(data)
-			if !open {
-				sub.remove()
-			}
-		}
-		b.mutex.Unlock()
-	}
 	for _, sub := range b.subscriptions {
-		sub.Close()
+		open := sub.Send(data)
+		if !open {
+			sub.remove()
+		}
 	}
 }
