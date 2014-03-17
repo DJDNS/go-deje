@@ -12,6 +12,10 @@ func NewPrimitiveBroadcaster() PrimitiveBroadcaster {
 	}
 }
 
+func (pb PrimitiveBroadcaster) Send(p Primitive) {
+	pb.Broadcaster.Send(p)
+}
+
 func (pb PrimitiveBroadcaster) Subscribe() PrimitiveSubscription {
 	ps := PrimitiveSubscription{
 		pb.Broadcaster.Subscribe(),
