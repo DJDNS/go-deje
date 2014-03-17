@@ -1,3 +1,17 @@
+/*
+Generic package for single-producer multi-consumer queues.
+
+You should generally wrap this in a type-safe wrapper class
+for convenience and safety, unless you actually want to pass
+interface{}s around.
+
+Be aware that memory usage can potentially be high, since
+a few of the selling points (non-blocking broadcasts, reliable
+delivery) create the requirement that buffered items will
+persist in memory until consumed, or you run out of memory.
+Also, the items are duplicated to all subscribers, which
+multiplies memory requirements by len(Broadcaster.subscriptions).
+*/
 package broadcast
 
 import (
