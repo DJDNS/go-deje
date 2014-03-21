@@ -14,7 +14,7 @@ func NewDocumentState() *DocumentState {
 	}
 }
 
-func (ds *DocumentState) Subscribe() PrimitiveSubscription {
+func (ds *DocumentState) Subscribe() *PrimitiveSubscription {
 	return ds.bcast.Subscribe()
 }
 
