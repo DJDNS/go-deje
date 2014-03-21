@@ -88,6 +88,11 @@ func TestBroadcaster_Send_MultipleData(t *testing.T) {
 		b.Send(i)
 	}
 
+	length := sub.Len()
+	if length != max_data {
+		t.Fatalf("Expected length %d, got %d", max_data, length)
+	}
+
 	for i := 0; i < max_data; i++ {
 		select {
 		case recvd := <-sub.Out():
@@ -149,7 +154,7 @@ func TestBroadcaster_UnsubscribeUgly(t *testing.T) {
 	defer b.Close()
 
 	sub := b.Subscribe()
-	sub.InfiniteChannel.Close()
+	close(sub.channel)
 
 	if len(b.subscriptions) != 1 {
 		t.Fatal("Shouldn't be immediately removed - b can't know")

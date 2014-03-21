@@ -14,10 +14,7 @@ multiplies memory requirements by len(Broadcaster.subscriptions).
 */
 package broadcast
 
-import (
-	"github.com/eapache/channels"
-	"sync"
-)
+import "sync"
 
 // Represents one of the channels that the Broadcaster sends
 // to. It has unbounded buffer capacity (at least until your
@@ -25,16 +22,28 @@ import (
 // really should continue to process your subscription output
 // at top speed and keep a clean buffer.
 type Subscription struct {
-	*channels.InfiniteChannel
-	key    int
-	source *Broadcaster
+	channel chan interface{}
+	key     int
+	source  *Broadcaster
+}
+
+// Get length of inner channel.
+//
+// Equivalent to len(sub.Out()).
+func (sub Subscription) Len() int {
+	return len(sub.channel)
+}
+
+// Get receive-only channel of Subscription.
+func (sub Subscription) Out() <-chan interface{} {
+	return sub.channel
 }
 
 // Attempt to send some data to a Subscription, and
 // return whether it was successful.
 func (sub Subscription) Send(data interface{}) bool {
 	success := true
-	channel := sub.In()
+	channel := sub.channel
 	defer func() {
 		if r := recover(); r != nil {
 			success = false
@@ -50,7 +59,7 @@ func (sub Subscription) remove() {
 
 func (sub Subscription) do_close() {
 	sub.remove()
-	sub.InfiniteChannel.Close()
+	close(sub.channel)
 }
 
 // Close a subscription and immediately remove it from the
@@ -109,7 +118,7 @@ func (b *Broadcaster) Subscribe() Subscription {
 	key := b.max_key
 	b.max_key = key + 1
 	sub := Subscription{
-		channels.NewInfiniteChannel(),
+		make(chan interface{}, 500),
 		key,
 		b,
 	}
