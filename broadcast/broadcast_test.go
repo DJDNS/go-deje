@@ -58,7 +58,7 @@ func TestBroadcaster_Send_MultipleSubs(t *testing.T) {
 	defer b.Close()
 
 	data := "example"
-	subs := make([]Subscription, 10)
+	subs := make([]*Subscription, 10)
 	for i, _ := range subs {
 		subs[i] = b.Subscribe()
 	}
@@ -102,6 +102,49 @@ func TestBroadcaster_Send_MultipleData(t *testing.T) {
 		case <-time.After(timeout):
 			t.Fatalf("Receive should not have blocked (item %d)", i)
 		}
+	}
+}
+
+func TestBroadcaster_Overflow(t *testing.T) {
+	b := NewBroadcaster()
+	defer b.Close()
+
+	// Use a flood of data to exceed capacity
+	sub := b.Subscribe()
+	out := sub.Out()
+	capacity := cap(out)
+
+	// Fill exactly to capacity
+	for i := 0; i < capacity; i++ {
+		b.Send(i)
+	}
+	if _, ok := <-out; !ok {
+		t.Fatal("Chan closed after filling to capacity")
+	}
+	if sub.Overflowed {
+		t.Fatal("sub.Overflowed after filling to capacity")
+	}
+
+	// Need to send two to overflow - consumed one earlier
+	b.Send(capacity + 1)
+	b.Send(capacity + 2)
+	if !sub.Overflowed {
+		t.Fatal("!sub.Overflowed after filling past capacity")
+	}
+	if sub.Len() != capacity {
+		t.Fatalf("Expected len %d, got %d", capacity, sub.Len())
+	}
+
+	// Eat through queue to prove closed-ness
+	for i := 0; i < capacity; i++ {
+		select {
+		case <-out:
+		default:
+			t.Fatalf("Could not get item %d", i)
+		}
+	}
+	if _, ok := <-out; ok {
+		t.Fatal("Chan open after filling past capacity")
 	}
 }
 
@@ -149,29 +192,6 @@ func TestBroadcaster_Unsubscribe(t *testing.T) {
 	}
 }
 
-func TestBroadcaster_UnsubscribeUgly(t *testing.T) {
-	b := NewBroadcaster()
-	defer b.Close()
-
-	sub := b.Subscribe()
-	close(sub.channel)
-
-	if len(b.subscriptions) != 1 {
-		t.Fatal("Shouldn't be immediately removed - b can't know")
-	}
-
-	b.Send("some data")
-
-	// Allow some time for loop, make sure we're synced
-	<-time.After(timeout)
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-
-	if len(b.subscriptions) > 0 {
-		t.Fatal("Sub should be removed from list on send iteration")
-	}
-}
-
 func TestBroadcaster_UnsubscribeCorrectSub(t *testing.T) {
 	b := NewBroadcaster()
 	defer b.Close()
@@ -184,7 +204,7 @@ func TestBroadcaster_UnsubscribeCorrectSub(t *testing.T) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	expected := map[int]Subscription{
+	expected := map[int]*Subscription{
 		happy.key:       happy,
 		indifferent.key: indifferent,
 	}
