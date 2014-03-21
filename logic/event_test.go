@@ -336,3 +336,57 @@ func TestEvent_Apply(t *testing.T) {
 		t.Fatalf("Expected %#v, got %#v", expected_export, exported)
 	}
 }
+
+func TestEvent_Goto(t *testing.T) {
+	d := NewDocument()
+	// TODO: Test doomed-to-failure/invalid events
+	ev_root := d.NewEvent("SET")
+	ev_root.Arguments["path"] = []interface{}{}
+	ev_root.Arguments["value"] = map[string]interface{}{
+		"hello": map[string]interface{}{},
+	}
+
+	ev_child := d.NewEvent("SET")
+	ev_child.Arguments["path"] = []interface{}{"hello", "to the"}
+	ev_child.Arguments["value"] = "world"
+	ev_child.SetParent(ev_root)
+
+	ev_fork := d.NewEvent("SET")
+	ev_fork.Arguments["path"] = []interface{}{"hello", "little"}
+	ev_fork.Arguments["value"] = "fork"
+	ev_fork.SetParent(ev_root)
+
+	ev_root.Register()
+	ev_child.Register()
+	ev_fork.Register()
+
+	// Test first
+	err := ev_child.Goto()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected_export := map[string]interface{}{
+		"hello": map[string]interface{}{
+			"to the": "world",
+		},
+	}
+	exported := d.State.Export()
+	if !reflect.DeepEqual(exported, expected_export) {
+		t.Fatalf("Expected %#v, got %#v", expected_export, exported)
+	}
+
+	// Test switch
+	err = ev_fork.Goto()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected_export = map[string]interface{}{
+		"hello": map[string]interface{}{
+			"little": "fork",
+		},
+	}
+	exported = d.State.Export()
+	if !reflect.DeepEqual(exported, expected_export) {
+		t.Fatalf("Expected %#v, got %#v", expected_export, exported)
+	}
+}

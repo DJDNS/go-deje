@@ -152,8 +152,24 @@ func (e Event) Apply() error {
 		return err
 	}
 	for _, primitive := range primitives {
-		// TODO: Handle errors
-		e.Doc.State.Apply(primitive)
+		err = e.Doc.State.Apply(primitive)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func (e Event) Goto() error {
+	d := e.Doc
+	//d.State.Reset()
+	if e.Event.ParentHash != "" {
+		parent, ok := d.Events.GetByKey(e.Event.ParentHash)
+		if !ok {
+			return errors.New("foobar") // TODO: Error
+		}
+		logic_parent := Event{parent.(model.Event), d}
+		logic_parent.Goto()
+	}
+	return e.Apply()
 }
