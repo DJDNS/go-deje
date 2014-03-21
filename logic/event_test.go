@@ -314,3 +314,25 @@ func TestEvent_getPrimitives_Set(t *testing.T) {
 		test.Run(t)
 	}
 }
+
+func TestEvent_Apply(t *testing.T) {
+	d := NewDocument()
+	// TODO: Test doomed-to-failure/invalid events
+	ev := d.NewEvent("SET")
+	ev.Arguments["path"] = []interface{}{}
+	ev.Arguments["value"] = map[string]interface{}{
+		"hello": "world",
+	}
+	primitives, err := ev.getPrimitives()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Primitives: %#v", primitives)
+
+	err = ev.Apply()
+	expected_export := ev.Arguments["value"]
+	exported := d.State.Export()
+	if !reflect.DeepEqual(exported, expected_export) {
+		t.Fatalf("Expected %#v, got %#v", expected_export, exported)
+	}
+}

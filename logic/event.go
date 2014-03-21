@@ -141,3 +141,19 @@ func (e Event) getPrimitives() ([]state.Primitive, error) {
 	}
 	return primitives, nil
 }
+
+// Attempt to apply this event to the current document state.
+//
+// Does not check that the document is at the Event's parent
+// before attempting to apply primitives.
+func (e Event) Apply() error {
+	primitives, err := e.getPrimitives()
+	if err != nil {
+		return err
+	}
+	for _, primitive := range primitives {
+		// TODO: Handle errors
+		e.Doc.State.Apply(primitive)
+	}
+	return nil
+}
