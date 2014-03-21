@@ -23,6 +23,7 @@ func (pb PrimitiveBroadcaster) Subscribe() *PrimitiveSubscription {
 	ps := PrimitiveSubscription{
 		pb.Broadcaster.Subscribe(),
 		make(chan Primitive),
+		new(sync.Mutex),
 		0,
 	}
 	go ps.run()
@@ -30,9 +31,9 @@ func (pb PrimitiveBroadcaster) Subscribe() *PrimitiveSubscription {
 }
 
 type PrimitiveSubscription struct {
-	sub       broadcast.Subscription
+	sub       *broadcast.Subscription
 	out       chan Primitive
-	state_mut sync.Mutex
+	state_mut *sync.Mutex
 	sending   int // Number of items being sent
 }
 
