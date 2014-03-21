@@ -1,8 +1,10 @@
 package state
 
+import "github.com/campadrenalin/go-deje/broadcast"
+
 type DocumentState struct {
 	Value Container
-	bcast PrimitiveBroadcaster
+	bcast *broadcast.Broadcaster
 }
 
 func NewDocumentState() *DocumentState {
@@ -10,11 +12,11 @@ func NewDocumentState() *DocumentState {
 	container, _ := MakeContainer(map[string]interface{}{})
 	return &DocumentState{
 		container,
-		NewPrimitiveBroadcaster(),
+		broadcast.NewBroadcaster(),
 	}
 }
 
-func (ds *DocumentState) Subscribe() *PrimitiveSubscription {
+func (ds *DocumentState) Subscribe() *broadcast.Subscription {
 	return ds.bcast.Subscribe()
 }
 
@@ -27,6 +29,9 @@ func (ds *DocumentState) Reset() {
 	ds.Apply(p)
 }
 
+// Apply a Primitive such that it is broadcast to
+// all subscribers. Always preferable to p.Apply(ds),
+// which does not broadcast.
 func (ds *DocumentState) Apply(p Primitive) error {
 	err := p.Apply(ds)
 	if err != nil {

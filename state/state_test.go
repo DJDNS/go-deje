@@ -56,11 +56,9 @@ func TestDocumentState_Reset(t *testing.T) {
 		if !reflect.DeepEqual(primitive, expected_p) {
 			t.Fatalf("Expected %#v, got %#v", expected_p, primitive)
 		}
-		/*
-		   if sub.Len() != 0 {
-		       t.Errorf("sub should be empty, still %d left", sub.Len())
-		   }
-		*/
+		if sub.Len() != 0 {
+			t.Errorf("sub should be empty, still %d left", sub.Len())
+		}
 	case <-time.After(time.Millisecond):
 		t.Fatal("No primitive received")
 	}
