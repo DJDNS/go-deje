@@ -64,6 +64,47 @@ func TestDocumentState_Reset(t *testing.T) {
 	}
 }
 
+func TestDocumentState_Apply(t *testing.T) {
+	ds := NewDocumentState()
+	primitive := &SetPrimitive{
+		Path:  []interface{}{"key"},
+		Value: "value",
+	}
+	sub := ds.Subscribe()
+	err := ds.Apply(primitive)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sub.Len() != 1 {
+		t.Fatal(
+			"Expected 1 primitive to be broadast, got %d",
+			sub.Len(),
+		)
+	}
+	recvd_p := <-sub.Out()
+	if !reflect.DeepEqual(recvd_p, primitive) {
+		t.Fatal("Expected %#v, got %#v", primitive, recvd_p)
+	}
+}
+func TestDocumentState_Apply_BadPrimitive(t *testing.T) {
+	ds := NewDocumentState()
+	primitive := &SetPrimitive{
+		Path:  []interface{}{"no", "such", "path"},
+		Value: 8,
+	}
+	sub := ds.Subscribe()
+	err := ds.Apply(primitive)
+	if err == nil {
+		t.Fatal("ds.Apply should fail if underlying Apply fails")
+	}
+	if sub.Len() != 0 {
+		t.Fatal(
+			"Expected 0 primitives to be broadast, got %d",
+			sub.Len(),
+		)
+	}
+}
+
 func TestDocumentState_Export(t *testing.T) {
 	ds := NewDocumentState()
 	err := ds.Value.SetChild("hello", "world")
