@@ -339,7 +339,6 @@ func TestEvent_Apply(t *testing.T) {
 
 func TestEvent_Goto(t *testing.T) {
 	d := NewDocument()
-	// TODO: Test doomed-to-failure/invalid events
 	ev_root := d.NewEvent("SET")
 	ev_root.Arguments["path"] = []interface{}{"know"}
 	ev_root.Arguments["value"] = "fashion's a stranger"
@@ -384,5 +383,20 @@ func TestEvent_Goto(t *testing.T) {
 	exported = d.State.Export()
 	if !reflect.DeepEqual(exported, expected_export) {
 		t.Fatalf("Expected %#v, got %#v", expected_export, exported)
+	}
+}
+
+func TestEvent_Goto_BadParent(t *testing.T) {
+	d := NewDocument()
+	ev_root := d.NewEvent("SET")
+	ev_child := d.NewEvent("SET")
+
+	// Set up parentage, but only register child
+	ev_child.SetParent(ev_root)
+	ev_child.Register()
+
+	err := ev_child.Goto()
+	if err == nil {
+		t.Fatal("Goto with unreachable heritage should fail!")
 	}
 }

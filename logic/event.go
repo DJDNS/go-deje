@@ -166,10 +166,10 @@ func (e Event) Goto() error {
 	if e.Event.ParentHash != "" {
 		parent, ok := d.Events.GetByKey(e.Event.ParentHash)
 		if !ok {
-			return errors.New("foobar") // TODO: Error
+			return errors.New("Could not get parent")
 		}
 		logic_parent := Event{parent.(model.Event), d}
-		logic_parent.Goto()
+		logic_parent.Goto() // TODO: Abort on fail
 	}
 	return e.Apply()
 }
