@@ -169,7 +169,10 @@ func (e Event) Goto() error {
 			return errors.New("Could not get parent")
 		}
 		logic_parent := Event{parent.(model.Event), d}
-		logic_parent.Goto() // TODO: Abort on fail
+		err := logic_parent.Goto()
+		if err != nil {
+			return err
+		}
 	}
 	return e.Apply()
 }

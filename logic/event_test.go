@@ -386,7 +386,7 @@ func TestEvent_Goto(t *testing.T) {
 	}
 }
 
-func TestEvent_Goto_BadParent(t *testing.T) {
+func TestEvent_Goto_MissingParent(t *testing.T) {
 	d := NewDocument()
 	ev_root := d.NewEvent("SET")
 	ev_child := d.NewEvent("SET")
@@ -398,5 +398,26 @@ func TestEvent_Goto_BadParent(t *testing.T) {
 	err := ev_child.Goto()
 	if err == nil {
 		t.Fatal("Goto with unreachable heritage should fail!")
+	}
+}
+
+func TestEvent_Goto_BadParent(t *testing.T) {
+	d := NewDocument()
+	ev_root := d.NewEvent("SET")
+	ev_child := d.NewEvent("SET")
+
+	// Invalid root event path
+	ev_root.Arguments["path"] = []interface{}{"this", "that"}
+	ev_root.Arguments["value"] = "the other thing"
+	ev_child.Arguments["path"] = []interface{}{"simple"}
+	ev_child.Arguments["value"] = "and would work"
+
+	ev_child.SetParent(ev_root)
+	ev_child.Register()
+	ev_root.Register()
+
+	err := ev_child.Goto()
+	if err == nil {
+		t.Fatal("Goto with unapplyable parent should fail!")
 	}
 }
