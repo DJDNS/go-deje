@@ -341,19 +341,17 @@ func TestEvent_Goto(t *testing.T) {
 	d := NewDocument()
 	// TODO: Test doomed-to-failure/invalid events
 	ev_root := d.NewEvent("SET")
-	ev_root.Arguments["path"] = []interface{}{}
-	ev_root.Arguments["value"] = map[string]interface{}{
-		"hello": map[string]interface{}{},
-	}
+	ev_root.Arguments["path"] = []interface{}{"know"}
+	ev_root.Arguments["value"] = "fashion's a stranger"
 
 	ev_child := d.NewEvent("SET")
-	ev_child.Arguments["path"] = []interface{}{"hello", "to the"}
-	ev_child.Arguments["value"] = "world"
+	ev_child.Arguments["path"] = []interface{}{"friend"}
+	ev_child.Arguments["value"] = "fashion is danger"
 	ev_child.SetParent(ev_root)
 
 	ev_fork := d.NewEvent("SET")
-	ev_fork.Arguments["path"] = []interface{}{"hello", "little"}
-	ev_fork.Arguments["value"] = "fork"
+	ev_fork.Arguments["path"] = []interface{}{"posing"}
+	ev_fork.Arguments["value"] = "a threat"
 	ev_fork.SetParent(ev_root)
 
 	ev_root.Register()
@@ -366,9 +364,8 @@ func TestEvent_Goto(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected_export := map[string]interface{}{
-		"hello": map[string]interface{}{
-			"to the": "world",
-		},
+		"know":   "fashion's a stranger",
+		"friend": "fashion is danger",
 	}
 	exported := d.State.Export()
 	if !reflect.DeepEqual(exported, expected_export) {
@@ -381,9 +378,8 @@ func TestEvent_Goto(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected_export = map[string]interface{}{
-		"hello": map[string]interface{}{
-			"little": "fork",
-		},
+		"know":   "fashion's a stranger",
+		"posing": "a threat",
 	}
 	exported = d.State.Export()
 	if !reflect.DeepEqual(exported, expected_export) {

@@ -162,7 +162,7 @@ func (e Event) Apply() error {
 
 func (e Event) Goto() error {
 	d := e.Doc
-	//d.State.Reset()
+	d.State.Reset()
 	if e.Event.ParentHash != "" {
 		parent, ok := d.Events.GetByKey(e.Event.ParentHash)
 		if !ok {
