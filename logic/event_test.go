@@ -317,7 +317,6 @@ func TestEvent_getPrimitives_Set(t *testing.T) {
 
 func TestEvent_Apply(t *testing.T) {
 	d := NewDocument()
-	// TODO: Test doomed-to-failure/invalid events
 	ev := d.NewEvent("SET")
 	ev.Arguments["path"] = []interface{}{}
 	ev.Arguments["value"] = map[string]interface{}{
@@ -334,6 +333,34 @@ func TestEvent_Apply(t *testing.T) {
 	exported := d.State.Export()
 	if !reflect.DeepEqual(exported, expected_export) {
 		t.Fatalf("Expected %#v, got %#v", expected_export, exported)
+	}
+}
+
+func TestEvent_Apply_BadPrimitives(t *testing.T) {
+	d := NewDocument()
+	ev := d.NewEvent("SET") // No parameters!
+
+	_, err := ev.getPrimitives()
+	if err == nil {
+		t.Fatal("ev.getPrimitives should have failed!")
+	}
+	err = ev.Apply()
+	if err == nil {
+		t.Fatal("ev.Apply should fail when ev.getPrimitives fails")
+	}
+}
+
+func TestEvent_Apply_UnapplyablePrimitive(t *testing.T) {
+	d := NewDocument()
+	ev := d.NewEvent("SET")
+
+	// Invalid event path - does not exist in blank state
+	ev.Arguments["path"] = []interface{}{"this", "that"}
+	ev.Arguments["value"] = "the other thing"
+
+	err := ev.Apply()
+	if err == nil {
+		t.Fatal("ev.Apply should fail with unapplyable primitives")
 	}
 }
 
