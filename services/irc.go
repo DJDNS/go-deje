@@ -2,6 +2,8 @@ package services
 
 import "github.com/campadrenalin/go-deje/model"
 
+var CHANNEL_BUFFER_SIZE = 5
+
 // You should generally never need a custom IRCService,
 // but you can provide one, if you really want.
 type IRCService interface {
@@ -22,12 +24,16 @@ type IRCChannel struct {
 	Outgoing chan string
 }
 
+func NewIRCChannel(location model.IRCLocation) IRCChannel {
+	return IRCChannel{
+		Location: location,
+		Incoming: make(chan string, CHANNEL_BUFFER_SIZE),
+		Outgoing: make(chan string, CHANNEL_BUFFER_SIZE),
+	}
+}
+
 type DummyIRCService struct{}
 
 func (dis DummyIRCService) GetChannel(location model.IRCLocation) IRCChannel {
-	return IRCChannel{
-		Location: location,
-		Incoming: make(chan string),
-		Outgoing: make(chan string),
-	}
+	return NewIRCChannel(location)
 }
