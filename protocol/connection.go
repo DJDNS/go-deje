@@ -2,9 +2,12 @@ package protocol
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/campadrenalin/go-deje/logic"
 	"github.com/campadrenalin/go-deje/model"
 	"github.com/campadrenalin/go-deje/services"
+	"log"
+	"strings"
 )
 
 type Connection struct {
@@ -34,4 +37,32 @@ func (p Connection) onEvent(evstr string) error {
 	event := logic.Event{ev, &p.Document}
 	event.Register()
 	return nil
+}
+
+func (p Connection) onRecv(input string) error {
+	if !strings.HasPrefix(input, "deje ") {
+		return fmt.Errorf(`Not a protocol message: "%s"`, input)
+	}
+	input = strings.TrimPrefix(input, "deje ")
+	if strings.HasPrefix(input, "event ") {
+		input = strings.TrimPrefix(input, "event ")
+		return p.onEvent(input)
+	}
+	return fmt.Errorf(
+		`Not a valid message type: "%s"`,
+		strings.SplitN(input, " ", 2)[0],
+	)
+}
+
+func (p Connection) Run(logger *log.Logger) {
+	for {
+		str := <-p.Channel.Incoming
+		err := p.onRecv(str)
+		if err != nil {
+			logger.Println(err)
+		}
+	}
+}
+
+func (p Connection) Stop() {
 }
