@@ -8,15 +8,23 @@ import (
 	"github.com/campadrenalin/go-deje/services"
 	"log"
 	"strings"
+	"sync"
 )
 
 type Connection struct {
 	Document logic.Document
 	Channel  services.IRCChannel
+	closer   chan struct{}
+	waiter   *sync.Mutex
 }
 
 func NewConnection(d logic.Document, c services.IRCChannel) Connection {
-	return Connection{d, c}
+	return Connection{
+		d,
+		c,
+		make(chan struct{}),
+		new(sync.Mutex),
+	}
 }
 
 func (p Connection) PublishEvent(ev model.Event) error {
@@ -55,14 +63,25 @@ func (p Connection) onRecv(input string) error {
 }
 
 func (p Connection) Run(logger *log.Logger) {
+	p.waiter.Lock()
+	defer p.waiter.Unlock()
 	for {
-		str := <-p.Channel.Incoming
-		err := p.onRecv(str)
-		if err != nil {
-			logger.Println(err)
+		select {
+		case str := <-p.Channel.Incoming:
+			err := p.onRecv(str)
+			if err != nil {
+				logger.Println(err)
+			}
+		case <-p.closer:
+			logger.Println("Exiting protocol connection loop")
+			return
 		}
 	}
 }
 
 func (p Connection) Stop() {
+	close(p.closer)
+	// Wait for close
+	p.waiter.Lock()
+	p.waiter.Unlock()
 }

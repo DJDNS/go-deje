@@ -252,6 +252,20 @@ func TestConnection_Run(t *testing.T) {
 	}
 }
 
-// TODO: Fill out
 func TestConnection_Stop(t *testing.T) {
+	d := logic.NewDocument()
+	c := services.NewIRCChannel(location)
+	conn := NewConnection(d, c)
+	logger, buf := testLogger()
+
+	go conn.Run(logger)
+	<-time.After(timeout)
+	conn.Stop()
+
+	log_output := buf.String()
+	expected := "Exiting protocol connection loop\n"
+	if log_output != expected {
+		t.Errorf("Expected:\n'%s'", expected)
+		t.Fatalf("Logged:\n'%s'", log_output)
+	}
 }
