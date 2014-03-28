@@ -1,6 +1,11 @@
 package services
 
-import "github.com/campadrenalin/go-deje/model"
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"github.com/campadrenalin/go-deje/model"
+	external "github.com/thoj/go-ircevent"
+)
 
 var CHANNEL_BUFFER_SIZE = 5
 
@@ -32,8 +37,51 @@ func NewIRCChannel(location model.IRCLocation) IRCChannel {
 	}
 }
 
+func randomNick() string {
+	buffer := make([]byte, 20)
+	rand.Read(buffer)
+	encoder := base64.StdEncoding
+	enc_out := make([]byte, encoder.EncodedLen(len(buffer)))
+	encoder.Encode(enc_out, buffer)
+	return string(enc_out)
+}
+
 type DummyIRCService struct{}
 
 func (dis DummyIRCService) GetChannel(location model.IRCLocation) IRCChannel {
 	return NewIRCChannel(location)
+}
+
+type RealIRCService struct {
+}
+
+func (dis RealIRCService) GetChannel(location model.IRCLocation) IRCChannel {
+	channel := NewIRCChannel(location)
+
+	nick := randomNick()
+	backend := external.IRC(nick, nick)
+	err := backend.Connect(location.GetHostPort())
+	if err != nil {
+		panic(err)
+	}
+	backend.AddCallback("JOIN", func(e *external.Event) {
+		msg := e.Raw
+		channel.Incoming <- msg
+	})
+	backend.Join("#" + location.Channel)
+
+	// Incoming
+	backend.AddCallback("PRIVMSG", func(e *external.Event) {
+		msg := e.Message()
+		channel.Incoming <- msg
+	})
+
+	// Outgoing
+	go func() {
+		for {
+			line := <-channel.Outgoing
+			backend.Privmsg("#"+location.Channel, line)
+		}
+	}()
+	return channel
 }

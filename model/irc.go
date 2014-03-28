@@ -19,6 +19,11 @@ func (loc IRCLocation) GetURL() string {
 	return "irc://" + loc.Host + ":" + str_port + "/#" + loc.Channel
 }
 
+func (loc IRCLocation) GetHostPort() string {
+	str_port := strconv.FormatUint(uint64(loc.Port), 10)
+	return loc.Host + ":" + str_port
+}
+
 // Convenience function to get data as URL variables
 func (loc IRCLocation) GetVariables() string {
 	str_port := strconv.FormatUint(uint64(loc.Port), 10)
