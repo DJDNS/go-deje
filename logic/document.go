@@ -7,7 +7,7 @@ import (
 )
 
 // A document is a single managed DEJE object, associated with
-// a single immutable IRCLocation, and self-describing its
+// a single immutable topic string, and self-describing its
 // actions and permissions as part of the content.
 //
 // The content of a Document is the result of applying the
@@ -15,7 +15,7 @@ import (
 // Bitcoin ledger is the result of playing through the transactions
 // in every block of the longest valid blockchain.
 type Document struct {
-	Channel    model.IRCLocation
+	Topic      string
 	State      *state.DocumentState
 	Events     *manager.EventManager
 	Quorums    *manager.QuorumManager
@@ -34,7 +34,7 @@ func NewDocument() Document {
 
 // Copies the data from a DocumentFile into a Document.
 func (d *Document) FromFile(df *model.DocumentFile) {
-	d.Channel = df.Channel
+	d.Topic = df.Topic
 	d.Events = manager.NewEventManager()
 	d.Quorums = manager.NewQuorumManager()
 
@@ -45,7 +45,7 @@ func (d *Document) FromFile(df *model.DocumentFile) {
 // Copies the data from a Document into a DocumentFile.
 func (d *Document) ToFile() *model.DocumentFile {
 	df := &model.DocumentFile{
-		Channel: d.Channel,
+		Topic: d.Topic,
 		Events:  make(model.EventSet),
 		Quorums: make(model.QuorumSet),
 	}

@@ -27,9 +27,7 @@ func TestFromFile(t *testing.T) {
 	d := NewDocument()
 	df := model.NewDocumentFile()
 
-	df.Channel.Host = "some host"
-	df.Channel.Port = 5555 // Interstella?
-	df.Channel.Channel = "some channel"
+	df.Topic = "com.example.deje.5555"
 
 	ev := d.NewEvent("handler name")
 	ev.Arguments["hello"] = "world"
@@ -44,8 +42,8 @@ func TestFromFile(t *testing.T) {
 
 	d.FromFile(&df)
 
-	if d.Channel != df.Channel {
-		t.Fatal("Channels differ")
+	if d.Topic != df.Topic {
+		t.Fatal("Topics differ")
 	}
 
 	_, ok := d.Events.GetByKey("hello")
@@ -80,11 +78,7 @@ func TestFromFile(t *testing.T) {
 func TestToFile(t *testing.T) {
 	d := NewDocument()
 
-	d.Channel = model.IRCLocation{
-		Host:    "some host",
-		Port:    5555,
-		Channel: "some channel",
-	}
+	d.Topic = "com.example.deje.5555"
 
 	ev := d.NewEvent("handler name")
 	ev.Arguments["hello"] = "world"
@@ -96,8 +90,8 @@ func TestToFile(t *testing.T) {
 
 	df := d.ToFile()
 
-	if df.Channel != d.Channel {
-		t.Fatal("Channels differ")
+	if df.Topic != d.Topic {
+		t.Fatal("Topics differ")
 	}
 
 	if d.Events.Length() != 1 {
@@ -124,20 +118,3 @@ func TestToFile(t *testing.T) {
 		t.Fatalf("%v != %v", q_to_s, q_df)
 	}
 }
-
-/*
-func TestDocument_Goto(t *testing.T) {
-	d := NewDocument()
-
-	d.Channel = model.IRCLocation{
-		Host:    "some host",
-		Port:    5555,
-		Channel: "some channel",
-	}
-
-	ev := d.NewEvent("SET")
-	ev.Arguments["path"] = []interface{}{"hello"}
-	ev.Arguments["value"] = "world"
-	ev.Register()
-}
-*/

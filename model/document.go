@@ -6,7 +6,7 @@ package model
 // documents, that allow for storing Timestamps, and other data
 // that we must not trust the file to provide.
 type DocumentFile struct {
-	Channel IRCLocation
+	Topic   string
 	Events  EventSet
 	Quorums QuorumSet
 }
