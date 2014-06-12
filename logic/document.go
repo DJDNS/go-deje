@@ -45,7 +45,7 @@ func (d *Document) FromFile(df *model.DocumentFile) {
 // Copies the data from a Document into a DocumentFile.
 func (d *Document) ToFile() *model.DocumentFile {
 	df := &model.DocumentFile{
-		Topic: d.Topic,
+		Topic:   d.Topic,
 		Events:  make(model.EventSet),
 		Quorums: make(model.QuorumSet),
 	}
