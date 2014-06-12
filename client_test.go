@@ -140,3 +140,19 @@ func TestClient_PubSub(t *testing.T) {
 	}
 
 }
+
+func TestClient_Publish_BadEvent(t *testing.T) {
+	topic := "http://example.com/deje/some-doc"
+	client := NewClient(topic)
+	server_addr, server_closer := setupServer()
+	defer server_closer()
+
+	if err := client.Connect(server_addr); err != nil {
+		t.Fatal(err)
+	}
+
+	// Attempt to publish something that cannot be serialized
+	if err := client.Publish(make(chan int)); err == nil {
+		t.Fatal("Should have failed, chan int cannot be serialized")
+	}
+}
