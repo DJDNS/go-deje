@@ -47,3 +47,28 @@ func TestClient_Connect(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestClient_Connect_WithCallback(t *testing.T) {
+	topic := "com.example.deje.some-doc"
+	client := NewClient(topic)
+	server_addr, server_closer := setupServer()
+	defer server_closer()
+
+	var callback_called bool
+	var callback_called_with string
+	client.SetConnectCallback(func(sessionId string) {
+		callback_called = true
+		callback_called_with = sessionId
+	})
+
+	err := client.Connect(server_addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !callback_called {
+		t.Fatal("Callback was not called")
+	}
+	if callback_called_with == "" {
+		t.Fatal("Callback was not given a sessionId value")
+	}
+}
