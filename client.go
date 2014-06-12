@@ -20,3 +20,8 @@ func NewClient(topic string) Client {
 		tpClient: turnpike.NewClient(),
 	}
 }
+
+// Connect to a WAMP router.
+func (c Client) Connect(url string) error {
+	return c.tpClient.Connect(url, "http://localhost/")
+}
