@@ -38,7 +38,7 @@ func TestDocumentState_Reset(t *testing.T) {
 		t.Fatalf("Expected %#v, got %#v", expected, exported)
 	}
 
-	primitives_applied := make(chan Primitive)
+	primitives_applied := make(chan Primitive, 10)
 	ds.SetPrimitiveCallback(func(p Primitive) {
 		primitives_applied <- p
 	})
@@ -77,7 +77,7 @@ func TestDocumentState_Apply(t *testing.T) {
 		Path:  []interface{}{"key"},
 		Value: "value",
 	}
-	primitives_applied := make(chan Primitive)
+	primitives_applied := make(chan Primitive, 10)
 	ds.SetPrimitiveCallback(func(p Primitive) {
 		primitives_applied <- p
 	})
@@ -102,7 +102,7 @@ func TestDocumentState_Apply_BadPrimitive(t *testing.T) {
 		Path:  []interface{}{"no", "such", "path"},
 		Value: 8,
 	}
-	primitives_applied := make(chan Primitive)
+	primitives_applied := make(chan Primitive, 10)
 	ds.SetPrimitiveCallback(func(p Primitive) {
 		primitives_applied <- p
 	})

@@ -1,15 +1,14 @@
 package state
 
 type DocumentState struct {
-	Value Container
+	Value       Container
+	onPrimitive *OnPrimitiveCallback
 }
 
 func NewDocumentState() *DocumentState {
 	// We know this won't fail, so we can ignore err
 	container, _ := MakeContainer(map[string]interface{}{})
-	return &DocumentState{
-		container,
-	}
+	return &DocumentState{container, nil}
 }
 
 func (ds *DocumentState) Reset() {
@@ -28,17 +27,20 @@ type OnPrimitiveCallback func(primitive Primitive)
 
 // Set the OnPrimitiveCallback for this DocumentState.
 func (ds *DocumentState) SetPrimitiveCallback(c OnPrimitiveCallback) {
+	ds.onPrimitive = &c
 }
 
-// Apply a Primitive such that it is broadcast to
-// all subscribers. Always preferable to p.Apply(ds),
-// which does not broadcast.
+// Apply a Primitive such that the callback (if set) is run.
+//
+// Always preferable to p.Apply(ds), which does not broadcast.
 func (ds *DocumentState) Apply(p Primitive) error {
 	err := p.Apply(ds)
 	if err != nil {
 		return err
 	}
-	//ds.bcast.Send(p)
+	if ds.onPrimitive != nil {
+		(*ds.onPrimitive)(p)
+	}
 	return nil
 }
 
