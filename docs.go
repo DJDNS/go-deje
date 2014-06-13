@@ -1,10 +1,9 @@
 // This package implements the DEJE Next protocol.
 // For more information, read the docs below, or README.md.
 //
-// The front-facing API is fairly simple, and mostly consists
-// of these top-level types, and model.Document. However, the
-// better you understand the underlying technology, the more
-// easily you will be able to integrate it into user-facing
-// software, with a minimum of behavioral surprises or conceptual
-// fog.
+// This software is currently in a round of refactoring, and
+// as such, the API is *very* subject to change. You can expect
+// it to become simpler in the next few weeks, such that it's
+// fairly easy to create a new document or sync an existing one
+// from the network, and pass all changes on to a UI.
 package deje
