@@ -38,7 +38,10 @@ func TestDocumentState_Reset(t *testing.T) {
 		t.Fatalf("Expected %#v, got %#v", expected, exported)
 	}
 
-	sub := ds.Subscribe()
+	primitives_applied := make(chan Primitive)
+	ds.SetPrimitiveCallback(func(p Primitive) {
+		primitives_applied <- p
+	})
 	ds.Reset()
 
 	expected = map[string]interface{}{}
@@ -48,7 +51,7 @@ func TestDocumentState_Reset(t *testing.T) {
 	}
 
 	select {
-	case primitive := <-sub.Out():
+	case primitive := <-primitives_applied:
 		expected_p := &SetPrimitive{
 			Path:  []interface{}{},
 			Value: map[string]interface{}{},
@@ -56,8 +59,12 @@ func TestDocumentState_Reset(t *testing.T) {
 		if !reflect.DeepEqual(primitive, expected_p) {
 			t.Fatalf("Expected %#v, got %#v", expected_p, primitive)
 		}
-		if sub.Len() != 0 {
-			t.Errorf("sub should be empty, still %d left", sub.Len())
+		num_left := len(primitives_applied)
+		if num_left != 0 {
+			t.Errorf(
+				"primitives_applied should be empty, still %d left",
+				num_left,
+			)
 		}
 	case <-time.After(time.Millisecond):
 		t.Fatal("No primitive received")
@@ -70,18 +77,21 @@ func TestDocumentState_Apply(t *testing.T) {
 		Path:  []interface{}{"key"},
 		Value: "value",
 	}
-	sub := ds.Subscribe()
+	primitives_applied := make(chan Primitive)
+	ds.SetPrimitiveCallback(func(p Primitive) {
+		primitives_applied <- p
+	})
 	err := ds.Apply(primitive)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if sub.Len() != 1 {
+	if len(primitives_applied) != 1 {
 		t.Fatal(
 			"Expected 1 primitive to be broadast, got %d",
-			sub.Len(),
+			len(primitives_applied),
 		)
 	}
-	recvd_p := <-sub.Out()
+	recvd_p := <-primitives_applied
 	if !reflect.DeepEqual(recvd_p, primitive) {
 		t.Fatal("Expected %#v, got %#v", primitive, recvd_p)
 	}
@@ -92,15 +102,18 @@ func TestDocumentState_Apply_BadPrimitive(t *testing.T) {
 		Path:  []interface{}{"no", "such", "path"},
 		Value: 8,
 	}
-	sub := ds.Subscribe()
+	primitives_applied := make(chan Primitive)
+	ds.SetPrimitiveCallback(func(p Primitive) {
+		primitives_applied <- p
+	})
 	err := ds.Apply(primitive)
 	if err == nil {
 		t.Fatal("ds.Apply should fail if underlying Apply fails")
 	}
-	if sub.Len() != 0 {
+	if len(primitives_applied) != 0 {
 		t.Fatal(
 			"Expected 0 primitives to be broadast, got %d",
-			sub.Len(),
+			len(primitives_applied),
 		)
 	}
 }

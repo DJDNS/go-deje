@@ -1,10 +1,7 @@
 package state
 
-import "github.com/campadrenalin/go-deje/broadcast"
-
 type DocumentState struct {
 	Value Container
-	bcast *broadcast.Broadcaster
 }
 
 func NewDocumentState() *DocumentState {
@@ -12,12 +9,7 @@ func NewDocumentState() *DocumentState {
 	container, _ := MakeContainer(map[string]interface{}{})
 	return &DocumentState{
 		container,
-		broadcast.NewBroadcaster(),
 	}
-}
-
-func (ds *DocumentState) Subscribe() *broadcast.Subscription {
-	return ds.bcast.Subscribe()
 }
 
 func (ds *DocumentState) Reset() {
@@ -29,6 +21,15 @@ func (ds *DocumentState) Reset() {
 	ds.Apply(p)
 }
 
+// An optional callback to be called for every primitive applied to
+// a DocumentState object. Will always be called in the same order,
+// in the same goroutine, as the Primitive application itself.
+type OnPrimitiveCallback func(primitive Primitive)
+
+// Set the OnPrimitiveCallback for this DocumentState.
+func (ds *DocumentState) SetPrimitiveCallback(c OnPrimitiveCallback) {
+}
+
 // Apply a Primitive such that it is broadcast to
 // all subscribers. Always preferable to p.Apply(ds),
 // which does not broadcast.
@@ -37,7 +38,7 @@ func (ds *DocumentState) Apply(p Primitive) error {
 	if err != nil {
 		return err
 	}
-	ds.bcast.Send(p)
+	//ds.bcast.Send(p)
 	return nil
 }
 
