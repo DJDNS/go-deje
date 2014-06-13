@@ -1,13 +1,17 @@
-package services
+package timestamps
 
 import "testing"
 
-func TestDTS_GetAfter(t *testing.T) {
+func TestDTS_GetTimestamps(t *testing.T) {
 	dts := DummyTimestampService{}
-	dts.GetAfter("Interstella", 5555)
-}
-
-func TestDTS_MakeTimestamp(t *testing.T) {
-	dts := DummyTimestampService{}
-	dts.MakeTimestamp("hello", "world")
+	stamps, err := dts.GetTimestamps("Interstella")
+	if len(stamps) != 0 {
+		t.Fatal(
+			"Expected empty timestamp array, has %d elements",
+			len(stamps),
+		)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
 }

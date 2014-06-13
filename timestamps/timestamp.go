@@ -1,6 +1,4 @@
-package services
-
-import "github.com/campadrenalin/go-deje/model"
+package timestamps
 
 // Different types of TimestampServices can be used,
 // but the default implemetation makes use of the
@@ -12,17 +10,11 @@ import "github.com/campadrenalin/go-deje/model"
 // See https://en.bitcoin.it/wiki/API_reference_%28JSON-RPC%29
 // for more information about this API.
 type TimestampService interface {
-	GetAfter(dochash string, after model.BlockHeight)
-
-	MakeTimestamp(dochash string, qhash string)
+	GetTimestamps(topic string) ([]string, error)
 }
 
 type DummyTimestampService struct{}
 
-func (tss DummyTimestampService) GetAfter(dochash string, after model.BlockHeight) {
-	return
-}
-
-func (tss DummyTimestampService) MakeTimestamp(dochash string, qhash string) {
-	return
+func (tss DummyTimestampService) GetTimestamps(topic string) ([]string, error) {
+	return make([]string, 0), nil
 }

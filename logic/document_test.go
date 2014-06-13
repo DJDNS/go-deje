@@ -18,9 +18,6 @@ func TestNewDocument(t *testing.T) {
 	if d.Quorums.GetItems() == nil {
 		t.Fatal("d.Quorums.GetItems() == nil")
 	}
-	if d.Timestamps.GetItems() == nil {
-		t.Fatal("d.Timestamps.GetItems() == nil")
-	}
 }
 
 func TestFromFile(t *testing.T) {

@@ -3,9 +3,9 @@ package model
 import "testing"
 
 func TestMS_Contains(t *testing.T) {
-	A := Timestamp{"A", 2}
-	B := Timestamp{"B", 2}
-	C := Timestamp{"C", 2}
+	A := Quorum{"A", nil}
+	B := Quorum{"B", nil}
+	C := Quorum{"C", nil}
 
 	ms := make(ManageableSet)
 

@@ -5,17 +5,22 @@ import (
 	"testing"
 )
 
-func setup_om_with_ab() (genericManager, model.Timestamp, model.Timestamp) {
+func setup_quorums() (model.Quorum, model.Quorum) {
+	A := model.Quorum{
+		EventHash:  "xyz",
+		Signatures: map[string]string{"foo": "bar"},
+	}
+	B := model.Quorum{
+		EventHash:  "xyz",
+		Signatures: map[string]string{"fizz": "buzz"},
+	}
+	return A, B
+}
+
+func setup_om_with_ab() (genericManager, model.Quorum, model.Quorum) {
 	m := newGenericManager()
 
-	A := model.Timestamp{
-		QHash: "xyz",
-		Time:  5,
-	}
-	B := model.Timestamp{
-		QHash: "abc",
-		Time:  5,
-	}
+	A, B := setup_quorums()
 
 	m.register(A)
 	m.register(B)
@@ -31,14 +36,14 @@ func TestGenericManagerGetItems(t *testing.T) {
 		t.Fatalf("Expected 2 items, got %d", len(items))
 	}
 
-	for _, ts := range []model.Timestamp{A, B} {
-		key := ts.GetKey()
+	for _, q := range []model.Quorum{A, B} {
+		key := q.GetKey()
 		item, ok := items[key]
 		if !ok {
 			t.Fatalf("Missing item %s", key)
 		}
-		if !ts.Eq(item) {
-			t.Fatalf("TS %#v does not equal %#v", ts, item)
+		if !q.Eq(item) {
+			t.Fatalf("TS %#v does not equal %#v", q, item)
 		}
 	}
 }
@@ -46,14 +51,14 @@ func TestGenericManagerGetItems(t *testing.T) {
 func TestGenericManagerGetByKey(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
-	for _, ts := range []model.Timestamp{A, B} {
-		key := ts.GetKey()
+	for _, q := range []model.Quorum{A, B} {
+		key := q.GetKey()
 		item, ok := m.GetByKey(key)
 		if !ok {
 			t.Fatalf("Missing item %s", key)
 		}
-		if !ts.Eq(item) {
-			t.Fatalf("TS %#v does not equal %#v", ts, item)
+		if !q.Eq(item) {
+			t.Fatalf("TS %#v does not equal %#v", q, item)
 		}
 	}
 }
@@ -61,9 +66,9 @@ func TestGenericManagerGetByKey(t *testing.T) {
 func TestGenericManagerRegister(t *testing.T) {
 	m, A, B := setup_om_with_ab()
 
-	group := m.GetGroup("5")
+	group := m.GetGroup("xyz")
 	if !(group.Contains(A) && group.Contains(B)) {
-		t.Fatal("group was missing timestamps")
+		t.Fatal("group was missing quorums")
 	}
 }
 
@@ -72,7 +77,7 @@ func TestGenericManagerUnregister(t *testing.T) {
 
 	m.unregister(A)
 
-	group := m.GetGroup("5")
+	group := m.GetGroup("xyz")
 	if group.Contains(A) || !group.Contains(B) || m.Length() != 1 {
 		t.Fatal("Failed to unregister A correctly")
 	}
@@ -80,25 +85,18 @@ func TestGenericManagerUnregister(t *testing.T) {
 
 func TestManagableSetContains(t *testing.T) {
 	ms := make(model.ManageableSet)
-	A := model.Timestamp{
-		QHash: "xyz",
-		Time:  5,
-	}
-	B := model.Timestamp{
-		QHash: "abc",
-		Time:  5,
-	}
+	A, B := setup_quorums()
 
 	if ms.Contains(A) {
 		t.Fatal("ms shouldn't contain A")
 	}
 
-	ms[A.QHash] = B
+	ms[A.GetKey()] = B
 	if ms.Contains(A) {
 		t.Fatal("ms shouldn't contain A, but has key for A")
 	}
 
-	ms[A.QHash] = A
+	ms[A.GetKey()] = A
 	if !ms.Contains(A) {
 		t.Fatal("ms should contain A")
 	}
@@ -106,14 +104,7 @@ func TestManagableSetContains(t *testing.T) {
 
 func TestGenericManagerContains(t *testing.T) {
 	m := newGenericManager()
-	A := model.Timestamp{
-		QHash: "xyz",
-		Time:  5,
-	}
-	B := model.Timestamp{
-		QHash: "abc",
-		Time:  5,
-	}
+	A, B := setup_quorums()
 
 	m.register(A)
 
@@ -127,34 +118,31 @@ func TestGenericManagerContains(t *testing.T) {
 
 func TestGenericManagerGetGroup(t *testing.T) {
 	m := newGenericManager()
-	group := m.GetGroup("5")
+	group := m.GetGroup("xyz")
 
 	if len(group) != 0 {
 		t.Fatal("group should have been empty")
 	}
 
-	ts := model.Timestamp{
-		QHash: "xyz",
-		Time:  5,
-	}
-	m.register(ts)
+	quorum, _ := setup_quorums()
+	m.register(quorum)
 
-	group = m.GetGroup("20")
+	group = m.GetGroup("abc")
 	if len(group) != 0 {
 		t.Fatal("group should still have been empty")
 	}
-	group = m.GetGroup("5")
+	group = m.GetGroup("xyz")
 	if len(group) != 1 {
 		t.Fatal("group should not have been empty")
 	}
 
-	if !ts.Eq(group[ts.QHash]) {
-		t.Fatalf("group %#v should have contained %#v", group, ts)
+	if !quorum.Eq(group[quorum.GetKey()]) {
+		t.Fatalf("group %#v should have contained %#v", group, quorum)
 	}
 
 	if len(m.by_group) != 2 {
 		t.Fatalf(
-			"Not caching groups - expected 2 groups, got %d: %v",
+			"Not caching groups - expected 2 groups, got %d: %#v",
 			len(m.by_group),
 			m.by_group,
 		)
