@@ -12,14 +12,21 @@ func TestNewDocument(t *testing.T) {
 	if d.State.Value == nil {
 		t.Fatal("d.State.Value == nil")
 	}
-	if d.Events.GetItems() == nil {
-		t.Fatal("d.Events.GetItems() == nil")
+	if d.Events == nil {
+		t.Fatal("d.Events == nil")
 	}
-	if d.Quorums.GetItems() == nil {
-		t.Fatal("d.Quorums.GetItems() == nil")
+	if d.EventsByParent == nil {
+		t.Fatal("d.EventsByParent == nil")
+	}
+	if d.Quorums == nil {
+		t.Fatal("d.Quorums == nil")
+	}
+	if d.QuorumsByEvent == nil {
+		t.Fatal("d.QuorumsByEvent == nil")
 	}
 }
 
+// TODO: Test ThingByThing
 func TestFromFile(t *testing.T) {
 	d := NewDocument()
 	df := model.NewDocumentFile()
@@ -43,31 +50,31 @@ func TestFromFile(t *testing.T) {
 		t.Fatal("Topics differ")
 	}
 
-	_, ok := d.Events.GetByKey("hello")
+	_, ok := d.Events["hello"]
 	if ok {
 		t.Fatal("Event added under the wrong key")
 	}
 
-	if d.Events.Length() != 1 {
-		t.Fatalf("Wrong num events - expected 1, got %d", d.Events.Length())
+	if len(d.Events) != 1 {
+		t.Fatalf("Wrong num events - expected 1, got %d", len(d.Events))
 	}
 	ev_from_s := ev.Event
-	ev_from_d, ok := d.Events.GetByKey(ev_from_s.GetKey())
+	ev_from_d, ok := d.Events[ev_from_s.GetKey()]
 	if !ok {
 		t.Fatal("Could not get event from Document")
 	}
-	if !ev_from_d.(model.Event).Eq(ev_from_s) {
+	if !ev_from_d.Event.Eq(ev_from_s) {
 		t.Fatalf("%v != %v", ev_from_d, ev_from_s)
 	}
 
-	if d.Quorums.Length() != 1 {
-		t.Fatalf("Wrong num quorum - expected 1, got %d", d.Quorums.Length())
+	if len(d.Quorums) != 1 {
+		t.Fatalf("Wrong num quorum - expected 1, got %d", len(d.Quorums))
 	}
-	q_from_d, ok := d.Quorums.GetByKey(q.GetKey())
+	q_from_d, ok := d.Quorums[q.GetKey()]
 	if !ok {
 		t.Fatal("Could not get quorum from Document")
 	}
-	if !q_from_d.(model.Quorum).Eq(q) {
+	if !q_from_d.Quorum.Eq(q) {
 		t.Fatalf("%v != %v", q_from_d, q)
 	}
 }
@@ -91,7 +98,7 @@ func TestToFile(t *testing.T) {
 		t.Fatal("Topics differ")
 	}
 
-	if d.Events.Length() != 1 {
+	if len(d.Events) != 1 {
 		t.Fatal("Event conversion failure - wrong num events")
 	}
 
@@ -103,7 +110,7 @@ func TestToFile(t *testing.T) {
 		t.Fatalf("%v != %v", ev_to_s, ev_df)
 	}
 
-	if d.Quorums.Length() != 1 {
+	if len(d.Quorums) != 1 {
 		t.Fatal("Quorum conversion failure - wrong num quorums")
 	}
 

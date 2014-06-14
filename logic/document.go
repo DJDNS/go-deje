@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"github.com/campadrenalin/go-deje/manager"
 	"github.com/campadrenalin/go-deje/model"
 	"github.com/campadrenalin/go-deje/state"
 )
@@ -37,11 +36,19 @@ func NewDocument() Document {
 // Copies the data from a DocumentFile into a Document.
 func (d *Document) FromFile(df *model.DocumentFile) {
 	d.Topic = df.Topic
-	d.Events = manager.NewEventManager()
-	d.Quorums = manager.NewQuorumManager()
+	d.Events = make(EventSet)
+	d.EventsByParent = make(map[string]EventSet)
+	d.Quorums = make(QuorumSet)
+	d.QuorumsByEvent = make(map[string]QuorumSet)
 
-	d.Events.DeserializeFrom(df.Events)
-	d.Quorums.DeserializeFrom(df.Quorums)
+	for _, ev := range df.Events {
+		logical_event := Event{ev, d}
+		logical_event.Register()
+	}
+	for _, q := range df.Quorums {
+		logical_quorum := Quorum{q, d}
+		logical_quorum.Register()
+	}
 }
 
 // Copies the data from a Document into a DocumentFile.
@@ -52,8 +59,12 @@ func (d *Document) ToFile() *model.DocumentFile {
 		Quorums: make(model.QuorumSet),
 	}
 
-	d.Events.SerializeTo(df.Events)
-	d.Quorums.SerializeTo(df.Quorums)
+	for key, ev := range d.Events {
+		df.Events[key] = ev.Event
+	}
+	for key, q := range d.Quorums {
+		df.Quorums[key] = q.Quorum
+	}
 
 	return df
 }
