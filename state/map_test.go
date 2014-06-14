@@ -11,9 +11,9 @@ func TestMakeMapContainer_InvalidChildren(t *testing.T) {
 	original := map[string]interface{}{
 		"key": make(chan int),
 	}
-	_, err := MakeMapContainer(original)
+	_, err := makeMapContainer(original)
 	if err == nil {
-		t.Fatal("MakeMapContainer should fail if it can't contain children")
+		t.Fatal("makeMapContainer should fail if it can't contain children")
 	}
 }
 
@@ -24,7 +24,7 @@ func TestMapContainer_GetChild(t *testing.T) {
 			"deep": "path",
 		},
 	}
-	c, err := MakeMapContainer(original)
+	c, err := makeMapContainer(original)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,17 +56,17 @@ func TestMapContainer_GetChild(t *testing.T) {
 }
 
 func TestMapContainer_SetChild(t *testing.T) {
-	c, err := MakeMapContainer(map[string]interface{}{})
+	c, err := makeMapContainer(map[string]interface{}{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = c.SetChild(0, 0)
 	if err == nil {
-		t.Fatal("MapContainer.SetChild with non-str key should always fail")
+		t.Fatal("mapContainer.SetChild with non-str key should always fail")
 	}
 	err = c.SetChild("some_key", make(chan int))
 	if err == nil {
-		t.Fatal("MapContainer.SetChild with non-containable value should fail")
+		t.Fatal("mapContainer.SetChild with non-containable value should fail")
 	}
 	err = c.SetChild("some_key", 0)
 	if err != nil {
@@ -87,13 +87,13 @@ func TestMapContainer_RemoveChild(t *testing.T) {
 			"deep": "path",
 		},
 	}
-	c, err := MakeMapContainer(original)
+	c, err := makeMapContainer(original)
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = c.RemoveChild(0)
 	if err == nil {
-		t.Fatal("MapContainer.RemoveChild should fail for bad key type")
+		t.Fatal("mapContainer.RemoveChild should fail for bad key type")
 	}
 	err = c.RemoveChild("floop")
 	if err != nil {
@@ -121,7 +121,7 @@ func TestMapContainerExport(t *testing.T) {
 			"deep": "path",
 		},
 	}
-	container, err := MakeMapContainer(demo_map)
+	container, err := makeMapContainer(demo_map)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,12 +2,12 @@ package state
 
 import "errors"
 
-type MapContainer struct {
+type mapContainer struct {
 	Value map[string]Container
 }
 
-func MakeMapContainer(m map[string]interface{}) (Container, error) {
-	c := MapContainer{
+func makeMapContainer(m map[string]interface{}) (Container, error) {
+	c := mapContainer{
 		make(map[string]Container),
 	}
 	for key, value := range m {
@@ -19,7 +19,7 @@ func MakeMapContainer(m map[string]interface{}) (Container, error) {
 	return &c, nil
 }
 
-func (c *MapContainer) GetChild(key interface{}) (Container, error) {
+func (c *mapContainer) GetChild(key interface{}) (Container, error) {
 	key_str, ok := key.(string)
 	if !ok {
 		return nil, errors.New("Key was not string type")
@@ -31,7 +31,7 @@ func (c *MapContainer) GetChild(key interface{}) (Container, error) {
 	return child, nil
 }
 
-func (c *MapContainer) SetChild(key, value interface{}) error {
+func (c *mapContainer) SetChild(key, value interface{}) error {
 	key_str, ok := key.(string)
 	if !ok {
 		return errors.New("Key was not string type")
@@ -44,7 +44,7 @@ func (c *MapContainer) SetChild(key, value interface{}) error {
 	return nil
 }
 
-func (c *MapContainer) RemoveChild(key interface{}) error {
+func (c *mapContainer) RemoveChild(key interface{}) error {
 	key_str, ok := key.(string)
 	if !ok {
 		return errors.New("Key was not string type")
@@ -53,7 +53,7 @@ func (c *MapContainer) RemoveChild(key interface{}) error {
 	return nil
 }
 
-func (c *MapContainer) Export() interface{} {
+func (c *mapContainer) Export() interface{} {
 	result := make(map[string]interface{})
 	for key, value := range c.Value {
 		result[key] = value.Export()

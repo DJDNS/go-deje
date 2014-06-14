@@ -25,7 +25,7 @@ func MakeContainer(value interface{}) (Container, error) {
 		if !ok {
 			return nil, errors.New("Cannot cast map to map[string]interface{}")
 		}
-		return MakeMapContainer(as_map)
+		return makeMapContainer(as_map)
 	case reflect.Slice:
 		as_slice, ok := value.([]interface{})
 		if !ok {
