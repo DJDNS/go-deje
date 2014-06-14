@@ -22,6 +22,7 @@ func (e *Event) SetParent(p Event) {
 	e.ParentHash = p.Hash()
 }
 
+// Register with the Doc's EventManager.
 func (e *Event) Register() {
 	e.Doc.Events.Register(e.Event)
 }
@@ -87,6 +88,7 @@ func (A Event) CompatibleWith(B Event) (bool, error) {
 	return (parent.Eq(A.Event) || parent.Eq(B.Event)), nil
 }
 
+// Traverse up the chain of parents until there's no more to traverse.
 func (tip Event) GetRoot() (event Event, ok bool) {
 	var parent model.Manageable
 	event = tip
@@ -160,6 +162,9 @@ func (e Event) Apply() error {
 	return nil
 }
 
+// Attempt to navigate the DocumentState to this Event.
+//
+// Somewhat analogous to git checkout.
 func (e Event) Goto() error {
 	d := e.Doc
 	d.State.Reset()
