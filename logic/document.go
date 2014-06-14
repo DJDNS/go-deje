@@ -16,6 +16,14 @@ import (
 type Document struct {
 	Topic          string
 	State          *state.DocumentState
+
+    // Do not modify the contents of the following fields!
+    // They're there for you to have convenient and uninhibited
+    // READ-ONLY access. If you try to add or remove things manually,
+    // you run the risk of doing so inconsistently.
+    //
+    // Please just use the Thing.Register() and Thing.Unregister()
+    // methods, and when it comes to these fields, LOOK BUT DON'T TOUCH.
 	Events         EventSet
 	EventsByParent map[string]EventSet
 	Quorums        QuorumSet
