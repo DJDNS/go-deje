@@ -35,9 +35,10 @@ func TestSTS_GetTimestamps(t *testing.T) {
 
 	// The given values are event hashes. The quorum hashes will be
 	// different than these string literals.
-	doc.NewQuorum("123").Register()
-	doc.NewQuorum("456").Register()
-	doc.NewQuorum("789").Register()
+	for _, evhash := range []string{"123", "456", "789"} {
+		q := doc.NewQuorum(evhash)
+		q.Register()
+	}
 
 	timestamps, err := sts.GetTimestamps(doc.Topic)
 	if err != nil {

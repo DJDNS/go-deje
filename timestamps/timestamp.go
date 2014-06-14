@@ -46,7 +46,7 @@ func NewSortingTimestampService(doc logic.Document) SortingTimestampService {
 	return SortingTimestampService{doc}
 }
 func (sts SortingTimestampService) GetTimestamps(topic string) ([]string, error) {
-	items := sts.Doc.Quorums.GetItems()
+	items := sts.Doc.Quorums
 	timestamps := make([]string, len(items))
 
 	// Extract keys as list
