@@ -33,6 +33,14 @@ func (e *Event) SetParent(p Event) {
 func (e *Event) Register() {
 	key := e.GetKey()
 	e.Doc.Events[key] = e
+
+	group_key := e.GetGroupKey()
+	group, ok := e.Doc.EventsByParent[group_key]
+	if !ok {
+		group = make(EventSet)
+		e.Doc.EventsByParent[group_key] = group
+	}
+	group[key] = e
 }
 
 // Given a set of Events, and two specific ones to trace,
@@ -97,8 +105,8 @@ func (A Event) CompatibleWith(B Event) (bool, error) {
 }
 
 // Traverse up the chain of parents until there's no more to traverse.
-func (tip Event) GetRoot() (event Event, ok bool) {
-	var parent model.Manageable
+func (tip *Event) GetRoot() (event *Event, ok bool) {
+	var parent *Event
 	event = tip
 	ok = true
 	d := tip.Doc
@@ -108,7 +116,7 @@ func (tip Event) GetRoot() (event Event, ok bool) {
 		if !ok {
 			return
 		}
-		event = Event{parent.(model.Event), d}
+		event = parent
 	}
 	return
 }

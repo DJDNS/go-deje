@@ -15,17 +15,33 @@ func TestEvent_Register(t *testing.T) {
 	ev_childA.SetParent(ev_root)
 	ev_childB.SetParent(ev_root)
 
-	events := []Event{ev_root, ev_childA, ev_childB}
+	events := []*Event{&ev_root, &ev_childA, &ev_childB}
 	for _, ev := range events {
 		ev.Register()
 	}
 
-	// TODO: Full check
-	expected_events := map[string]*Event{
-		ev_root.GetKey(): &ev_root,
+	// Test that main set registered correctly
+	expected_events := EventSet{
+		ev_root.GetKey():   &ev_root,
+		ev_childA.GetKey(): &ev_childA,
+		ev_childB.GetKey(): &ev_childB,
 	}
 	if !reflect.DeepEqual(d.Events, expected_events) {
-		t.Fatalf("Expected %#v, got %#v", expected_events, d.Events)
+		t.Fatalf("Expected %#v\nGot %#v", expected_events, d.Events)
+	}
+
+	// Test that groupings registered correctly
+	expected_groups := map[string]EventSet{
+		"": EventSet{
+			ev_root.GetKey(): &ev_root,
+		},
+		ev_root.GetKey(): EventSet{
+			ev_childA.GetKey(): &ev_childA,
+			ev_childB.GetKey(): &ev_childB,
+		},
+	}
+	if !reflect.DeepEqual(d.EventsByParent, expected_groups) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.EventsByParent)
 	}
 }
 
@@ -214,6 +230,7 @@ func TestEvent_GetRoot(t *testing.T) {
 	}
 
 	for _, ev := range events {
+		t.Fatal("This function runs in an infinite loop. Disable testing for now.")
 		found, ok := ev.GetRoot()
 		if !ok {
 			t.Fatal("GetRoot failed")
