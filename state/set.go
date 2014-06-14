@@ -8,7 +8,7 @@ type SetPrimitive struct {
 
 func (p *SetPrimitive) Apply(ds *DocumentState) error {
 	if len(p.Path) == 0 {
-		container, err := MakeContainer(p.Value)
+		container, err := makeContainer(p.Value)
 		if err != nil {
 			return err
 		}

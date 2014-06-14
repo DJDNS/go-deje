@@ -18,7 +18,7 @@ type Container interface {
 }
 
 // Create a new container, based on the given object.
-func MakeContainer(value interface{}) (Container, error) {
+func makeContainer(value interface{}) (Container, error) {
 	// Special case, since reflect.TypeOf(nil) == nil,
 	// and nil.Kind() is a surefire recipe for runtime panic :/
 	if reflect.TypeOf(value) == nil {

@@ -36,7 +36,7 @@ func (c *mapContainer) SetChild(key, value interface{}) error {
 	if !ok {
 		return errors.New("Key was not string type")
 	}
-	child, err := MakeContainer(value)
+	child, err := makeContainer(value)
 	if err != nil {
 		return err
 	}

@@ -12,7 +12,7 @@ func TestGetTraversal(t *testing.T) {
 			"stuff": "in here",
 		},
 	}
-	container, err := MakeContainer(original)
+	container, err := makeContainer(original)
 	if err != nil {
 		t.Fatal(err)
 	}

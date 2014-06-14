@@ -7,7 +7,7 @@ type DocumentState struct {
 
 func NewDocumentState() *DocumentState {
 	// We know this won't fail, so we can ignore err
-	container, _ := MakeContainer(map[string]interface{}{})
+	container, _ := makeContainer(map[string]interface{}{})
 	return &DocumentState{container, nil}
 }
 

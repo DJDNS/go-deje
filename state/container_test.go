@@ -5,25 +5,25 @@ import "testing"
 // We cover valid maps elsewhere. Let's be bad.
 func TestMakeContainer_InvalidMap(t *testing.T) {
 	original := make(map[int]string)
-	_, err := MakeContainer(original)
+	_, err := makeContainer(original)
 	if err == nil {
-		t.Fatal("MakeContainer should fail for invalid map type")
+		t.Fatal("makeContainer should fail for invalid map type")
 	}
 
 	// Should be map[string]interface{}
 	other_invalid := make(map[string]int)
-	_, err = MakeContainer(other_invalid)
+	_, err = makeContainer(other_invalid)
 	if err == nil {
-		t.Fatal("MakeContainer should fail for invalid map type")
+		t.Fatal("makeContainer should fail for invalid map type")
 	}
 }
 
 // Similarly, test for non-interface{} slices
 func TestMakeContainer_InvalidSlice(t *testing.T) {
 	original := make([]string, 0)
-	_, err := MakeContainer(original)
+	_, err := makeContainer(original)
 	if err == nil {
-		t.Fatal("MakeContainer should fail for invalid slice type")
+		t.Fatal("makeContainer should fail for invalid slice type")
 	}
 }
 
@@ -36,7 +36,7 @@ func TestTraverse(t *testing.T) {
 		},
 	}
 
-	root, err := MakeContainer(original)
+	root, err := makeContainer(original)
 	if err != nil {
 		t.Fatal(err)
 	}

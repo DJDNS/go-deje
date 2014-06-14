@@ -54,7 +54,7 @@ func (c *sliceContainer) SetChild(key, value interface{}) error {
 	if err != nil {
 		return err
 	}
-	child, err := MakeContainer(value)
+	child, err := makeContainer(value)
 	if err != nil {
 		return err
 	}
