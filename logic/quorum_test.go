@@ -7,7 +7,44 @@ import (
 	"testing"
 )
 
-//TODO: Test register, with QuorumByEvent...
+func TestQuorum_Register(t *testing.T) {
+	d := NewDocument()
+	q_sweet := d.NewQuorum("sweet")
+	q_saltyA := d.NewQuorum("salty")
+	q_saltyB := d.NewQuorum("salty")
+
+	q_saltyA.Signatures["Pretzels"] = "pretzy montgomery"
+	q_saltyB.Signatures["Fritos"] = "frito bandito"
+
+	quorums := []*Quorum{&q_sweet, &q_saltyA, &q_saltyB}
+	for _, q := range quorums {
+		q.Register()
+	}
+
+	// Test that main set registered correctly
+	expected_quorums := QuorumSet{
+		q_sweet.GetKey():  &q_sweet,
+		q_saltyA.GetKey(): &q_saltyA,
+		q_saltyB.GetKey(): &q_saltyB,
+	}
+	if !reflect.DeepEqual(d.Quorums, expected_quorums) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_quorums, d.Quorums)
+	}
+
+	// Test that groupings registered correctly
+	expected_groups := map[string]QuorumSet{
+		"sweet": QuorumSet{
+			q_sweet.GetKey(): &q_sweet,
+		},
+		"salty": QuorumSet{
+			q_saltyA.GetKey(): &q_saltyA,
+			q_saltyB.GetKey(): &q_saltyB,
+		},
+	}
+	if !reflect.DeepEqual(d.QuorumsByEvent, expected_groups) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.QuorumsByEvent)
+	}
+}
 
 func TestQuorum_ToSerial(t *testing.T) {
 	d := NewDocument()

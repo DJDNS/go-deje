@@ -22,4 +22,12 @@ func (doc *Document) NewQuorum(evhash string) Quorum {
 func (q *Quorum) Register() {
 	key := q.GetKey()
 	q.Doc.Quorums[key] = q
+
+	group_key := q.GetGroupKey()
+	group, ok := q.Doc.QuorumsByEvent[group_key]
+	if !ok {
+		group = make(QuorumSet)
+		q.Doc.QuorumsByEvent[group_key] = group
+	}
+	group[key] = q
 }
