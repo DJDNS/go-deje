@@ -15,18 +15,22 @@ import (
 // Bitcoin ledger is the result of playing through the transactions
 // in every block of the longest valid blockchain.
 type Document struct {
-	Topic   string
-	State   *state.DocumentState
-	Events  *manager.EventManager
-	Quorums *manager.QuorumManager
+	Topic          string
+	State          *state.DocumentState
+	Events         EventSet
+	EventsByParent map[string]EventSet
+	Quorums        QuorumSet
+	QuorumsByEvent map[string]QuorumSet
 }
 
 // Create a new, blank Document, with fields initialized.
 func NewDocument() Document {
 	return Document{
-		State:   state.NewDocumentState(),
-		Events:  manager.NewEventManager(),
-		Quorums: manager.NewQuorumManager(),
+		State:          state.NewDocumentState(),
+		Events:         make(EventSet),
+		EventsByParent: make(map[string]EventSet),
+		Quorums:        make(QuorumSet),
+		QuorumsByEvent: make(map[string]QuorumSet),
 	}
 }
 

@@ -10,6 +10,7 @@ type Event struct {
 	model.Event
 	Doc *Document
 }
+type EventSet map[string]*Event
 
 func (doc *Document) NewEvent(handler_name string) Event {
 	return Event{

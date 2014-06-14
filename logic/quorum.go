@@ -8,6 +8,7 @@ type Quorum struct {
 	model.Quorum
 	Doc *Document
 }
+type QuorumSet map[string]*Quorum
 
 func (doc *Document) NewQuorum(evhash string) Quorum {
 	return Quorum{
