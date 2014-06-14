@@ -12,6 +12,11 @@ type Event struct {
 }
 type EventSet map[string]*Event
 
+func (es EventSet) Contains(ev Event) bool {
+	_, ok := es[ev.GetKey()]
+	return ok
+}
+
 func (doc *Document) NewEvent(handler_name string) Event {
 	return Event{
 		model.NewEvent(handler_name),
@@ -23,9 +28,11 @@ func (e *Event) SetParent(p Event) {
 	e.ParentHash = p.Hash()
 }
 
-// Register with the Doc's EventManager.
+// Register with the Doc. This stores it in a hash-based location,
+// so do not make changes to an Event after it has been registered.
 func (e *Event) Register() {
-	e.Doc.Events.Register(e.Event)
+	key := e.GetKey()
+	e.Doc.Events[key] = e
 }
 
 // Given a set of Events, and two specific ones to trace,
@@ -65,11 +72,11 @@ func (A Event) GetCommonAncestor(B Event) (Event, error) {
 			if current.Event.ParentHash == "" {
 				continue
 			}
-			parent, ok := d.Events.GetByKey(current.ParentHash)
+			parent, ok := d.Events[current.ParentHash]
 			if !ok {
 				return current, errors.New("Bad parent hash")
 			}
-			trails <- Event{parent.(model.Event), d}
+			trails <- Event{parent.Event, d}
 		default:
 			return current, errors.New("No common ancestor")
 		}
@@ -97,7 +104,7 @@ func (tip Event) GetRoot() (event Event, ok bool) {
 	d := tip.Doc
 
 	for event.Event.ParentHash != "" {
-		parent, ok = d.Events.GetByKey(event.Event.ParentHash)
+		parent, ok = d.Events[event.Event.ParentHash]
 		if !ok {
 			return
 		}
@@ -107,9 +114,9 @@ func (tip Event) GetRoot() (event Event, ok bool) {
 }
 
 // Get a list of the children of an Event.
-func (e Event) GetChildren() model.ManageableSet {
-	group_key := e.Hash()
-	return e.Doc.Events.GetGroup(group_key)
+func (e Event) GetChildren() EventSet {
+	group_key := e.GetKey()
+	return e.Doc.EventsByParent[group_key]
 }
 
 // Translate this event into a set of primitives.
@@ -170,11 +177,11 @@ func (e Event) Goto() error {
 	d := e.Doc
 	d.State.Reset()
 	if e.Event.ParentHash != "" {
-		parent, ok := d.Events.GetByKey(e.Event.ParentHash)
+		parent, ok := d.Events[e.Event.ParentHash]
 		if !ok {
 			return errors.New("Could not get parent")
 		}
-		logic_parent := Event{parent.(model.Event), d}
+		logic_parent := Event{parent.Event, d}
 		err := logic_parent.Goto()
 		if err != nil {
 			return err

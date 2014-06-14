@@ -6,6 +6,29 @@ import (
 	"testing"
 )
 
+func TestEvent_Register(t *testing.T) {
+	d := NewDocument()
+	ev_root := d.NewEvent("root")
+	ev_childA := d.NewEvent("childA")
+	ev_childB := d.NewEvent("childB")
+
+	ev_childA.SetParent(ev_root)
+	ev_childB.SetParent(ev_root)
+
+	events := []Event{ev_root, ev_childA, ev_childB}
+	for _, ev := range events {
+		ev.Register()
+	}
+
+	// TODO: Full check
+	expected_events := map[string]*Event{
+		ev_root.GetKey(): &ev_root,
+	}
+	if !reflect.DeepEqual(d.Events, expected_events) {
+		t.Fatalf("Expected %#v, got %#v", expected_events, d.Events)
+	}
+}
+
 func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 	d := NewDocument()
 	ev_root := d.NewEvent("root")
@@ -17,7 +40,7 @@ func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 
 	events := []Event{ev_root, ev_childA, ev_childB}
 	for _, ev := range events {
-		d.Events.Register(ev.Event)
+		ev.Register()
 	}
 
 	anc_ab, err := ev_childA.GetCommonAncestor(ev_childB)
@@ -46,7 +69,7 @@ func TestEvent_GetCommonAncestor_MissingParent(t *testing.T) {
 
 	events := []Event{ev_A, ev_B}
 	for _, ev := range events {
-		d.Events.Register(ev.Event)
+		ev.Register()
 	}
 
 	_, err := ev_A.GetCommonAncestor(ev_B)
@@ -66,7 +89,7 @@ func TestEvent_GetCommonAncestor_RootVSFarChild(t *testing.T) {
 
 	events := []Event{ev_root, ev_childA, ev_childB}
 	for _, ev := range events {
-		d.Events.Register(ev.Event)
+		ev.Register()
 	}
 
 	anc_rb, err := ev_root.GetCommonAncestor(ev_childB)
@@ -94,7 +117,7 @@ func TestEvent_GetCommonAncestor_NoCA(t *testing.T) {
 
 	events := []Event{ev_A, ev_B}
 	for _, ev := range events {
-		d.Events.Register(ev.Event)
+		ev.Register()
 	}
 
 	_, err := ev_A.GetCommonAncestor(ev_B)
@@ -107,7 +130,7 @@ func TestEvent_GetCommonAncestor_ComparedToSelf(t *testing.T) {
 	d := NewDocument()
 	ev := d.NewEvent("ev")
 
-	d.Events.Register(ev.Event)
+	ev.Register()
 
 	anc, err := ev.GetCommonAncestor(ev)
 	if err != nil {
@@ -187,7 +210,7 @@ func TestEvent_GetRoot(t *testing.T) {
 
 	events := []Event{first, second, third}
 	for _, ev := range events {
-		d.Events.Register(ev.Event)
+		ev.Register()
 	}
 
 	for _, ev := range events {
@@ -214,14 +237,14 @@ func TestEvent_GetChildren(t *testing.T) {
 
 	events := []Event{first, second, third, fork}
 	for _, ev := range events {
-		d.Events.Register(ev.Event)
+		ev.Register()
 	}
 
 	children := first.GetChildren()
 	if len(children) != 2 {
 		t.Fatal("first has wrong number of children")
 	}
-	if !(children.Contains(second.Event) && children.Contains(fork.Event)) {
+	if !(children.Contains(second) && children.Contains(fork)) {
 		t.Fatal("first has wrong children", children)
 	}
 
@@ -229,7 +252,7 @@ func TestEvent_GetChildren(t *testing.T) {
 	if len(children) != 1 {
 		t.Fatal("second has wrong number of children")
 	}
-	if !children.Contains(third.Event) {
+	if !children.Contains(third) {
 		t.Fatal("second has wrong children", children)
 	}
 
