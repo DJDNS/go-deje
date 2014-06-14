@@ -17,7 +17,9 @@ func (doc *Document) NewQuorum(evhash string) Quorum {
 	}
 }
 
-// Register with the Doc's QuorumManager.
-func (q Quorum) Register() {
-	q.Doc.Quorums.Register(q.Quorum)
+// Register with the Doc. This stores it in a hash-based location,
+// so do not make changes to an Event after it has been registered.
+func (q *Quorum) Register() {
+	key := q.GetKey()
+	q.Doc.Quorums[key] = q
 }

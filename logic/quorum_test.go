@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+//TODO: Test register, with QuorumByEvent...
+
 func TestQuorum_ToSerial(t *testing.T) {
 	d := NewDocument()
 	Q := d.NewQuorum("example")
