@@ -43,6 +43,19 @@ func (e *Event) Register() {
 	group[key] = e
 }
 
+// Unregister from the Doc. This also cleans up empty groups.
+func (e *Event) Unregister() {
+	key := e.GetKey()
+	delete(e.Doc.Events, key)
+
+	group_key := e.GetGroupKey()
+	group := e.Doc.EventsByParent[group_key]
+	delete(group, key)
+	if len(group) == 0 {
+		delete(e.Doc.EventsByParent, group_key)
+	}
+}
+
 // Given a set of Events, and two specific ones to trace,
 // find the most recent common parent between the two chains.
 //

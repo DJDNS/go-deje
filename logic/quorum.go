@@ -31,3 +31,16 @@ func (q *Quorum) Register() {
 	}
 	group[key] = q
 }
+
+// Unregister from the Doc. This also cleans up empty groups.
+func (q *Quorum) Unregister() {
+	key := q.GetKey()
+	delete(q.Doc.Quorums, key)
+
+	group_key := q.GetGroupKey()
+	group := q.Doc.QuorumsByEvent[group_key]
+	delete(group, key)
+	if len(group) == 0 {
+		delete(q.Doc.QuorumsByEvent, group_key)
+	}
+}
