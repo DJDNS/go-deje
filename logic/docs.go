@@ -5,8 +5,5 @@
 // discover and observe each other, which allows for more complex
 // behaviors, like Event.GetCommonAncestor.
 //
-// At some point in the future, we may abolish Managers and the
-// Document vs. DocumentFile dichotomy of {de,}serialization, which
-// would allow the manager, logic, and model packages to be condensed
-// into one package. Not today, though. Sorry.
+// Hopefully the logic and model packages will be able to be merged soon.
 package logic

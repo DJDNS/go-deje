@@ -1,9 +1,6 @@
 package model
 
-// Interface for the deje/manager structs to store.
-//
-// We have to define it here, so that the model structs
-// can implement Eq(Manageable).
+// Common interface for Events and Quorums.
 type Manageable interface {
 	GetKey() string
 	GetGroupKey() string
