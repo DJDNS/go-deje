@@ -1,6 +1,6 @@
 package model
 
-// Interface for the go-deje.manager structs to store.
+// Interface for the deje/manager structs to store.
 //
 // We have to define it here, so that the model structs
 // can implement Eq(Manageable).

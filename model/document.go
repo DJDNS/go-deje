@@ -3,8 +3,7 @@ package model
 // Used for serializing and deserializing docs to files.
 //
 // This allows us to use more complicated structures for actual
-// documents, that allow for storing Timestamps, and other data
-// that we must not trust the file to provide.
+// documents, that allow for listing events or quorums by group.
 type DocumentFile struct {
 	Topic   string
 	Events  EventSet
