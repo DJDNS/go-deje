@@ -2,6 +2,13 @@ package state
 
 import "errors"
 
+// A very simple delta for a DocumentState.
+//
+// Given a *DocumentState, you can also compute a reversed version,
+// which would UNDO the original Primitive (by taking note of the
+// part of the DocState that the original Primitive changes, and
+// constructing a Primitive that sets that part of the DocState
+// to its current value).
 type Primitive interface {
 	Apply(*DocumentState) error
 	Reverse(*DocumentState) (Primitive, error)

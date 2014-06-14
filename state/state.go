@@ -1,5 +1,12 @@
 package state
 
+// Represents the state of a document. It can be modified by applying
+// Primitives to it, which make simple replacements or deletions to
+// the contents at specified locations.
+//
+// These transformations not only alter the DocumentState's .Value
+// field, they also call the OnPrimitive callback, if it is set for
+// this DocumentState.
 type DocumentState struct {
 	Value       Container
 	onPrimitive *OnPrimitiveCallback
@@ -11,6 +18,8 @@ func NewDocumentState() *DocumentState {
 	return &DocumentState{container, nil}
 }
 
+// Construct and apply a Primitive that completely resets the Value
+// of the DocumentState to an empty JSON {}.
 func (ds *DocumentState) Reset() {
 	// We know this won't fail, so we can ignore err
 	p := &SetPrimitive{
@@ -32,7 +41,7 @@ func (ds *DocumentState) SetPrimitiveCallback(c OnPrimitiveCallback) {
 
 // Apply a Primitive such that the callback (if set) is run.
 //
-// Always preferable to p.Apply(ds), which does not broadcast.
+// Always preferable to p.Apply(ds), which does not run the callback.
 func (ds *DocumentState) Apply(p Primitive) error {
 	err := p.Apply(ds)
 	if err != nil {
@@ -44,6 +53,7 @@ func (ds *DocumentState) Apply(p Primitive) error {
 	return nil
 }
 
+// Return the raw, JSON-ic value of the DocumentState.
 func (ds *DocumentState) Export() interface{} {
 	return ds.Value.Export()
 }
