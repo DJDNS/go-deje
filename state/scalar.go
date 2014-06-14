@@ -2,28 +2,28 @@ package state
 
 import "errors"
 
-type ScalarContainer struct {
+type scalarContainer struct {
 	Value interface{}
 }
 
-func MakeScalarContainer(value interface{}) (Container, error) {
-	return &ScalarContainer{
+func makeScalarContainer(value interface{}) (Container, error) {
+	return &scalarContainer{
 		value,
 	}, nil
 }
 
-func (c *ScalarContainer) SetChild(key, value interface{}) error {
+func (c *scalarContainer) SetChild(key, value interface{}) error {
 	return errors.New("Scalars do not have children")
 }
 
-func (c *ScalarContainer) GetChild(key interface{}) (Container, error) {
+func (c *scalarContainer) GetChild(key interface{}) (Container, error) {
 	return nil, errors.New("Scalars do not have children")
 }
 
-func (c *ScalarContainer) RemoveChild(key interface{}) error {
+func (c *scalarContainer) RemoveChild(key interface{}) error {
 	return errors.New("Scalars do not have children")
 }
 
-func (c *ScalarContainer) Export() interface{} {
+func (c *scalarContainer) Export() interface{} {
 	return c.Value
 }

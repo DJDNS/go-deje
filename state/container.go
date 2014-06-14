@@ -22,7 +22,7 @@ func MakeContainer(value interface{}) (Container, error) {
 	// Special case, since reflect.TypeOf(nil) == nil,
 	// and nil.Kind() is a surefire recipe for runtime panic :/
 	if reflect.TypeOf(value) == nil {
-		return MakeScalarContainer(value)
+		return makeScalarContainer(value)
 	}
 	switch reflect.TypeOf(value).Kind() {
 	case reflect.Map:
@@ -38,7 +38,7 @@ func MakeContainer(value interface{}) (Container, error) {
 		}
 		return makeSliceContainer(as_slice)
 	case reflect.Bool, reflect.Int, reflect.Uint, reflect.String:
-		return MakeScalarContainer(value)
+		return makeScalarContainer(value)
 	default:
 		return nil, errors.New("Invalid type for containing")
 	}

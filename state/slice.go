@@ -91,7 +91,7 @@ func (c *sliceContainer) Export() interface{} {
 	for key, _ := range result {
 		value, ok := c.Value[uint(key)]
 		if !ok {
-			value, _ = MakeScalarContainer(nil)
+			value, _ = makeScalarContainer(nil)
 		}
 		result[key] = value.Export()
 	}
