@@ -40,7 +40,6 @@ func TestQuorum_GetGroupKey(t *testing.T) {
 func TestQuorum_Eq(t *testing.T) {
 	Q1 := NewQuorum("hello")
 	Q2 := NewQuorum("hello")
-	E := NewEvent("handler name")
 
 	if !Q1.Eq(Q2) {
 		t.Fatal("Q1 should equal Q2")
@@ -49,9 +48,5 @@ func TestQuorum_Eq(t *testing.T) {
 	Q1.Signatures["ident"] = "sig"
 	if Q1.Eq(Q2) {
 		t.Fatal("Q1 should not equal Q2")
-	}
-
-	if Q1.Eq(E) {
-		t.Fatal("Q1 should not equal E")
 	}
 }

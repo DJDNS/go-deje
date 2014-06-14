@@ -27,12 +27,8 @@ func (q Quorum) GetKey() string {
 func (q Quorum) GetGroupKey() string {
 	return q.EventHash
 }
-func (q Quorum) Eq(other Manageable) bool {
-	other_quorum, ok := other.(Quorum)
-	if !ok {
-		return false
-	}
-	return q.Hash() == other_quorum.Hash()
+func (q Quorum) Eq(other Quorum) bool {
+	return q.Hash() == other.Hash()
 }
 
 // Get the hash of the Quorum object.

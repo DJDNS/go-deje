@@ -84,9 +84,4 @@ func TestEvent_Eq(t *testing.T) {
 	if A.Eq(B) {
 		t.Fatal("A should not equal D")
 	}
-
-	Q := NewQuorum("hello")
-	if A.Eq(Q) {
-		t.Fatal("A should not equal Q")
-	}
 }
