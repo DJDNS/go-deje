@@ -26,7 +26,6 @@ func TestNewDocument(t *testing.T) {
 	}
 }
 
-// TODO: Test ThingByThing
 func TestFromFile(t *testing.T) {
 	d := NewDocument()
 	df := model.NewDocumentFile()
@@ -66,6 +65,9 @@ func TestFromFile(t *testing.T) {
 	if !ev_from_d.Event.Eq(ev_from_s) {
 		t.Fatalf("%v != %v", ev_from_d, ev_from_s)
 	}
+	if len(d.EventsByParent) != 1 {
+		t.Fatal("Did not use ev.Register(), so items did not show up in groups")
+	}
 
 	if len(d.Quorums) != 1 {
 		t.Fatalf("Wrong num quorum - expected 1, got %d", len(d.Quorums))
@@ -76,6 +78,9 @@ func TestFromFile(t *testing.T) {
 	}
 	if !q_from_d.Quorum.Eq(q) {
 		t.Fatalf("%v != %v", q_from_d, q)
+	}
+	if len(d.QuorumsByEvent) != 1 {
+		t.Fatal("Did not use q.Register(), so items did not show up in groups")
 	}
 }
 
