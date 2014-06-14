@@ -5,6 +5,10 @@ import (
 	"reflect"
 )
 
+// Represents a value in the tracked document state.
+//
+// Its most interesting attributes, from the point of view of external
+// API, are that it can be Traversed and Exported.
 type Container interface {
 	GetChild(interface{}) (Container, error)
 	SetChild(key, value interface{}) error
@@ -13,6 +17,7 @@ type Container interface {
 	Export() interface{}
 }
 
+// Create a new container, based on the given object.
 func MakeContainer(value interface{}) (Container, error) {
 	// Special case, since reflect.TypeOf(nil) == nil,
 	// and nil.Kind() is a surefire recipe for runtime panic :/
