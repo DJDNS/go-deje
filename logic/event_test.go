@@ -54,7 +54,7 @@ func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 	ev_childA.SetParent(ev_root)
 	ev_childB.SetParent(ev_root)
 
-	events := []Event{ev_root, ev_childA, ev_childB}
+	events := []*Event{&ev_root, &ev_childA, &ev_childB}
 	for _, ev := range events {
 		ev.Register()
 	}
@@ -64,7 +64,8 @@ func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !anc_ab.Eq(ev_root.Event) {
-		t.Fatal("Common ancestor of A and B should be root")
+		t.Error("Common ancestor of A and B should be root")
+		t.Fatalf("Expected %#v, got %#v", ev_root.Event, anc_ab.Event)
 	}
 
 	anc_ba, err := ev_childB.GetCommonAncestor(ev_childA)
@@ -83,7 +84,7 @@ func TestEvent_GetCommonAncestor_MissingParent(t *testing.T) {
 	ev_A.ParentHash = "blah blah blah"
 	ev_B := d.NewEvent("handler_name")
 
-	events := []Event{ev_A, ev_B}
+	events := []*Event{&ev_A, &ev_B}
 	for _, ev := range events {
 		ev.Register()
 	}
@@ -103,7 +104,7 @@ func TestEvent_GetCommonAncestor_RootVSFarChild(t *testing.T) {
 	ev_childA.SetParent(ev_root)
 	ev_childB.SetParent(ev_childA)
 
-	events := []Event{ev_root, ev_childA, ev_childB}
+	events := []*Event{&ev_root, &ev_childA, &ev_childB}
 	for _, ev := range events {
 		ev.Register()
 	}
@@ -131,7 +132,7 @@ func TestEvent_GetCommonAncestor_NoCA(t *testing.T) {
 	ev_A := d.NewEvent("A")
 	ev_B := d.NewEvent("B")
 
-	events := []Event{ev_A, ev_B}
+	events := []*Event{&ev_A, &ev_B}
 	for _, ev := range events {
 		ev.Register()
 	}
@@ -203,8 +204,8 @@ func TestEvent_CompatibleWith(t *testing.T) {
 		t.Fatal("Events not registered yet, should have failed")
 	}
 
-	for _, e := range []Event{first, second, third, fork} {
-		e.Register()
+	for _, ev := range []*Event{&first, &second, &third, &fork} {
+		ev.Register()
 	}
 
 	assert_ev_compatible(first, second, t)
@@ -224,13 +225,12 @@ func TestEvent_GetRoot(t *testing.T) {
 	second.SetParent(first)
 	third.SetParent(second)
 
-	events := []Event{first, second, third}
+	events := []*Event{&first, &second, &third}
 	for _, ev := range events {
 		ev.Register()
 	}
 
 	for _, ev := range events {
-		t.Fatal("This function runs in an infinite loop. Disable testing for now.")
 		found, ok := ev.GetRoot()
 		if !ok {
 			t.Fatal("GetRoot failed")
