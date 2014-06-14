@@ -2,19 +2,19 @@ package state
 
 import "errors"
 
-// Even though the SliceContainer represents an array-like value,
+// Even though the sliceContainer represents an array-like value,
 // it is easier to internally implement it as a map[uint]Container,
 // since this makes it easy to set "the value on the end".
 //
 // The consequence is a bit more complexity in Export, but that's
 // still not so bad, and certainly not as bad as implementing the
 // Set method for a []Container slice.
-type SliceContainer struct {
+type sliceContainer struct {
 	Value map[uint]Container
 }
 
-func MakeSliceContainer(s []interface{}) (Container, error) {
-	c := SliceContainer{
+func makeSliceContainer(s []interface{}) (Container, error) {
+	c := sliceContainer{
 		make(map[uint]Container),
 	}
 	for key, value := range s {
@@ -26,7 +26,7 @@ func MakeSliceContainer(s []interface{}) (Container, error) {
 	return &c, nil
 }
 
-func (c *SliceContainer) castKey(key interface{}) (uint, error) {
+func (c *sliceContainer) castKey(key interface{}) (uint, error) {
 	switch k := key.(type) {
 	case uint:
 		return k, nil
@@ -37,7 +37,7 @@ func (c *SliceContainer) castKey(key interface{}) (uint, error) {
 	}
 }
 
-func (c *SliceContainer) GetChild(key interface{}) (Container, error) {
+func (c *sliceContainer) GetChild(key interface{}) (Container, error) {
 	key_int, err := c.castKey(key)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (c *SliceContainer) GetChild(key interface{}) (Container, error) {
 	return child, nil
 }
 
-func (c *SliceContainer) SetChild(key, value interface{}) error {
+func (c *sliceContainer) SetChild(key, value interface{}) error {
 	key_int, err := c.castKey(key)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (c *SliceContainer) SetChild(key, value interface{}) error {
 	return nil
 }
 
-func (c *SliceContainer) RemoveChild(key interface{}) error {
+func (c *sliceContainer) RemoveChild(key interface{}) error {
 	key_int, err := c.castKey(key)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (c *SliceContainer) RemoveChild(key interface{}) error {
 	return nil
 }
 
-func (c *SliceContainer) Export() interface{} {
+func (c *sliceContainer) Export() interface{} {
 	// Get total length of result array
 	max_key := uint(0)
 	for key, _ := range c.Value {

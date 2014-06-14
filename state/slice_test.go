@@ -11,9 +11,9 @@ func TestMakeSliceContainer_InvalidChildren(t *testing.T) {
 	original := []interface{}{
 		make(chan int),
 	}
-	_, err := MakeSliceContainer(original)
+	_, err := makeSliceContainer(original)
 	if err == nil {
-		t.Fatal("MakeSliceContainer should fail if it can't contain children")
+		t.Fatal("makeSliceContainer should fail if it can't contain children")
 	}
 }
 
@@ -22,7 +22,7 @@ func TestSliceContainer_GetChild(t *testing.T) {
 		"hello",
 		"world",
 	}
-	c, err := MakeSliceContainer(original)
+	c, err := makeSliceContainer(original)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,17 +53,17 @@ func TestSliceContainer_GetChild(t *testing.T) {
 }
 
 func TestSliceContainer_SetChild(t *testing.T) {
-	c, err := MakeSliceContainer([]interface{}{})
+	c, err := makeSliceContainer([]interface{}{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = c.SetChild("hi", 0)
 	if err == nil {
-		t.Fatal("SliceContainer.SetChild with non-uint key should always fail")
+		t.Fatal("sliceContainer.SetChild with non-uint key should always fail")
 	}
 	err = c.SetChild(uint(9), make(chan int))
 	if err == nil {
-		t.Fatal("SliceContainer.SetChild with non-containable value should fail")
+		t.Fatal("sliceContainer.SetChild with non-containable value should fail")
 	}
 	err = c.SetChild(uint(5), 89)
 	if err != nil {
@@ -81,13 +81,13 @@ func TestSliceContainer_RemoveChild(t *testing.T) {
 	original := []interface{}{
 		"hello", "crazy", "world",
 	}
-	c, err := MakeSliceContainer(original)
+	c, err := makeSliceContainer(original)
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = c.RemoveChild("flub")
 	if err == nil {
-		t.Fatal("SliceContainer.RemoveChild should fail for bad key type")
+		t.Fatal("sliceContainer.RemoveChild should fail for bad key type")
 	}
 	err = c.RemoveChild(uint(90))
 	if err != nil {
@@ -116,7 +116,7 @@ func TestSliceContainerExport(t *testing.T) {
 			"deep": "path",
 		},
 	}
-	container, err := MakeSliceContainer(demo_map)
+	container, err := makeSliceContainer(demo_map)
 	if err != nil {
 		t.Fatal(err)
 	}

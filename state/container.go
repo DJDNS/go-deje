@@ -31,7 +31,7 @@ func MakeContainer(value interface{}) (Container, error) {
 		if !ok {
 			return nil, errors.New("Cannot cast slice to []interface{}")
 		}
-		return MakeSliceContainer(as_slice)
+		return makeSliceContainer(as_slice)
 	case reflect.Bool, reflect.Int, reflect.Uint, reflect.String:
 		return MakeScalarContainer(value)
 	default:
