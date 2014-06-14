@@ -3,7 +3,7 @@ package util
 import "encoding/json"
 
 // Uses json.Marshal and json.Unmarshal to copy from
-// one object to another. Excellent way to turn a JSONObject
+// one object to another. Excellent way to turn a JSON Object
 // into a struct, or vice-versa.
 //
 // This makes its changes in-place, so always pass in the
