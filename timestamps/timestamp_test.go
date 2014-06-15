@@ -1,7 +1,7 @@
 package timestamps
 
 import (
-	"github.com/campadrenalin/go-deje/logic"
+	"github.com/campadrenalin/go-deje/document"
 	"reflect"
 	"testing"
 )
@@ -21,7 +21,7 @@ func TestDTS_GetTimestamps(t *testing.T) {
 }
 
 func TestNewSTS(t *testing.T) {
-	doc := logic.NewDocument()
+	doc := document.NewDocument()
 	doc.Topic = "furbies"
 	sts := NewSortingTimestampService(doc)
 	if !reflect.DeepEqual(sts.Doc, doc) {
@@ -29,7 +29,7 @@ func TestNewSTS(t *testing.T) {
 	}
 }
 func TestSTS_GetTimestamps(t *testing.T) {
-	doc := logic.NewDocument()
+	doc := document.NewDocument()
 	doc.Topic = "furbies"
 	sts := NewSortingTimestampService(doc)
 

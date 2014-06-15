@@ -6,7 +6,7 @@
 package timestamps
 
 import (
-	"github.com/campadrenalin/go-deje/logic"
+	"github.com/campadrenalin/go-deje/document"
 	"sort"
 )
 
@@ -39,10 +39,10 @@ func (tss DummyTimestampService) GetTimestamps(topic string) ([]string, error) {
 // timing between two timestamps is ambiguous (multiple timestamps in the
 // same block).
 type SortingTimestampService struct {
-	Doc logic.Document
+	Doc document.Document
 }
 
-func NewSortingTimestampService(doc logic.Document) SortingTimestampService {
+func NewSortingTimestampService(doc document.Document) SortingTimestampService {
 	return SortingTimestampService{doc}
 }
 func (sts SortingTimestampService) GetTimestamps(topic string) ([]string, error) {

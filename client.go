@@ -1,20 +1,20 @@
 package deje
 
 import (
-	"github.com/campadrenalin/go-deje/logic"
+	"github.com/campadrenalin/go-deje/document"
 	"github.com/jcelliott/turnpike"
 )
 
 // Contains a document and one or more WAMP connections.
 type Client struct {
-	Doc *logic.Document
+	Doc *document.Document
 
 	onEvent  *OnEventCallback
 	tpClient *turnpike.Client
 }
 
 func NewClient(topic string) Client {
-	doc := logic.NewDocument()
+	doc := document.NewDocument()
 	doc.Topic = topic
 	return Client{
 		Doc:      &doc,
