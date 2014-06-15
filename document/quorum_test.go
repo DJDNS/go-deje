@@ -1,6 +1,7 @@
 package document
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -152,5 +153,51 @@ func TestQuorum_Unregister(t *testing.T) {
 	}
 	if !reflect.DeepEqual(d.QuorumsByEvent, expected_groups) {
 		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.QuorumsByEvent)
+	}
+}
+
+func TestQuorum_ToSerial(t *testing.T) {
+	d := NewDocument()
+	Q := d.NewQuorum("example")
+	Q.Signatures["key"] = "value"
+	Q.Signatures["this"] = "that"
+
+	expected := "{" +
+		"\"event_hash\":\"example\"," +
+		"\"sigs\":{" +
+		"\"key\":\"value\"," +
+		"\"this\":\"that\"" +
+		"}}"
+	got, err := json.Marshal(Q)
+	if err != nil {
+		t.Fatal("Serialization failed", err)
+	}
+	gotstr := string(got)
+	if gotstr != expected {
+		t.Fatalf("Expected %v, got %v", expected, gotstr)
+	}
+}
+
+func TestQuorumFromSerial(t *testing.T) {
+	source := "{" +
+		"\"event_hash\":\"example\"," +
+		"\"sigs\":{" +
+		"\"hello\":\"world\"" +
+		"}}"
+	var got Quorum
+	err := json.Unmarshal([]byte(source), &got)
+	if err != nil {
+		t.Fatal("Deserialization failed:", err)
+	}
+
+	expected := Quorum{
+		EventHash: "example",
+		Signatures: map[string]string{
+			"hello": "world",
+		},
+	}
+
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Quorums differ: %v vs %v", got, expected)
 	}
 }
