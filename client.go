@@ -5,7 +5,7 @@ import (
 	"github.com/jcelliott/turnpike"
 )
 
-// Contains a document and one or more WAMP connections.
+// Contains a document and a WAMP connection.
 type Client struct {
 	Doc *document.Document
 
