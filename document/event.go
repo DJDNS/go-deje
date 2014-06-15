@@ -1,6 +1,10 @@
 package document
 
-import "github.com/campadrenalin/go-deje/util"
+import (
+	"errors"
+	"github.com/campadrenalin/go-deje/state"
+	"github.com/campadrenalin/go-deje/util"
+)
 
 // An Event is an action that can be applied to a DEJE doc,
 // including a set of parameters. In practice, custom Event
@@ -14,6 +18,11 @@ type Event struct {
 }
 
 type EventSet map[string]*Event
+
+func (es EventSet) Contains(ev Event) bool {
+	_, ok := es[ev.GetKey()]
+	return ok
+}
 
 func NewEvent(hname string) Event {
 	return Event{
@@ -90,11 +99,11 @@ func (e *Event) Unregister() {
 //
 // There may not be a common ancestor. In this event, we return
 // an error.
-func (A Event) GetCommonAncestor(B Event) (Event, error) {
+func (A *Event) GetCommonAncestor(B *Event) (*Event, error) {
 	d := A.Doc
 	ancestors := make(map[string]bool)
-	trails := make(chan Event, 2)
-	var current Event
+	trails := make(chan *Event, 2)
+	var current *Event
 
 	trails <- A
 	trails <- B
@@ -111,14 +120,14 @@ func (A Event) GetCommonAncestor(B Event) (Event, error) {
 			}
 
 			// Get parent, add to trails
-			if current.Event.ParentHash == "" {
+			if current.ParentHash == "" {
 				continue
 			}
 			parent, ok := d.Events[current.ParentHash]
 			if !ok {
 				return current, errors.New("Bad parent hash")
 			}
-			trails <- Event{parent.Event, d}
+			trails <- parent
 		default:
 			return current, errors.New("No common ancestor")
 		}
@@ -129,13 +138,13 @@ func (A Event) GetCommonAncestor(B Event) (Event, error) {
 //
 // This means that they are on the same fork. This means
 // one is the parent of the other (or the events are equal).
-func (A Event) CompatibleWith(B Event) (bool, error) {
+func (A *Event) CompatibleWith(B *Event) (bool, error) {
 	parent, err := A.GetCommonAncestor(B)
 	if err != nil {
 		return false, err
 	}
 
-	return (parent.Eq(A.Event) || parent.Eq(B.Event)), nil
+	return (parent.Eq(*A) || parent.Eq(*B)), nil
 }
 
 // Traverse up the chain of parents until there's no more to traverse.
@@ -145,8 +154,8 @@ func (tip *Event) GetRoot() (event *Event, ok bool) {
 	ok = true
 	d := tip.Doc
 
-	for event.Event.ParentHash != "" {
-		parent, ok = d.Events[event.Event.ParentHash]
+	for event.ParentHash != "" {
+		parent, ok = d.Events[event.ParentHash]
 		if !ok {
 			return
 		}
@@ -218,13 +227,12 @@ func (e Event) Apply() error {
 func (e Event) Goto() error {
 	d := e.Doc
 	d.State.Reset()
-	if e.Event.ParentHash != "" {
-		parent, ok := d.Events[e.Event.ParentHash]
+	if e.ParentHash != "" {
+		parent, ok := d.Events[e.ParentHash]
 		if !ok {
 			return errors.New("Could not get parent")
 		}
-		logic_parent := Event{parent.Event, d}
-		err := logic_parent.Goto()
+		err := parent.Goto()
 		if err != nil {
 			return err
 		}

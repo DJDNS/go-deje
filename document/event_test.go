@@ -3,9 +3,9 @@ package document
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/campadrenalin/go-deje/state"
 	"reflect"
 	"testing"
-	"github.com/campadrenalin/go-deje/state"
 )
 
 func TestEvent_Serialize(t *testing.T) {
@@ -203,20 +203,20 @@ func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {
 		ev.Register()
 	}
 
-	anc_ab, err := ev_childA.GetCommonAncestor(ev_childB)
+	anc_ab, err := ev_childA.GetCommonAncestor(&ev_childB)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_ab.Eq(ev_root.Event) {
+	if !anc_ab.Eq(ev_root) {
 		t.Error("Common ancestor of A and B should be root")
-		t.Fatalf("Expected %#v, got %#v", ev_root.Event, anc_ab.Event)
+		t.Fatalf("Expected %#v, got %#v", ev_root, anc_ab)
 	}
 
-	anc_ba, err := ev_childB.GetCommonAncestor(ev_childA)
+	anc_ba, err := ev_childB.GetCommonAncestor(&ev_childA)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_ba.Eq(ev_root.Event) {
+	if !anc_ba.Eq(ev_root) {
 		t.Fatal("Common ancestor of A and B should be root")
 	}
 }
@@ -233,7 +233,7 @@ func TestEvent_GetCommonAncestor_MissingParent(t *testing.T) {
 		ev.Register()
 	}
 
-	_, err := ev_A.GetCommonAncestor(ev_B)
+	_, err := ev_A.GetCommonAncestor(&ev_B)
 	if err == nil {
 		t.Fatal("GetCommonAncestor should have failed")
 	}
@@ -253,19 +253,19 @@ func TestEvent_GetCommonAncestor_RootVSFarChild(t *testing.T) {
 		ev.Register()
 	}
 
-	anc_rb, err := ev_root.GetCommonAncestor(ev_childB)
+	anc_rb, err := ev_root.GetCommonAncestor(&ev_childB)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_rb.Eq(ev_root.Event) {
+	if !anc_rb.Eq(ev_root) {
 		t.Fatal("Common ancestor of root and B should be root")
 	}
 
-	anc_br, err := ev_childB.GetCommonAncestor(ev_root)
+	anc_br, err := ev_childB.GetCommonAncestor(&ev_root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc_br.Eq(ev_root.Event) {
+	if !anc_br.Eq(ev_root) {
 		t.Fatal("Common ancestor of root and B should be root")
 	}
 }
@@ -281,7 +281,7 @@ func TestEvent_GetCommonAncestor_NoCA(t *testing.T) {
 		ev.Register()
 	}
 
-	_, err := ev_A.GetCommonAncestor(ev_B)
+	_, err := ev_A.GetCommonAncestor(&ev_B)
 	if err == nil {
 		t.Fatal("GetCommonAncestor should have failed")
 	}
@@ -293,11 +293,11 @@ func TestEvent_GetCommonAncestor_ComparedToSelf(t *testing.T) {
 
 	ev.Register()
 
-	anc, err := ev.GetCommonAncestor(ev)
+	anc, err := ev.GetCommonAncestor(&ev)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !anc.Eq(ev.Event) {
+	if !anc.Eq(ev) {
 		t.Fatal("Common ancestor of self should be self")
 	}
 }
@@ -312,23 +312,23 @@ func TestEvent_GetRoot_NoElements(t *testing.T) {
 	}
 }
 
-func assert_ev_compatible(A, B Event, t *testing.T) {
+func assert_ev_compatible(A, B *Event, t *testing.T) {
 	compatible, err := A.CompatibleWith(B)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !compatible {
-		t.Fatalf("%s should be compatible with %s", A.Event.HandlerName, B.Event.HandlerName)
+		t.Fatalf("%s should be compatible with %s", A.HandlerName, B.HandlerName)
 	}
 }
 
-func assert_ev_incompatible(A, B Event, t *testing.T) {
+func assert_ev_incompatible(A, B *Event, t *testing.T) {
 	compatible, err := A.CompatibleWith(B)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if compatible {
-		t.Fatalf("%s should be incompatible with %s", A.Event.HandlerName, B.Event.HandlerName)
+		t.Fatalf("%s should be incompatible with %s", A.HandlerName, B.HandlerName)
 	}
 }
 
@@ -343,7 +343,7 @@ func TestEvent_CompatibleWith(t *testing.T) {
 	third.SetParent(second)
 	fork.SetParent(first)
 
-	_, err := fork.CompatibleWith(first)
+	_, err := fork.CompatibleWith(&first)
 	if err == nil {
 		t.Fatal("Events not registered yet, should have failed")
 	}
@@ -352,12 +352,12 @@ func TestEvent_CompatibleWith(t *testing.T) {
 		ev.Register()
 	}
 
-	assert_ev_compatible(first, second, t)
-	assert_ev_compatible(first, third, t)
-	assert_ev_compatible(first, fork, t)
+	assert_ev_compatible(&first, &second, t)
+	assert_ev_compatible(&first, &third, t)
+	assert_ev_compatible(&first, &fork, t)
 
-	assert_ev_incompatible(fork, second, t)
-	assert_ev_incompatible(fork, third, t)
+	assert_ev_incompatible(&fork, &second, t)
+	assert_ev_incompatible(&fork, &third, t)
 }
 
 func TestEvent_GetRoot(t *testing.T) {

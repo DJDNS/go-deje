@@ -12,7 +12,7 @@
 // but even complex events end up being boiled down into primitives
 // internally when you apply them.
 //
-// Quorums act as "anchor points" bridging between Events and 
+// Quorums act as "anchor points" bridging between Events and
 // Timestamps. They represent a consensus about which event is the
 // correct "tip" event (latest officially accepted event). Only
 // certain identities are allowed to contribute signatures to a
