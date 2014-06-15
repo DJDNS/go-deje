@@ -40,7 +40,7 @@ func TestFromFile(t *testing.T) {
 		Signatures: make(map[string]string),
 	}
 	q.Signatures["x"] = "y"
-	df.Quorums["example"] = q
+	df.Quorums["example"] = &q
 
 	d.FromFile(&df)
 
