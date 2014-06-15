@@ -37,39 +37,3 @@ func NewDocument() Document {
 		QuorumsByEvent: make(map[string]QuorumSet),
 	}
 }
-
-// Copies the data from a DocumentFile into a Document.
-func (d *Document) FromFile(df *DocumentFile) {
-	d.Topic = df.Topic
-	d.Events = make(EventSet)
-	d.EventsByParent = make(map[string]EventSet)
-	d.Quorums = make(QuorumSet)
-	d.QuorumsByEvent = make(map[string]QuorumSet)
-
-	for _, ev := range df.Events {
-		ev.Doc = d
-		ev.Register()
-	}
-	for _, q := range df.Quorums {
-		q.Doc = d
-		q.Register()
-	}
-}
-
-// Copies the data from a Document into a DocumentFile.
-func (d *Document) ToFile() *DocumentFile {
-	df := &DocumentFile{
-		Topic:   d.Topic,
-		Events:  make(EventSet),
-		Quorums: make(QuorumSet),
-	}
-
-	for key, ev := range d.Events {
-		df.Events[key] = ev
-	}
-	for key, q := range d.Quorums {
-		df.Quorums[key] = q
-	}
-
-	return df
-}
