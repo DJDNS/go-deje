@@ -43,7 +43,44 @@ func NewDocument() Document {
 }
 
 // Serialize JSON data to an io.Writer.
-func (d *Document) Serialize(w io.Writer) error {
+func (doc *Document) Serialize(w io.Writer) error {
 	encoder := json.NewEncoder(w)
-	return encoder.Encode(d)
+	return encoder.Encode(doc)
+}
+
+// Deserialize JSON data from an io.Reader.
+func (doc *Document) Deserialize(r io.Reader) error {
+	decoder := json.NewDecoder(r)
+	if err := decoder.Decode(doc); err != nil {
+		return err
+	}
+
+	// Copy Events to avoid clobbering when we fix keys
+	var index int
+	events_copy := make([]Event, len(doc.Events))
+	for _, item := range doc.Events {
+		events_copy[index] = *item
+		index++
+	}
+	doc.Events = make(EventSet)
+
+	// Same for Quorums
+	index = 0
+	quorums_copy := make([]Quorum, len(doc.Quorums))
+	for _, item := range doc.Quorums {
+		quorums_copy[index] = *item
+		index++
+	}
+	doc.Quorums = make(QuorumSet)
+
+	// Integrate through registration
+	for _, item := range events_copy {
+		item.Doc = doc
+		item.Register()
+	}
+	for _, item := range quorums_copy {
+		item.Doc = doc
+		item.Register()
+	}
+	return nil
 }
