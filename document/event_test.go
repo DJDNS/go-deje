@@ -3,6 +3,7 @@ package document
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -83,5 +84,106 @@ func TestEvent_Eq(t *testing.T) {
 	D.Arguments["Ezekiel"] = "Wigglesworth"
 	if A.Eq(B) {
 		t.Fatal("A should not equal D")
+	}
+}
+
+func TestEvent_Register(t *testing.T) {
+	d := NewDocument()
+	ev_root := d.NewEvent("root")
+	ev_childA := d.NewEvent("childA")
+	ev_childB := d.NewEvent("childB")
+
+	ev_childA.SetParent(ev_root)
+	ev_childB.SetParent(ev_root)
+
+	events := []*Event{&ev_root, &ev_childA, &ev_childB}
+	for _, ev := range events {
+		ev.Register()
+	}
+
+	// Test that main set registered correctly
+	expected_events := EventSet{
+		ev_root.GetKey():   &ev_root,
+		ev_childA.GetKey(): &ev_childA,
+		ev_childB.GetKey(): &ev_childB,
+	}
+	if !reflect.DeepEqual(d.Events, expected_events) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_events, d.Events)
+	}
+
+	// Test that groupings registered correctly
+	expected_groups := map[string]EventSet{
+		"": EventSet{
+			ev_root.GetKey(): &ev_root,
+		},
+		ev_root.GetKey(): EventSet{
+			ev_childA.GetKey(): &ev_childA,
+			ev_childB.GetKey(): &ev_childB,
+		},
+	}
+	if !reflect.DeepEqual(d.EventsByParent, expected_groups) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.EventsByParent)
+	}
+}
+
+func TestEvent_Unregister(t *testing.T) {
+	d := NewDocument()
+	ev_root := d.NewEvent("root")
+	ev_childA := d.NewEvent("childA")
+	ev_childB := d.NewEvent("childB")
+
+	ev_childA.SetParent(ev_root)
+	ev_childB.SetParent(ev_root)
+
+	events := []*Event{&ev_root, &ev_childA, &ev_childB}
+	for _, ev := range events {
+		ev.Register()
+	}
+
+	// Unregister childB and check results
+	ev_childB.Unregister()
+	expected_events := EventSet{
+		ev_root.GetKey():   &ev_root,
+		ev_childA.GetKey(): &ev_childA,
+	}
+	if !reflect.DeepEqual(d.Events, expected_events) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_events, d.Events)
+	}
+	expected_groups := map[string]EventSet{
+		"": EventSet{
+			ev_root.GetKey(): &ev_root,
+		},
+		ev_root.GetKey(): EventSet{
+			ev_childA.GetKey(): &ev_childA,
+		},
+	}
+	if !reflect.DeepEqual(d.EventsByParent, expected_groups) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.EventsByParent)
+	}
+
+	// Unregister such that a group becomes empty
+	ev_root.Unregister()
+	expected_events = EventSet{
+		ev_childA.GetKey(): &ev_childA,
+	}
+	if !reflect.DeepEqual(d.Events, expected_events) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_events, d.Events)
+	}
+	expected_groups = map[string]EventSet{
+		ev_root.GetKey(): EventSet{
+			ev_childA.GetKey(): &ev_childA,
+		},
+	}
+	if !reflect.DeepEqual(d.EventsByParent, expected_groups) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.EventsByParent)
+	}
+
+	// Make sure that Unregistering multiple times is okay
+	ev_root.Unregister()
+	if !reflect.DeepEqual(d.Events, expected_events) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_events, d.Events)
+	}
+	if !reflect.DeepEqual(d.EventsByParent, expected_groups) {
+		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.EventsByParent)
 	}
 }

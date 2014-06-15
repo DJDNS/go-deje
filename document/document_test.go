@@ -33,7 +33,7 @@ func TestFromFile(t *testing.T) {
 
 	ev := d.NewEvent("handler name")
 	ev.Arguments["hello"] = "world"
-	df.Events["example"] = ev
+	df.Events["example"] = &ev
 
 	q := Quorum{
 		EventHash:  "evhash",

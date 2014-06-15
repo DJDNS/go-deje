@@ -13,7 +13,7 @@ type Event struct {
 	Arguments   map[string]interface{} `json:"args"`
 }
 
-type EventSet map[string]Event
+type EventSet map[string]*Event
 
 func NewEvent(hname string) Event {
 	return Event{
@@ -43,4 +43,36 @@ func (e Event) Eq(other Event) bool {
 func (e Event) Hash() string {
 	hash, _ := util.HashObject(e)
 	return hash
+}
+
+func (e *Event) SetParent(p Event) {
+	e.ParentHash = p.Hash()
+}
+
+// Register with the Doc. This stores it in a hash-based location,
+// so do not make changes to an Event after it has been registered.
+func (e *Event) Register() {
+	key := e.GetKey()
+	e.Doc.Events[key] = e
+
+	group_key := e.GetGroupKey()
+	group, ok := e.Doc.EventsByParent[group_key]
+	if !ok {
+		group = make(EventSet)
+		e.Doc.EventsByParent[group_key] = group
+	}
+	group[key] = e
+}
+
+// Unregister from the Doc. This also cleans up empty groups.
+func (e *Event) Unregister() {
+	key := e.GetKey()
+	delete(e.Doc.Events, key)
+
+	group_key := e.GetGroupKey()
+	group := e.Doc.EventsByParent[group_key]
+	delete(group, key)
+	if len(group) == 0 {
+		delete(e.Doc.EventsByParent, group_key)
+	}
 }
