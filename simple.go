@@ -9,3 +9,13 @@ type SimpleClient struct {
 func NewSimpleClient(topic string) SimpleClient {
 	return SimpleClient{NewClient(topic)}
 }
+
+// Connect and immediately request the tip event hash.
+func (sc *SimpleClient) Connect(url string) error {
+	return sc.client.Connect(url)
+}
+
+// Return the current contents of the document.
+func (sc *SimpleClient) Export() interface{} {
+	return sc.client.Doc.State.Export()
+}
