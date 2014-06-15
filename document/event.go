@@ -7,6 +7,7 @@ import "github.com/campadrenalin/go-deje/util"
 // types may be defined for a document, as well as permissions
 // for which users are allowed to perform which types of Events.
 type Event struct {
+	Doc         *Document              `json:"-"`
 	ParentHash  string                 `json:"parent"`
 	HandlerName string                 `json:"handler"`
 	Arguments   map[string]interface{} `json:"args"`
@@ -20,6 +21,12 @@ func NewEvent(hname string) Event {
 		HandlerName: hname,
 		Arguments:   make(map[string]interface{}),
 	}
+}
+
+func (doc *Document) NewEvent(handler_name string) Event {
+	ev := NewEvent(handler_name)
+	ev.Doc = doc
+	return ev
 }
 
 func (e Event) GetKey() string {

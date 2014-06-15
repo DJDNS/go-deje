@@ -8,6 +8,7 @@ import "github.com/campadrenalin/go-deje/util"
 // considered a valid event chain (among others) at one
 // time (the timestamp provides the time information).
 type Quorum struct {
+	Doc        *Document         `json:"-"`
 	EventHash  string            `json:"event_hash"`
 	Signatures map[string]string `json:"sigs"`
 }
@@ -19,6 +20,12 @@ func NewQuorum(evhash string) Quorum {
 		EventHash:  evhash,
 		Signatures: make(map[string]string),
 	}
+}
+
+func (doc *Document) NewQuorum(event_hash string) Quorum {
+	q := NewQuorum(event_hash)
+	q.Doc = doc
+	return q
 }
 
 func (q Quorum) GetKey() string {

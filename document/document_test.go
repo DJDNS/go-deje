@@ -1,7 +1,6 @@
 package document
 
 import (
-	"github.com/campadrenalin/go-deje/model"
 	"github.com/campadrenalin/go-deje/util"
 	"testing"
 )
@@ -28,15 +27,15 @@ func TestNewDocument(t *testing.T) {
 
 func TestFromFile(t *testing.T) {
 	d := NewDocument()
-	df := model.NewDocumentFile()
+	df := NewDocumentFile()
 
 	df.Topic = "com.example.deje.5555"
 
 	ev := d.NewEvent("handler name")
 	ev.Arguments["hello"] = "world"
-	df.Events["example"] = ev.Event
+	df.Events["example"] = ev
 
-	q := model.Quorum{
+	q := Quorum{
 		EventHash:  "evhash",
 		Signatures: make(map[string]string),
 	}
@@ -57,12 +56,12 @@ func TestFromFile(t *testing.T) {
 	if len(d.Events) != 1 {
 		t.Fatalf("Wrong num events - expected 1, got %d", len(d.Events))
 	}
-	ev_from_s := ev.Event
+	ev_from_s := ev
 	ev_from_d, ok := d.Events[ev_from_s.GetKey()]
 	if !ok {
 		t.Fatal("Could not get event from Document")
 	}
-	if !ev_from_d.Event.Eq(ev_from_s) {
+	if !ev_from_d.Eq(ev_from_s) {
 		t.Fatalf("%v != %v", ev_from_d, ev_from_s)
 	}
 	if len(d.EventsByParent) != 1 {
@@ -76,7 +75,7 @@ func TestFromFile(t *testing.T) {
 	if !ok {
 		t.Fatal("Could not get quorum from Document")
 	}
-	if !q_from_d.Quorum.Eq(q) {
+	if !q_from_d.Eq(q) {
 		t.Fatalf("%v != %v", q_from_d, q)
 	}
 	if len(d.QuorumsByEvent) != 1 {
@@ -107,7 +106,7 @@ func TestToFile(t *testing.T) {
 		t.Fatal("Event conversion failure - wrong num events")
 	}
 
-	ev_to_s := ev.Event
+	ev_to_s := ev
 	ev_df := df.Events[ev.GetKey()]
 	hash1, _ := util.HashObject(ev_to_s)
 	hash2, _ := util.HashObject(ev_df)
@@ -119,7 +118,7 @@ func TestToFile(t *testing.T) {
 		t.Fatal("Quorum conversion failure - wrong num quorums")
 	}
 
-	q_to_s := q.Quorum
+	q_to_s := q
 	q_df := df.Quorums[q.GetKey()]
 	hash1, _ = util.HashObject(q_to_s)
 	hash2, _ = util.HashObject(q_df)

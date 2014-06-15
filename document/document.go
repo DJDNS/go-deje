@@ -1,9 +1,6 @@
 package document
 
-import (
-	"github.com/campadrenalin/go-deje/model"
-	"github.com/campadrenalin/go-deje/state"
-)
+import "github.com/campadrenalin/go-deje/state"
 
 // A document is a single managed DEJE object, associated with
 // a single immutable topic string, and self-describing its
@@ -42,7 +39,7 @@ func NewDocument() Document {
 }
 
 // Copies the data from a DocumentFile into a Document.
-func (d *Document) FromFile(df *model.DocumentFile) {
+func (d *Document) FromFile(df *DocumentFile) {
 	d.Topic = df.Topic
 	d.Events = make(EventSet)
 	d.EventsByParent = make(map[string]EventSet)
@@ -50,28 +47,28 @@ func (d *Document) FromFile(df *model.DocumentFile) {
 	d.QuorumsByEvent = make(map[string]QuorumSet)
 
 	for _, ev := range df.Events {
-		logical_event := Event{ev, d}
-		logical_event.Register()
+		ev.Doc = d
+		ev.Register()
 	}
 	for _, q := range df.Quorums {
-		logical_quorum := Quorum{q, d}
-		logical_quorum.Register()
+		q.Doc = d
+		q.Register()
 	}
 }
 
 // Copies the data from a Document into a DocumentFile.
-func (d *Document) ToFile() *model.DocumentFile {
-	df := &model.DocumentFile{
+func (d *Document) ToFile() *DocumentFile {
+	df := &DocumentFile{
 		Topic:   d.Topic,
-		Events:  make(model.EventSet),
-		Quorums: make(model.QuorumSet),
+		Events:  make(EventSet),
+		Quorums: make(QuorumSet),
 	}
 
 	for key, ev := range d.Events {
-		df.Events[key] = ev.Event
+		df.Events[key] = ev
 	}
 	for key, q := range d.Quorums {
-		df.Quorums[key] = q.Quorum
+		df.Quorums[key] = q
 	}
 
 	return df
