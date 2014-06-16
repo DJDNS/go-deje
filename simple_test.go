@@ -33,6 +33,17 @@ func TestSimpleClient_Connect(t *testing.T) {
 	// TODO: Test that RequestTip was broadcast
 }
 
+func TestSimpleClient_GetDoc(t *testing.T) {
+	topic := "http://example.com/deje/some-doc"
+	client := NewSimpleClient(topic)
+
+	got := client.GetDoc()
+	expected := client.client.Doc
+	if got != expected {
+		t.Fatal("GetDoc returned wrong pointer")
+	}
+}
+
 func TestSimpleClient_Export(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
 	client := NewSimpleClient(topic)
