@@ -4,6 +4,7 @@ import (
 	"github.com/campadrenalin/go-deje/state"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestSimpleClient_NewSimpleClient(t *testing.T) {
@@ -31,6 +32,62 @@ func TestSimpleClient_Connect(t *testing.T) {
 	}
 
 	// TODO: Test that RequestTip was broadcast
+}
+
+type simpleProtoTest struct {
+	Topic      string
+	Simple     SimpleClient
+	Listener   Client
+	EventsRcvd chan interface{}
+	Closer     func()
+}
+
+func setupSimpleProtocolTest(t *testing.T) simpleProtoTest {
+	var spt simpleProtoTest
+	spt.Topic = "http://example.com/deje/some-doc"
+	spt.Simple = NewSimpleClient(spt.Topic)
+	spt.Listener = NewClient(spt.Topic)
+	server_addr, server_closer := setupServer()
+	spt.Closer = server_closer
+
+	// Use this order to ignore any RequestTip() called during Connect()
+	spt.EventsRcvd = make(chan interface{}, 10)
+	if err := spt.Simple.Connect(server_addr); err != nil {
+		t.Fatal(err)
+	}
+	if err := spt.Listener.Connect(server_addr); err != nil {
+		t.Fatal(err)
+	}
+	spt.Listener.SetEventCallback(func(event interface{}) {
+		spt.EventsRcvd <- event
+	})
+	<-time.After(50 * time.Millisecond) // Make sure both connect fully
+
+	return spt
+}
+
+func TestSimpleClient_RequestTip(t *testing.T) {
+	spt := setupSimpleProtocolTest(t)
+	defer spt.Closer()
+
+	expected := map[string]interface{}{
+		"type": "01-request-tip",
+	}
+	if err := spt.Simple.RequestTip(); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case event := <-spt.EventsRcvd:
+		if !reflect.DeepEqual(event, expected) {
+			t.Fatalf("Expected %#v, got %#v", expected, event)
+		}
+	case <-time.After(50 * time.Millisecond):
+		t.Fatal("Timed out waiting for event")
+	}
+	// Ensure no extra events after
+	if len(spt.EventsRcvd) != 0 {
+		t.Fatal("Wrong number of events received")
+	}
 }
 
 func TestSimpleClient_GetDoc(t *testing.T) {

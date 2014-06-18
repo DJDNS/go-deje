@@ -17,6 +17,12 @@ func (sc *SimpleClient) Connect(url string) error {
 	return sc.client.Connect(url)
 }
 
+func (sc *SimpleClient) RequestTip() error {
+	return sc.client.Publish(map[string]interface{}{
+		"type": "01-request-tip",
+	})
+}
+
 // Get the Document object owned by this Client.
 func (sc *SimpleClient) GetDoc() *document.Document {
 	return sc.client.Doc
