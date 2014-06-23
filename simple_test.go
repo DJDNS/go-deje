@@ -18,6 +18,7 @@ func TestSimpleClient_NewSimpleClient(t *testing.T) {
 func TestSimpleClient_Connect(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
 	client := NewSimpleClient(topic)
+	listener := NewClient(topic)
 	server_addr, server_closer := setupServer()
 	defer server_closer()
 
@@ -26,12 +27,37 @@ func TestSimpleClient_Connect(t *testing.T) {
 		t.Fatal("foo is not a real server - should not 'succeed'")
 	}
 
+	// Set up listener to detect initial RequestTip
+	events_rcvd := make(chan interface{}, 10)
+	listener.SetEventCallback(func(event interface{}) {
+		events_rcvd <- event
+	})
+	if err := listener.Connect(server_addr); err != nil {
+		t.Fatal(err)
+	}
+
+	// Connect the SimpleClient
 	err = client.Connect(server_addr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// TODO: Test that RequestTip was broadcast
+	// Ensure that RequestTip was broadcast
+	expected := map[string]interface{}{
+		"type": "01-request-tip",
+	}
+	select {
+	case event := <-events_rcvd:
+		if !reflect.DeepEqual(event, expected) {
+			t.Fatalf("Expected %#v, got %#v", expected, event)
+		}
+	case <-time.After(50 * time.Millisecond):
+		t.Fatal("Timed out waiting for event")
+	}
+	// Ensure no extra events after
+	if len(events_rcvd) != 0 {
+		t.Fatal("Wrong number of events received")
+	}
 }
 
 type simpleProtoTest struct {
