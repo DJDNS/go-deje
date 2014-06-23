@@ -1,10 +1,11 @@
 package deje
 
 import (
-	"github.com/campadrenalin/go-deje/state"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/campadrenalin/go-deje/state"
 )
 
 func TestSimpleClient_NewSimpleClient(t *testing.T) {
@@ -100,6 +101,30 @@ func TestSimpleClient_RequestTip(t *testing.T) {
 		"type": "01-request-tip",
 	}
 	if err := spt.Simple.RequestTip(); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case event := <-spt.EventsRcvd:
+		if !reflect.DeepEqual(event, expected) {
+			t.Fatalf("Expected %#v, got %#v", expected, event)
+		}
+	case <-time.After(50 * time.Millisecond):
+		t.Fatal("Timed out waiting for event")
+	}
+	// Ensure no extra events after
+	if len(spt.EventsRcvd) != 0 {
+		t.Fatal("Wrong number of events received")
+	}
+}
+
+func TestSimpleClient_RequestHistory(t *testing.T) {
+	spt := setupSimpleProtocolTest(t)
+	defer spt.Closer()
+
+	expected := map[string]interface{}{
+		"type": "01-request-history",
+	}
+	if err := spt.Simple.RequestHistory(); err != nil {
 		t.Fatal(err)
 	}
 	select {

@@ -27,6 +27,12 @@ func (sc *SimpleClient) RequestTip() error {
 	})
 }
 
+func (sc *SimpleClient) RequestHistory() error {
+	return sc.client.Publish(map[string]interface{}{
+		"type": "01-request-history",
+	})
+}
+
 // Get the Document object owned by this Client.
 func (sc *SimpleClient) GetDoc() *document.Document {
 	return sc.client.Doc
