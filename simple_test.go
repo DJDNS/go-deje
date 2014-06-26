@@ -63,7 +63,7 @@ func TestSimpleClient_Connect(t *testing.T) {
 
 type simpleProtoTest struct {
 	Topic      string
-	Simple     []SimpleClient
+	Simple     []*SimpleClient
 	Listener   Client
 	EventsRcvd chan interface{}
 	Closer     func()
@@ -72,7 +72,7 @@ type simpleProtoTest struct {
 func setupSimpleProtocolTest(t *testing.T, num_simple int) simpleProtoTest {
 	var spt simpleProtoTest
 	spt.Topic = "http://example.com/deje/some-doc"
-	spt.Simple = make([]SimpleClient, num_simple)
+	spt.Simple = make([]*SimpleClient, num_simple)
 	spt.Listener = NewClient(spt.Topic)
 	server_addr, server_closer := setupServer()
 	spt.Closer = server_closer
@@ -88,23 +88,25 @@ func setupSimpleProtocolTest(t *testing.T, num_simple int) simpleProtoTest {
 	if err := spt.Listener.Connect(server_addr); err != nil {
 		t.Fatal(err)
 	}
+
+	// Make sure all connect fully, THEN start listening
+	<-time.After(50 * time.Millisecond)
 	spt.Listener.SetEventCallback(func(event interface{}) {
 		spt.EventsRcvd <- event
 	})
-	<-time.After(50 * time.Millisecond) // Make sure both connect fully
 
 	return spt
 }
 
 func (spt simpleProtoTest) Expect(t *testing.T, messages []interface{}) {
-	for _, expected := range messages {
+	for id, expected := range messages {
 		select {
 		case event := <-spt.EventsRcvd:
 			if !reflect.DeepEqual(event, expected) {
 				t.Fatalf("Expected %#v, got %#v", expected, event)
 			}
 		case <-time.After(50 * time.Millisecond):
-			t.Fatal("Timed out waiting for event")
+			t.Fatalf("Timed out waiting for event %d (%#v)", id, expected)
 		}
 	}
 	// Ensure no extra events after
@@ -123,6 +125,86 @@ func TestSimpleClient_RequestTip(t *testing.T) {
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
 			"type": "01-request-tip",
+		},
+	})
+}
+
+func TestSimpleClient_PublishTip(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	spt.Simple[0].tip = "some hash"
+	if err := spt.Simple[0].PublishTip(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":     "01-publish-tip",
+			"tip_hash": "some hash",
+		},
+	})
+}
+
+func TestSimpleClient_TipCycle(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	spt.Simple[1].tip = "some hash"
+	if err := spt.Simple[0].RequestTip(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-tip",
+		},
+		map[string]interface{}{
+			"type":     "01-publish-tip",
+			"tip_hash": "some hash",
+		},
+	})
+}
+
+func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	// Send a series of bad data
+	// (can't do numbers, floating point eq fails)
+	messages := []interface{}{
+		"Not a map, muahaha", true, false, nil,
+		[]interface{}{}, []interface{}{"x", "y", "z"},
+		map[string]interface{}{
+			"type": true,
+		},
+		map[string]interface{}{
+			"type": "foo",
+		},
+		map[string]interface{}{
+			"no_type_key": "frowny face",
+		},
+		map[string]interface{}{},
+	}
+	for _, msg := range messages {
+		if err := spt.Simple[0].client.Publish(msg); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Expect only evil data, no error
+	spt.Expect(t, messages)
+
+	// Confirm that we still respond well to legit data afterwards
+	spt.Simple[1].tip = "some hash"
+	if err := spt.Simple[0].RequestTip(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-tip",
+		},
+		map[string]interface{}{
+			"type":     "01-publish-tip",
+			"tip_hash": "some hash",
 		},
 	})
 }
