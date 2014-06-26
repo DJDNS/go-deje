@@ -63,24 +63,27 @@ func TestSimpleClient_Connect(t *testing.T) {
 
 type simpleProtoTest struct {
 	Topic      string
-	Simple     SimpleClient
+	Simple     []SimpleClient
 	Listener   Client
 	EventsRcvd chan interface{}
 	Closer     func()
 }
 
-func setupSimpleProtocolTest(t *testing.T) simpleProtoTest {
+func setupSimpleProtocolTest(t *testing.T, num_simple int) simpleProtoTest {
 	var spt simpleProtoTest
 	spt.Topic = "http://example.com/deje/some-doc"
-	spt.Simple = NewSimpleClient(spt.Topic)
+	spt.Simple = make([]SimpleClient, num_simple)
 	spt.Listener = NewClient(spt.Topic)
 	server_addr, server_closer := setupServer()
 	spt.Closer = server_closer
 
 	// Use this order to ignore any RequestTip() called during Connect()
 	spt.EventsRcvd = make(chan interface{}, 10)
-	if err := spt.Simple.Connect(server_addr); err != nil {
-		t.Fatal(err)
+	for i := 0; i < num_simple; i++ {
+		spt.Simple[i] = NewSimpleClient(spt.Topic)
+		if err := spt.Simple[i].Connect(server_addr); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := spt.Listener.Connect(server_addr); err != nil {
 		t.Fatal(err)
@@ -111,10 +114,10 @@ func (spt simpleProtoTest) Expect(t *testing.T, messages []interface{}) {
 }
 
 func TestSimpleClient_RequestTip(t *testing.T) {
-	spt := setupSimpleProtocolTest(t)
+	spt := setupSimpleProtocolTest(t, 1)
 	defer spt.Closer()
 
-	if err := spt.Simple.RequestTip(); err != nil {
+	if err := spt.Simple[0].RequestTip(); err != nil {
 		t.Fatal(err)
 	}
 	spt.Expect(t, []interface{}{
@@ -125,10 +128,10 @@ func TestSimpleClient_RequestTip(t *testing.T) {
 }
 
 func TestSimpleClient_RequestHistory(t *testing.T) {
-	spt := setupSimpleProtocolTest(t)
+	spt := setupSimpleProtocolTest(t, 1)
 	defer spt.Closer()
 
-	if err := spt.Simple.RequestHistory(); err != nil {
+	if err := spt.Simple[0].RequestHistory(); err != nil {
 		t.Fatal(err)
 	}
 	spt.Expect(t, []interface{}{
