@@ -17,10 +17,15 @@ func NewSimpleClient(topic string) *SimpleClient {
 		if !ok {
 			return
 		}
-		if map_ev["type"] == "01-request-tip" {
-			simple_client.PublishTip()
+		evtype, ok := map_ev["type"].(string)
+		if !ok {
+			return
 		}
-		if map_ev["type"] == "01-request-history" {
+
+		switch evtype {
+		case "01-request-tip":
+			simple_client.PublishTip()
+		case "01-request-history":
 			simple_client.PublishHistory()
 		}
 	})
