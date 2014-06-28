@@ -20,6 +20,9 @@ func NewSimpleClient(topic string) *SimpleClient {
 		if map_ev["type"] == "01-request-tip" {
 			simple_client.PublishTip()
 		}
+		if map_ev["type"] == "01-request-history" {
+			simple_client.PublishHistory()
+		}
 	})
 	return simple_client
 }
@@ -50,6 +53,27 @@ func (sc *SimpleClient) RequestHistory() error {
 	return sc.client.Publish(map[string]interface{}{
 		"type": "01-request-history",
 	})
+}
+
+func (sc *SimpleClient) PublishHistory() error {
+	response := map[string]interface{}{
+		"type":     "01-publish-history",
+		"tip_hash": sc.tip,
+	}
+	doc := sc.GetDoc()
+	ev, ok := doc.Events[sc.tip]
+	if !ok {
+		response["error"] = "not-found"
+		return sc.client.Publish(response)
+	}
+
+	history, ok := ev.GetHistory()
+	if !ok {
+		response["error"] = "root-not-found"
+		return sc.client.Publish(response)
+	}
+	response["history"] = history
+	return sc.client.Publish(response)
 }
 
 // Get the Document object owned by this Client.

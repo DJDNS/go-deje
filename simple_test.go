@@ -103,7 +103,7 @@ func (spt simpleProtoTest) Expect(t *testing.T, messages []interface{}) {
 		select {
 		case event := <-spt.EventsRcvd:
 			if !reflect.DeepEqual(event, expected) {
-				t.Fatalf("Expected %#v, got %#v", expected, event)
+				t.Fatalf("\nexp %#v\ngot %#v", expected, event)
 			}
 		case <-time.After(50 * time.Millisecond):
 			t.Fatalf("Timed out waiting for event %d (%#v)", id, expected)
@@ -219,6 +219,104 @@ func TestSimpleClient_RequestHistory(t *testing.T) {
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
 			"type": "01-request-history",
+		},
+	})
+}
+
+func TestSimpleClient_PublishHistory_NoHistory(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	if err := spt.Simple[0].PublishHistory(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": "",
+			"error":    "not-found",
+		},
+	})
+}
+
+func TestSimpleClient_PublishHistory_IncompleteHistory(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	// Add a bit of history, but never register root
+	doc := spt.Simple[0].GetDoc()
+	root := doc.NewEvent("handler name")
+	child := doc.NewEvent("other handler")
+	child.SetParent(root)
+	child.Register()
+	spt.Simple[0].tip = child.Hash()
+
+	if err := spt.Simple[0].PublishHistory(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": child.Hash(),
+			"error":    "root-not-found",
+		},
+	})
+}
+
+func TestSimpleClient_PublishHistory_FullHistory(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	// Add full history
+	doc := spt.Simple[0].GetDoc()
+	root := doc.NewEvent("root")
+	child := doc.NewEvent("child")
+	child.SetParent(root)
+	root.Register()
+	child.Register()
+	spt.Simple[0].tip = child.Hash()
+
+	if err := spt.Simple[0].PublishHistory(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": child.Hash(),
+			"history": []interface{}{
+				map[string]interface{}{
+					"handler": "root",
+					"parent":  "",
+					"args":    map[string]interface{}{},
+				},
+				map[string]interface{}{
+					"handler": "child",
+					"parent":  root.Hash(),
+					"args":    map[string]interface{}{},
+				},
+			},
+		},
+	})
+}
+
+// Can test a simple failure, because we cover (more complex) success
+// in other tests already.
+func TestSimpleClient_HistoryCycle(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	spt.Simple[1].tip = "some hash"
+	if err := spt.Simple[0].RequestHistory(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-history",
+		},
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": "some hash",
+			"error":    "not-found",
 		},
 	})
 }
