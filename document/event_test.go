@@ -3,9 +3,11 @@ package document
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/campadrenalin/go-deje/state"
 	"reflect"
 	"testing"
+
+	"github.com/campadrenalin/go-deje/state"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEvent_Serialize(t *testing.T) {
@@ -187,6 +189,42 @@ func TestEvent_Unregister(t *testing.T) {
 	if !reflect.DeepEqual(d.EventsByParent, expected_groups) {
 		t.Fatalf("Expected %#v\nGot %#v", expected_groups, d.EventsByParent)
 	}
+}
+
+func TestEvent_GetHistory(t *testing.T) {
+	d := NewDocument()
+	var nil_event_slice []*Event
+	ev_first := d.NewEvent("1")
+	ev_second := d.NewEvent("2")
+	ev_third := d.NewEvent("3")
+	ev_fork := d.NewEvent("fork")
+	ev_no_parent := d.NewEvent("no parent")
+
+	// Linear chain
+	ev_second.SetParent(ev_first)
+	ev_third.SetParent(ev_second)
+	ev_fork.SetParent(ev_first)              // with hanger-on
+	ev_no_parent.ParentHash = "fiddlesticks" // Manually screw this up
+
+	events := []*Event{
+		&ev_first, &ev_second, &ev_third,
+		&ev_fork, &ev_no_parent,
+	}
+	for _, ev := range events {
+		ev.Register()
+	}
+
+	expect := func(t *testing.T, e *Event, history []*Event, ok bool) {
+		got_history, got_ok := e.GetHistory()
+		t.Logf("Event %s", e.HandlerName)
+		assert.Equal(t, ok, got_ok)
+		assert.Equal(t, history, got_history)
+	}
+	expect(t, &ev_first, []*Event{&ev_first}, true)
+	expect(t, &ev_second, []*Event{&ev_first, &ev_second}, true)
+	expect(t, &ev_third, []*Event{&ev_first, &ev_second, &ev_third}, true)
+	expect(t, &ev_fork, []*Event{&ev_first, &ev_fork}, true)
+	expect(t, &ev_no_parent, nil_event_slice, false)
 }
 
 func TestEvent_GetCommonAncestor_CommonAncestorExists(t *testing.T) {

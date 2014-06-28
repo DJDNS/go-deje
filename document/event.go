@@ -2,6 +2,7 @@ package document
 
 import (
 	"errors"
+
 	"github.com/campadrenalin/go-deje/state"
 	"github.com/campadrenalin/go-deje/util"
 )
@@ -84,6 +85,34 @@ func (e *Event) Unregister() {
 	if len(group) == 0 {
 		delete(e.Doc.EventsByParent, group_key)
 	}
+}
+
+// Convenience function. Panics if e.Doc is nil.
+func (e *Event) GetParent() (*Event, bool) {
+	p, ok := e.Doc.Events[e.ParentHash]
+	return p, ok
+}
+
+// Get a linear history of the Events leading up to the given Event.
+//
+// If we fail to find a parent at any point, we return (nil, false).
+func (e *Event) GetHistory() ([]*Event, bool) {
+	history := []*Event{e}
+	current := e
+	for {
+		if current.ParentHash == "" {
+			return history, true
+		}
+		parent, ok := current.GetParent()
+		if ok {
+			// Prepend parent onto history
+			history = append([]*Event{parent}, history...)
+			current = parent
+		} else {
+			return nil, false
+		}
+	}
+	return history, true
 }
 
 // Given a set of Events, and two specific ones to trace,
