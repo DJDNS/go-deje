@@ -2,6 +2,7 @@ package deje
 
 import (
 	"errors"
+	"log"
 
 	"github.com/campadrenalin/go-deje/document"
 	"github.com/campadrenalin/go-deje/util"
@@ -12,13 +13,17 @@ import (
 type SimpleClient struct {
 	client *Client
 	tip    string
+	logger *log.Logger
 }
 
-func NewSimpleClient(topic string) *SimpleClient {
+func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 	raw_client := NewClient(topic)
-	simple_client := &SimpleClient{&raw_client, ""}
+	simple_client := &SimpleClient{&raw_client, "", logger}
 	raw_client.SetEventCallback(func(event interface{}) {
-		simple_client.onRcv(event)
+		err := simple_client.onRcv(event)
+		if err != nil && simple_client.logger != nil {
+			simple_client.logger.Println(err)
+		}
 	})
 	return simple_client
 }

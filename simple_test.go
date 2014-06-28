@@ -1,6 +1,8 @@
 package deje
 
 import (
+	"bytes"
+	"log"
 	"reflect"
 	"testing"
 	"time"
@@ -11,7 +13,7 @@ import (
 
 func TestSimpleClient_NewSimpleClient(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
-	sc := NewSimpleClient(topic)
+	sc := NewSimpleClient(topic, nil)
 	if sc.client.Doc.Topic != topic {
 		t.Fatal("Did not create encapsulated Client correctly")
 	}
@@ -19,7 +21,7 @@ func TestSimpleClient_NewSimpleClient(t *testing.T) {
 
 func TestSimpleClient_Connect(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
-	client := NewSimpleClient(topic)
+	client := NewSimpleClient(topic, nil)
 	listener := NewClient(topic)
 	server_addr, server_closer := setupServer()
 	defer server_closer()
@@ -65,6 +67,7 @@ func TestSimpleClient_Connect(t *testing.T) {
 type simpleProtoTest struct {
 	Topic      string
 	Simple     []*SimpleClient
+	Logs       []*bytes.Buffer
 	Listener   Client
 	EventsRcvd chan interface{}
 	Closer     func()
@@ -74,6 +77,7 @@ func setupSimpleProtocolTest(t *testing.T, num_simple int) simpleProtoTest {
 	var spt simpleProtoTest
 	spt.Topic = "http://example.com/deje/some-doc"
 	spt.Simple = make([]*SimpleClient, num_simple)
+	spt.Logs = make([]*bytes.Buffer, num_simple)
 	spt.Listener = NewClient(spt.Topic)
 	server_addr, server_closer := setupServer()
 	spt.Closer = server_closer
@@ -81,7 +85,11 @@ func setupSimpleProtocolTest(t *testing.T, num_simple int) simpleProtoTest {
 	// Use this order to ignore any RequestTip() called during Connect()
 	spt.EventsRcvd = make(chan interface{}, 10)
 	for i := 0; i < num_simple; i++ {
-		spt.Simple[i] = NewSimpleClient(spt.Topic)
+		buffer := new(bytes.Buffer)
+		logger := log.New(buffer, "deje.SimpleClient: ", 0)
+
+		spt.Logs[i] = buffer
+		spt.Simple[i] = NewSimpleClient(spt.Topic, logger)
 		if err := spt.Simple[i].Connect(server_addr); err != nil {
 			t.Fatal(err)
 		}
@@ -192,9 +200,24 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	_unf_msg_type := "deje.SimpleClient: Unfamiliar message type\n"
+	_non_obj_msg := "deje.SimpleClient: Non-{} message\n"
+	_no_type_parm := "deje.SimpleClient: Message with no 'type' param\n"
+	expected_log := _unf_msg_type +
+		_non_obj_msg +
+		_non_obj_msg +
+		_non_obj_msg +
+		_non_obj_msg +
+		_non_obj_msg +
+		_non_obj_msg +
+		_no_type_parm +
+		_unf_msg_type +
+		_no_type_parm +
+		_no_type_parm
 
 	// Expect only evil data, no error
 	spt.Expect(t, messages)
+	assert.Equal(t, expected_log, spt.Logs[1].String())
 
 	// Confirm that we still respond well to legit data afterwards
 	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
@@ -379,7 +402,7 @@ func TestSimpleClient_Promote(t *testing.T) {
 
 func TestSimpleClient_GetDoc(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
-	client := NewSimpleClient(topic)
+	client := NewSimpleClient(topic, nil)
 
 	got := client.GetDoc()
 	expected := client.client.Doc
@@ -390,7 +413,7 @@ func TestSimpleClient_GetDoc(t *testing.T) {
 
 func TestSimpleClient_Export(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
-	client := NewSimpleClient(topic)
+	client := NewSimpleClient(topic, nil)
 
 	// Test before any changes
 	exported := client.Export()
