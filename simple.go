@@ -1,6 +1,9 @@
 package deje
 
-import "github.com/campadrenalin/go-deje/document"
+import (
+	"github.com/campadrenalin/go-deje/document"
+	"github.com/campadrenalin/go-deje/util"
+)
 
 // Wraps the low-level capabilities of the basic Client to provide
 // an easier, more useful API to downstream code.
@@ -22,11 +25,46 @@ func NewSimpleClient(topic string) *SimpleClient {
 			return
 		}
 
+		doc := simple_client.GetDoc()
 		switch evtype {
 		case "01-request-tip":
 			simple_client.PublishTip()
+		case "01-publish-tip":
+			hash, ok := map_ev["tip_hash"].(string)
+			if ok && simple_client.tip != hash {
+				simple_client.RequestHistory()
+			}
 		case "01-request-history":
 			simple_client.PublishHistory()
+		case "01-publish-history":
+			// This is intentionally structured so that the
+			// coverage tests will be helpful for catching all
+			// possible circumstances.
+			history, ok := map_ev["history"].([]interface{})
+			if !ok {
+				return
+			}
+			for _, serial_event := range history {
+				doc_ev := doc.NewEvent("")
+				err := util.CloneMarshal(serial_event, &doc_ev)
+				if err != nil {
+					return
+				}
+				doc_ev.Register()
+			}
+			hash, ok := map_ev["tip_hash"].(string)
+			if !ok {
+				return
+			}
+			tip_event, ok := doc.Events[hash]
+			if !ok {
+				return
+			}
+			err := tip_event.Goto()
+			if err != nil {
+				return
+			}
+			simple_client.tip = hash
 		}
 	})
 	return simple_client
@@ -79,6 +117,15 @@ func (sc *SimpleClient) PublishHistory() error {
 	}
 	response["history"] = history
 	return sc.client.Publish(response)
+}
+
+// Navigate the Document to an Event, and promote it as the tip.
+func (sc *SimpleClient) Promote(ev document.Event) error {
+	if err := ev.Goto(); err != nil {
+		return err
+	}
+	sc.tip = ev.Hash()
+	return sc.PublishTip()
 }
 
 // Get the Document object owned by this Client.

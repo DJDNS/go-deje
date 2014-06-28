@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/campadrenalin/go-deje/state"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSimpleClient_NewSimpleClient(t *testing.T) {
@@ -110,6 +111,7 @@ func (spt simpleProtoTest) Expect(t *testing.T, messages []interface{}) {
 		}
 	}
 	// Ensure no extra events after
+	<-time.After(5 * time.Millisecond)
 	if len(spt.EventsRcvd) != 0 {
 		t.Fatal("Wrong number of events received")
 	}
@@ -149,6 +151,7 @@ func TestSimpleClient_TipCycle(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
 
+	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
 	spt.Simple[1].tip = "some hash"
 	if err := spt.Simple[0].RequestTip(); err != nil {
 		t.Fatal(err)
@@ -194,6 +197,7 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	spt.Expect(t, messages)
 
 	// Confirm that we still respond well to legit data afterwards
+	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
 	spt.Simple[1].tip = "some hash"
 	if err := spt.Simple[0].RequestTip(); err != nil {
 		t.Fatal(err)
@@ -319,6 +323,58 @@ func TestSimpleClient_HistoryCycle(t *testing.T) {
 			"error":    "not-found",
 		},
 	})
+}
+
+func TestSimpleClient_Promote(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	doc1 := spt.Simple[0].GetDoc()
+	doc2 := spt.Simple[1].GetDoc()
+
+	event := doc1.NewEvent("SET")
+	if err := spt.Simple[0].Promote(event); err == nil {
+		t.Fatal("Should fail if we can't navigate to event!")
+	}
+
+	event.Arguments["path"] = []interface{}{"bar"}
+	event.Arguments["value"] = "baz"
+	event.Register()
+
+	if err := spt.Simple[0].Promote(event); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":     "01-publish-tip",
+			"tip_hash": event.Hash(),
+		},
+		map[string]interface{}{
+			"type": "01-request-history",
+		},
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": event.Hash(),
+			"history": []interface{}{
+				map[string]interface{}{
+					"handler": "SET",
+					"parent":  "",
+					"args":    event.Arguments,
+				},
+			},
+		},
+	})
+
+	assert.Equal(t, spt.Simple[0].tip, event.Hash())
+	assert.Equal(t, spt.Simple[1].tip, event.Hash())
+	assert.Equal(t, *doc1.Events[event.Hash()], event)
+	assert.Equal(t, *doc2.Events[event.Hash()], event)
+
+	expected_export := map[string]interface{}{
+		"bar": "baz",
+	}
+	assert.Equal(t, spt.Simple[0].Export(), expected_export)
+	assert.Equal(t, spt.Simple[1].Export(), expected_export)
 }
 
 func TestSimpleClient_GetDoc(t *testing.T) {
