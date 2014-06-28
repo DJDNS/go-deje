@@ -1,6 +1,8 @@
 package deje
 
 import (
+	"errors"
+
 	"github.com/campadrenalin/go-deje/document"
 	"github.com/campadrenalin/go-deje/util"
 )
@@ -16,58 +18,66 @@ func NewSimpleClient(topic string) *SimpleClient {
 	raw_client := NewClient(topic)
 	simple_client := &SimpleClient{&raw_client, ""}
 	raw_client.SetEventCallback(func(event interface{}) {
-		map_ev, ok := event.(map[string]interface{})
-		if !ok {
-			return
-		}
-		evtype, ok := map_ev["type"].(string)
-		if !ok {
-			return
-		}
-
-		doc := simple_client.GetDoc()
-		switch evtype {
-		case "01-request-tip":
-			simple_client.PublishTip()
-		case "01-publish-tip":
-			hash, ok := map_ev["tip_hash"].(string)
-			if ok && simple_client.tip != hash {
-				simple_client.RequestHistory()
-			}
-		case "01-request-history":
-			simple_client.PublishHistory()
-		case "01-publish-history":
-			// This is intentionally structured so that the
-			// coverage tests will be helpful for catching all
-			// possible circumstances.
-			history, ok := map_ev["history"].([]interface{})
-			if !ok {
-				return
-			}
-			for _, serial_event := range history {
-				doc_ev := doc.NewEvent("")
-				err := util.CloneMarshal(serial_event, &doc_ev)
-				if err != nil {
-					return
-				}
-				doc_ev.Register()
-			}
-			hash, ok := map_ev["tip_hash"].(string)
-			if !ok {
-				return
-			}
-			tip_event, ok := doc.Events[hash]
-			if !ok {
-				return
-			}
-			err := tip_event.Goto()
-			if err != nil {
-				return
-			}
-			simple_client.tip = hash
-		}
+		simple_client.onRcv(event)
 	})
 	return simple_client
+}
+
+func (sc *SimpleClient) onRcv(event interface{}) error {
+	map_ev, ok := event.(map[string]interface{})
+	if !ok {
+		return errors.New("Non-{} message")
+	}
+	evtype, ok := map_ev["type"].(string)
+	if !ok {
+		return errors.New("Message with no 'type' param")
+	}
+
+	doc := sc.GetDoc()
+	switch evtype {
+	case "01-request-tip":
+		sc.PublishTip()
+	case "01-publish-tip":
+		hash, ok := map_ev["tip_hash"].(string)
+		if !ok {
+			return errors.New("Message with bad tip_hash param")
+		}
+		if sc.tip != hash {
+			sc.RequestHistory()
+		}
+	case "01-request-history":
+		sc.PublishHistory()
+	case "01-publish-history":
+		// This is intentionally structured so that the
+		// coverage tests will be helpful for catching all
+		// possible circumstances.
+		history, ok := map_ev["history"].([]interface{})
+		if !ok {
+			return errors.New("History message with bad history param")
+		}
+		for _, serial_event := range history {
+			doc_ev := doc.NewEvent("")
+			err := util.CloneMarshal(serial_event, &doc_ev)
+			if err != nil {
+				return err
+			}
+			doc_ev.Register()
+		}
+		hash, ok := map_ev["tip_hash"].(string)
+		if !ok {
+			return errors.New("Message with bad tip_hash param")
+		}
+		tip_event, ok := doc.Events[hash]
+		if !ok {
+			return errors.New("Unknown event " + hash)
+		}
+		err := tip_event.Goto()
+		if err != nil {
+			return err
+		}
+		sc.tip = hash
+	}
+	return errors.New("Unfamiliar message type")
 }
 
 // Connect and immediately request the tip event hash.
