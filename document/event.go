@@ -112,7 +112,6 @@ func (e *Event) GetHistory() ([]*Event, bool) {
 			return nil, false
 		}
 	}
-	return history, true
 }
 
 // Given a set of Events, and two specific ones to trace,
