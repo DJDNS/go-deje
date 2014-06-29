@@ -2,6 +2,8 @@
 *.o
 *.a
 *.so
+/demo/router/router
+/demo/client/client
 
 # Folders
 _obj
