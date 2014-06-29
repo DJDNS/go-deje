@@ -16,6 +16,16 @@ pre {
     margin: 10px;
 }
 
+.submitter {
+    width: 100%;
+    margin-top: 1em;
+}
+
+#message-input {
+    width: 100%;
+    min-height: 5em;
+}
+
     </style>
     <script src="/autobahn.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -27,6 +37,10 @@ pre {
     <h3>Log</h3>
     <div class="log-container">
         <pre id="log"></pre>
+    </div>
+    <div class="submitter">
+        <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
+        <br/><button id="message-submit">Broadcast a message</button>
     </div>
     <script>
 
@@ -58,6 +72,22 @@ ab.connect(
         window.session = undefined;
     }
 );
+
+function get_msg_input() {
+    var data = $('#message-input').val();
+    try {
+        return JSON.parse(data);
+    } catch (e) {
+        return loggit("<your browser>: Message is not valid JSON")
+    }
+}
+
+$('#message-submit').click(function(){
+    var data = get_msg_input()
+    if (data != undefined) {
+        session.publish(TOPIC, data);
+    }
+});
 
     </script>
 </body>
