@@ -30,17 +30,26 @@ pre {
     </div>
     <script>
 
+URL   = "ws://localhost:8080/ws";
+TOPIC = "http://demo/";
+
+window.session = undefined;
+
 function loggit(info) {
     $('#log').text( $('#log').text() + info + "\n" );
 }
 
-window.session = undefined;
+function on_msg(topic, msg) {
+    loggit(topic + ": " + JSON.stringify(msg))
+}
 
 ab.connect(
-    "ws://localhost:8080/ws",
+    URL,
     function (session) {
         loggit("<your browser>: Connected to router")
         window.session = session;
+
+        session.subscribe(TOPIC, on_msg);
     },
     function (code, reason, detail) {
         loggit("<your browser>: Disconnected from router")
