@@ -26,8 +26,45 @@ pre {
     min-height: 5em;
 }
 
+.events {
+    width: 80%;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    background-color: #DDD;
+}
+
+.event {
+    margin: 15px 10px;
+    background-color: white;
+}
+
+.event .hash {
+    padding: 10px;
+    background-color: #2B2;
+    width: 100%;
+}
+
+.event .hash button {
+    float: right;
+}
+
+.event .content {
+    width: 100%;
+    padding: 5px;
+}
+
+.event input {
+    width: 400px;
+}
+
+.event textarea {
+    width: 600px;
+    min-height: 100px;
+}
+
     </style>
     <script src="/autobahn.js"></script>
+    <script src="/jsSHA-1.5.0/src/sha1.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
 </head>
 
@@ -42,12 +79,22 @@ pre {
         <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
         <br/><button id="message-submit">Broadcast a message</button>
     </div>
+    <h3>Events</h3>
+    <div class="events">
+        <div class="event input">
+            <div class="hash">Create new event <button onclick="save_event()">Finish</button></div>
+            <input class="parent" placeholder="Parent Hash"/><br/>
+            <input class="handler" placeholder="Handler Name"/><br/>
+            <textarea class="args" placeholder="Args (start with {})"></textarea>
+        </div>
+    </div>
     <script>
 
 URL   = "ws://localhost:8080/ws";
 TOPIC = "http://demo/";
 
 window.session = undefined;
+window.events = [];
 
 function loggit(info) {
     $('#log').text( $('#log').text() + info + "\n" );
@@ -89,6 +136,90 @@ $('#message-submit').click(function(){
     }
 });
 
+function render_event(ev) {
+    var element = $(document.createElement('div'))
+        .addClass('event')
+        .data('hash', ev.hash);
+    var button = $(document.createElement('button'))
+        .text("Promote")
+        .click(promote_event_by_element);
+    var hash_bar = $(document.createElement('div'))
+        .addClass('hash')
+        .text(ev.hash)
+        .append(button);
+    var content = $(document.createElement('pre'))
+        .addClass('content')
+        .text( JSON.stringify(ev.content, null, 4) );
+
+    element.append(hash_bar);
+    element.append(content);
+    return element;
+}
+
+function render_events() {
+    $(".event").not(".input").remove();
+    for (var i = window.events.length - 1; i>=0; i--) {
+        var ev = window.events[i];
+        $(".events").prepend(render_event(ev));
+    }
+}
+
+function promote_event(ev) {
+    var events = [];
+    for (var i = 0; i < window.events.length; i++) {
+        events.push(window.events[i].content);
+    }
+    window.session.publish(TOPIC, {
+        "type": "01-publish-history",
+        "tip_hash": ev.hash,
+        "history": events,
+    });
+}
+
+function promote_event_by_hash(hash) {
+    for (var i = 0; i<window.events.length; i++) {
+        var ev = window.events[i];
+        if (ev.hash == hash) {
+            return promote_event(ev);
+        }
+    }
+    loggit("<your browser>: No such hash: " + hash);
+    return false;
+}
+
+function promote_event_by_element() {
+    hash = $(this).closest('.event').data('hash');
+    return promote_event_by_hash(hash);
+}
+
+function create_event(content) {
+    var serial = '{"parent":"' + content.parent + '",'
+               + '"handler":"' + content.handler + '",'
+               + '"args":' + JSON.stringify(content.args) + '}'
+               ;
+    loggit(serial);
+    var shaObj = new jsSHA(serial, "TEXT")
+    return {
+        "hash": shaObj.getHash("SHA-1", "HEX"),
+        content: content
+    }
+}
+
+function save_event() {
+    var content = {
+        "parent": $('.event.input .parent').val() || "",
+        "handler": $('.event.input .handler').val() || "",
+    };
+    try {
+        content.args = JSON.parse($('.event.input .args').val());
+    } catch (e) {
+        return loggit("<your browser>: Invalid JSON for event args")
+    }
+    window.events.push(create_event(content));
+    render_events();
+}
+
+render_events();
     </script>
 </body>
 </html>

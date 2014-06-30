@@ -81,6 +81,7 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 			return err
 		}
 		sc.tip = hash
+        sc.logger.Printf("Updated content: %#v", sc.Export())
 	}
 	return errors.New("Unfamiliar message type")
 }
