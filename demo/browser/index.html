@@ -65,6 +65,7 @@ pre {
     </style>
     <script src="/autobahn.js"></script>
     <script src="/jsSHA-1.5.0/src/sha1.js"></script>
+    <script src="/js-deje/deje.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
 </head>
 
@@ -93,32 +94,12 @@ pre {
 URL   = "ws://localhost:8080/ws";
 TOPIC = "http://demo/";
 
-window.session = undefined;
-window.events = [];
-
 function loggit(info) {
     $('#log').text( $('#log').text() + info + "\n" );
 }
 
-function on_msg(topic, msg) {
-    loggit(topic + ": " + JSON.stringify(msg))
-}
-
-ab.connect(
-    URL,
-    function (session) {
-        loggit("<your browser>: Connected to router")
-        window.session = session;
-
-        session.subscribe(TOPIC, on_msg);
-    },
-    function (code, reason, detail) {
-        loggit("<your browser>: Disconnected from router")
-        loggit("Err code " + code + ": " + reason)
-        loggit(JSON.stringify(detail))
-        window.session = undefined;
-    }
-);
+client = new DejeClient(URL, TOPIC, { 'logger': loggit });
+client.connect();
 
 function get_msg_input() {
     var data = $('#message-input').val();
@@ -132,24 +113,27 @@ function get_msg_input() {
 $('#message-submit').click(function(){
     var data = get_msg_input()
     if (data != undefined) {
-        session.publish(TOPIC, data);
+        client.publish(data);
     }
 });
 
 function render_event(ev) {
+    var ev_hash = ev.getHash();
+    var ev_content = ev.getContent();
+
     var element = $(document.createElement('div'))
         .addClass('event')
-        .data('hash', ev.hash);
+        .data('hash', ev_hash);
     var button = $(document.createElement('button'))
         .text("Promote")
         .click(promote_event_by_element);
     var hash_bar = $(document.createElement('div'))
         .addClass('hash')
-        .text(ev.hash)
+        .text(ev_hash)
         .append(button);
     var content = $(document.createElement('pre'))
         .addClass('content')
-        .text( JSON.stringify(ev.content, null, 4) );
+        .text( JSON.stringify(ev_content, null, 4) );
 
     element.append(hash_bar);
     element.append(content);
@@ -158,51 +142,26 @@ function render_event(ev) {
 
 function render_events() {
     $(".event").not(".input").remove();
-    for (var i = window.events.length - 1; i>=0; i--) {
-        var ev = window.events[i];
+    var history = client.getHistory();
+    for (var i = 0; i<history.length; i++) {
+        var ev = history[i];
         $(".events").prepend(render_event(ev));
     }
 }
 
-function promote_event(ev) {
-    var events = [];
-    for (var i = 0; i < window.events.length; i++) {
-        events.push(window.events[i].content);
-    }
-    window.session.publish(TOPIC, {
-        "type": "01-publish-history",
-        "tip_hash": ev.hash,
-        "history": events,
-    });
-}
-
 function promote_event_by_hash(hash) {
-    for (var i = 0; i<window.events.length; i++) {
-        var ev = window.events[i];
-        if (ev.hash == hash) {
-            return promote_event(ev);
-        }
+    ev = client.getEvent(hash);
+    if (ev != undefined) {
+        client.promoteEvent(ev);
+    } else {
+        loggit("<your browser>: No such hash: " + hash);
     }
-    loggit("<your browser>: No such hash: " + hash);
     return false;
 }
 
 function promote_event_by_element() {
     hash = $(this).closest('.event').data('hash');
     return promote_event_by_hash(hash);
-}
-
-function create_event(content) {
-    var serial = '{"parent":"' + content.parent + '",'
-               + '"handler":"' + content.handler + '",'
-               + '"args":' + JSON.stringify(content.args) + '}'
-               ;
-    loggit(serial);
-    var shaObj = new jsSHA(serial, "TEXT")
-    return {
-        "hash": shaObj.getHash("SHA-1", "HEX"),
-        content: content
-    }
 }
 
 function save_event() {
@@ -215,7 +174,7 @@ function save_event() {
     } catch (e) {
         return loggit("<your browser>: Invalid JSON for event args")
     }
-    window.events.push(create_event(content));
+    client.storeEvent(new DejeEvent(content));
     render_events();
 }
 

@@ -1,0 +1,3 @@
+[submodule "demo/browser/js-deje"]
+	path = demo/browser/js-deje
+	url = git@github.com:campadrenalin/js-deje.git
