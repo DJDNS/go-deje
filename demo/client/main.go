@@ -1,14 +1,19 @@
 package main
 
 import (
-	"github.com/campadrenalin/go-deje"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
+
+	"github.com/campadrenalin/go-deje"
 )
 
+var host = flag.String("host", "localhost:8080", "Router to connect to")
+
 func main() {
-	url := "ws://localhost:8080/ws"
+	flag.Parse()
+	url := "ws://" + *host + "/ws"
 	topic := "http://demo/"
 	logger := log.New(os.Stderr, "deje.SimpleClient: ", 0)
 
