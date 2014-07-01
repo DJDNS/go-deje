@@ -124,13 +124,17 @@ function render_event(ev) {
     var element = $(document.createElement('div'))
         .addClass('event')
         .data('hash', ev_hash);
-    var button = $(document.createElement('button'))
+    var promote_button = $(document.createElement('button'))
         .text("Promote")
         .click(promote_event_by_element);
+    var goto_button = $(document.createElement('button'))
+        .text("Goto")
+        .click(goto_event_by_element);
     var hash_bar = $(document.createElement('div'))
         .addClass('hash')
         .text(ev_hash)
-        .append(button);
+        .append(promote_button)
+        .append(goto_button);
     var content = $(document.createElement('pre'))
         .addClass('content')
         .text( JSON.stringify(ev_content, null, 4) );
@@ -162,6 +166,19 @@ function promote_event_by_hash(hash) {
 function promote_event_by_element() {
     hash = $(this).closest('.event').data('hash');
     return promote_event_by_hash(hash);
+}
+
+function goto_event_by_element() {
+    hash = $(this).closest('.event').data('hash');
+
+    ev = client.getEvent(hash);
+    if (ev != undefined) {
+        client.applyEvent(ev);
+        loggit(JSON.stringify(client.state.content));
+    } else {
+        loggit("<your browser>: No such hash: " + hash);
+    }
+    return false;
 }
 
 function save_event() {
