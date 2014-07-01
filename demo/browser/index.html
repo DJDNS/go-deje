@@ -80,6 +80,8 @@ pre {
         <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
         <br/><button id="message-submit">Broadcast a message</button>
     </div>
+    <h3>State</h3>
+    <pre id="state-data"></pre>
     <h3>Events</h3>
     <div class="events">
         <div class="event input">
@@ -116,6 +118,13 @@ $('#message-submit').click(function(){
         client.publish(data);
     }
 });
+
+function render_state() {
+    $('#state-data').text(
+        "hash: '" + client.state.hash + "'\n\n"
+        + JSON.stringify(client.state.content, null, 4)
+    );
+}
 
 function render_event(ev) {
     var ev_hash = ev.getHash();
@@ -174,7 +183,7 @@ function goto_event_by_element() {
     ev = client.getEvent(hash);
     if (ev != undefined) {
         client.applyEvent(ev);
-        loggit(JSON.stringify(client.state.content));
+        render_state();
     } else {
         loggit("<your browser>: No such hash: " + hash);
     }
@@ -196,6 +205,7 @@ function save_event() {
 }
 
 render_events();
+render_state();
     </script>
 </body>
 </html>
