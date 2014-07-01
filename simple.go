@@ -81,9 +81,11 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 			return err
 		}
 		sc.tip = hash
-        sc.logger.Printf("Updated content: %#v", sc.Export())
+		sc.logger.Printf("Updated content: %#v", sc.Export())
+	default:
+		return errors.New("Unfamiliar message type: '" + evtype + "'")
 	}
-	return errors.New("Unfamiliar message type")
+	return nil
 }
 
 // Connect and immediately request the tip event hash.
