@@ -72,6 +72,9 @@ pre {
 <body>
     <h1>DEJE WAMP demo</h1>
     <p>Start up a few clients, and then watch the logging output ensue!</p>
+    <h3>Callbacks</h3>
+    <div class="callbacks-selection">
+    </div>
     <h3>Log</h3>
     <div class="log-container">
         <pre id="log"></pre>
@@ -124,6 +127,30 @@ function render_state() {
         "hash: '" + client.state.hash + "'\n\n"
         + JSON.stringify(client.state.content, null, 4)
     );
+}
+
+function render_callbacks() {
+    var root = $('.callbacks-selection');
+    root.empty();
+    var on_change = function() {
+        var callback = $(this).data("callback");
+        callback.enabled = $(this).is(":checked");
+    };
+    for (var m in client.cb_managers) {
+        var manager = client.cb_managers[m];
+        for (var c in manager.callbacks) {
+            var callback = manager.callbacks[c];
+            var checkbox = $(document.createElement('input'))
+                .attr('type', 'checkbox')
+                .attr('checked', callback.enabled)
+                .data('callback', callback)
+                .change(on_change);
+            var label = $(document.createElement('label'))
+                .append(checkbox)
+                .append("on_" + m + " :: " + c);
+            root.append(label);
+        }
+    }
 }
 
 function render_event(ev) {
@@ -206,6 +233,7 @@ function save_event() {
 
 render_events();
 render_state();
+render_callbacks();
     </script>
 </body>
 </html>
