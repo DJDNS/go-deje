@@ -149,6 +149,7 @@ function render_callbacks() {
                 .append(checkbox)
                 .append("on_" + m + " :: " + c);
             root.append(label);
+            root.append("<br>");
         }
     }
 }
@@ -228,8 +229,10 @@ function save_event() {
         return loggit("<your browser>: Invalid JSON for event args")
     }
     client.storeEvent(new DejeEvent(content));
-    render_events();
 }
+
+client.cb_managers.store_event.add('render_events', render_events);
+client.cb_managers.goto_event.add('render_state', render_state);
 
 render_events();
 render_state();
