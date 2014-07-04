@@ -45,7 +45,7 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 	case "01-publish-tip":
 		hash, ok := map_ev["tip_hash"].(string)
 		if !ok {
-			return errors.New("Message with bad tip_hash param")
+			return errors.New("Message with bad 'tip_hash' param")
 		}
 		if sc.tip != hash {
 			sc.RequestHistory()
@@ -58,7 +58,7 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 		// possible circumstances.
 		history, ok := map_ev["history"].([]interface{})
 		if !ok {
-			return errors.New("History message with bad history param")
+			return errors.New("History message with bad 'history' param")
 		}
 		for _, serial_event := range history {
 			doc_ev := doc.NewEvent("")
@@ -70,7 +70,7 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 		}
 		hash, ok := map_ev["tip_hash"].(string)
 		if !ok {
-			return errors.New("Message with bad tip_hash param")
+			return errors.New("Message with bad 'tip_hash' param")
 		}
 		tip_event, ok := doc.Events[hash]
 		if !ok {

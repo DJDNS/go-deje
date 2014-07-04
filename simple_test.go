@@ -175,48 +175,155 @@ func TestSimpleClient_TipCycle(t *testing.T) {
 	})
 }
 
+type logtest struct {
+	Message interface{}
+	Logline string
+}
+
+func (lt logtest) Run(t *testing.T, spt simpleProtoTest) {
+	spt.Logs[1].Reset()
+
+	if err := spt.Simple[0].client.Publish(lt.Message); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{lt.Message})
+
+	expected_log := "deje.SimpleClient: " + lt.Logline + "\n"
+	assert.Equal(t, expected_log, spt.Logs[1].String())
+}
+
 func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
 
+	// Set up error messages for reuse
+	_unf_msg_type := "Unfamiliar message type: "
+	_non_obj_msg := "Non-{} message"
+	_no_type_param := "Message with no 'type' param"
+	_bad_tip_hash := "Message with bad 'tip_hash' param"
+	_bad_history := "History message with bad 'history' param"
+	_clone_err := "json: cannot unmarshal bool into Go value of type document.Event"
+
+	// Cannot be Goto'd
+	incomplete_event := spt.Simple[0].GetDoc().NewEvent("SET")
+
 	// Send a series of bad data
 	// (can't do numbers, floating point eq fails)
-	messages := []interface{}{
-		"Not a map, muahaha", true, false, nil,
-		[]interface{}{}, []interface{}{"x", "y", "z"},
-		map[string]interface{}{
-			"type": true,
+	logtests := []logtest{
+		logtest{
+			"Not a map, muahaha",
+			_non_obj_msg,
 		},
-		map[string]interface{}{
-			"type": "foo",
+		logtest{
+			true,
+			_non_obj_msg,
 		},
-		map[string]interface{}{
-			"no_type_key": "frowny face",
+		logtest{
+			false,
+			_non_obj_msg,
 		},
-		map[string]interface{}{},
+		logtest{
+			nil,
+			_non_obj_msg,
+		},
+		logtest{
+			[]interface{}{},
+			_non_obj_msg,
+		},
+		logtest{
+			[]interface{}{"x", "y", "z"},
+			_non_obj_msg,
+		},
+		logtest{
+			map[string]interface{}{
+				"type": true,
+			},
+			_no_type_param,
+		},
+		logtest{
+			map[string]interface{}{
+				"type": "foo",
+			},
+			_unf_msg_type + "'foo'",
+		},
+		logtest{
+			map[string]interface{}{
+				"no_type_key": "frowny face",
+			},
+			_no_type_param,
+		},
+		logtest{
+			map[string]interface{}{},
+			_no_type_param,
+		},
+		logtest{
+			map[string]interface{}{
+				"type": "01-publish-tip",
+			},
+			_bad_tip_hash,
+		},
+		logtest{
+			map[string]interface{}{
+				"type": "01-publish-history",
+			},
+			_bad_history,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":    "01-publish-history",
+				"history": true,
+			},
+			_bad_history,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":    "01-publish-history",
+				"history": []interface{}{true},
+			},
+			_clone_err,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":    "01-publish-history",
+				"history": []interface{}{},
+			},
+			_bad_tip_hash,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":     "01-publish-history",
+				"history":  []interface{}{},
+				"tip_hash": true,
+			},
+			_bad_tip_hash,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":     "01-publish-history",
+				"history":  []interface{}{},
+				"tip_hash": "foomatic",
+			},
+			"Unknown event foomatic",
+		},
+		logtest{
+			map[string]interface{}{
+				"type": "01-publish-history",
+				"history": []interface{}{
+					// Restate incomplete_event as raw JSON
+					map[string]interface{}{
+						"args":    map[string]interface{}{},
+						"handler": "SET",
+						"parent":  "",
+					},
+				},
+				"tip_hash": incomplete_event.Hash(),
+			},
+			"No path provided",
+		},
 	}
-	for _, msg := range messages {
-		if err := spt.Simple[0].client.Publish(msg); err != nil {
-			t.Fatal(err)
-		}
+	for _, lt := range logtests {
+		lt.Run(t, spt)
 	}
-	_unf_msg_type := "deje.SimpleClient: Unfamiliar message type: "
-	_non_obj_msg := "deje.SimpleClient: Non-{} message\n"
-	_no_type_parm := "deje.SimpleClient: Message with no 'type' param\n"
-	expected_log := _non_obj_msg +
-		_non_obj_msg +
-		_non_obj_msg +
-		_non_obj_msg +
-		_non_obj_msg +
-		_non_obj_msg +
-		_no_type_parm +
-		_unf_msg_type + "'foo'\n" +
-		_no_type_parm +
-		_no_type_parm
-
-	// Expect only evil data, no error
-	spt.Expect(t, messages)
-	assert.Equal(t, expected_log, spt.Logs[1].String())
 
 	// Confirm that we still respond well to legit data afterwards
 	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
