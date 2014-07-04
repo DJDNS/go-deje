@@ -200,18 +200,17 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	_unf_msg_type := "deje.SimpleClient: Unfamiliar message type\n"
+	_unf_msg_type := "deje.SimpleClient: Unfamiliar message type: "
 	_non_obj_msg := "deje.SimpleClient: Non-{} message\n"
 	_no_type_parm := "deje.SimpleClient: Message with no 'type' param\n"
-	expected_log := _unf_msg_type +
-		_non_obj_msg +
+	expected_log := _non_obj_msg +
 		_non_obj_msg +
 		_non_obj_msg +
 		_non_obj_msg +
 		_non_obj_msg +
 		_non_obj_msg +
 		_no_type_parm +
-		_unf_msg_type +
+		_unf_msg_type + "'foo'\n" +
 		_no_type_parm +
 		_no_type_parm
 
