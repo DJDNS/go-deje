@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/campadrenalin/go-deje/document"
+	"github.com/campadrenalin/go-deje/state"
 	"github.com/campadrenalin/go-deje/util"
 )
 
@@ -144,6 +145,11 @@ func (sc *SimpleClient) Promote(ev document.Event) error {
 	}
 	sc.tip = ev.Hash()
 	return sc.PublishTip()
+}
+
+// Set a callback for when primitives are applied to the document state.
+func (sc *SimpleClient) SetPrimitiveCallback(c state.OnPrimitiveCallback) {
+	sc.GetDoc().State.SetPrimitiveCallback(c)
 }
 
 // Get the Document object owned by this Client.

@@ -506,6 +506,70 @@ func TestSimpleClient_Promote(t *testing.T) {
 	assert.Equal(t, spt.Simple[1].Export(), expected_export)
 }
 
+func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	primitives := make(chan state.Primitive, 10)
+	on_primitive := func(p state.Primitive) {
+		primitives <- p
+	}
+	spt.Simple[1].SetPrimitiveCallback(on_primitive)
+
+	doc := spt.Simple[0].GetDoc()
+	event := doc.NewEvent("SET")
+	event.Arguments["path"] = []interface{}{"bar"}
+	event.Arguments["value"] = "baz"
+	event.Register()
+
+	if err := spt.Simple[0].Promote(event); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":     "01-publish-tip",
+			"tip_hash": event.Hash(),
+		},
+		map[string]interface{}{
+			"type": "01-request-history",
+		},
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": event.Hash(),
+			"history": []interface{}{
+				map[string]interface{}{
+					"handler": "SET",
+					"parent":  "",
+					"args":    event.Arguments,
+				},
+			},
+		},
+	})
+
+	expected_primitives := []state.SetPrimitive{
+		state.SetPrimitive{
+			Path:  []interface{}{},
+			Value: map[string]interface{}{},
+		},
+		state.SetPrimitive{
+			Path:  []interface{}{"bar"},
+			Value: "baz",
+		},
+	}
+	for _, ep := range expected_primitives {
+		select {
+		case primitive := <-primitives:
+			p := primitive.(*state.SetPrimitive)
+			assert.Equal(t, *p, ep)
+		case <-time.After(50 * time.Millisecond):
+			t.Fatal("Timed out waiting for primitive")
+		}
+	}
+	if len(primitives) > 0 {
+		t.Fatal("Unexpected extra primitives")
+	}
+}
+
 func TestSimpleClient_GetDoc(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
 	client := NewSimpleClient(topic, nil)
