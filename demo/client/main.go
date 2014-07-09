@@ -10,7 +10,7 @@ import (
 )
 
 var host = flag.String("host", "localhost:8080", "Router to connect to")
-var topic = flag.String("topic", "http://demo/", "DEJE topic to subscribe to")
+var topic = flag.String("topic", "deje://demo/", "DEJE topic to subscribe to")
 
 func main() {
 	flag.Parse()
