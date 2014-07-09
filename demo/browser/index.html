@@ -116,7 +116,9 @@ client = new DejeClient(URL, TOPIC, { 'logger': loggit });
 client.connect();
 
 function reconnect(url, topic) {
-    window.client.session.close()
+    if (window.client.session) {
+        window.client.session.close()
+    }
     window.client = new DejeClient(url || URL, topic || TOPIC, { 'logger': loggit });
     window.client.connect();
 }
