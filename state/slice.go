@@ -32,6 +32,8 @@ func (c *sliceContainer) castKey(key interface{}) (uint, error) {
 		return k, nil
 	case int:
 		return uint(k), nil
+	case float64:
+		return uint(k), nil
 	default:
 		return uint(0), errors.New("Cannot cast key to uint")
 	}

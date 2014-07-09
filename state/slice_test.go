@@ -1,6 +1,7 @@
 package state
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -14,6 +15,30 @@ func TestMakeSliceContainer_InvalidChildren(t *testing.T) {
 	_, err := makeSliceContainer(original)
 	if err == nil {
 		t.Fatal("makeSliceContainer should fail if it can't contain children")
+	}
+}
+
+func TestSliceContainer_castKey_JsonNumber(t *testing.T) {
+	container, err := makeSliceContainer([]interface{}{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var array []interface{}
+	if err = json.Unmarshal([]byte("[84, 12.1]"), &array); err != nil {
+		t.Fatal(err)
+	}
+	for i := range array {
+		number, err := container.(*sliceContainer).castKey(array[i])
+		if err != nil {
+			t.Fatal(err)
+		}
+		array[i] = number
+	}
+
+	expected_array := []interface{}{uint(84), uint(12)}
+	if !reflect.DeepEqual(array, expected_array) {
+		t.Fatalf("Expected %#v, got %#v", expected_array, array)
 	}
 }
 
