@@ -112,17 +112,6 @@ function loggit(info) {
     $('#log').text( $('#log').text() + info + "\n" );
 }
 
-client = new DejeClient(URL, TOPIC, { 'logger': loggit });
-client.connect();
-
-function reconnect(url, topic) {
-    if (window.client.session) {
-        window.client.session.close()
-    }
-    window.client = new DejeClient(url || URL, topic || TOPIC, { 'logger': loggit });
-    window.client.connect();
-}
-
 $('.reconnector button').click(function() {
     reconnect(
         $('.reconnector .url').val(),
@@ -255,12 +244,23 @@ function save_event() {
     client.storeEvent(new DejeEvent(content));
 }
 
-client.cb_managers.store_event.add('render_events', render_events);
-client.cb_managers.goto_event.add('render_state', render_state);
+function reconnect(url, topic) {
+    if (window.client && window.client.session) {
+        window.client.session.close()
+    }
+    window.client = new DejeClient(url || URL, topic || TOPIC, { 'logger': loggit });
+    window.client.connect();
 
-render_events();
-render_state();
-render_callbacks();
+
+    window.client.cb_managers.store_event.add('render_events', render_events);
+    window.client.cb_managers.goto_event.add('render_state', render_state);
+
+    render_events();
+    render_state();
+    render_callbacks();
+}
+
+reconnect();
     </script>
 </body>
 </html>
