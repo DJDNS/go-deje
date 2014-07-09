@@ -75,16 +75,22 @@ pre {
     <h3>Callbacks</h3>
     <div class="callbacks-selection">
     </div>
+    <h3>Reconnect</h3>
+    <div class="reconnector">
+        <input class="url"   type="text" placeholder="">
+        <input class="topic" type="text" placeholder="">
+        <button type="submit">Reconnect</button>
+    </div>
     <h3>Log</h3>
     <div class="log-container">
         <pre id="log"></pre>
     </div>
+    <h3>State</h3>
+    <pre id="state-data"></pre>
     <div class="submitter">
         <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
         <br/><button id="message-submit">Broadcast a message</button>
     </div>
-    <h3>State</h3>
-    <pre id="state-data"></pre>
     <h3>Events</h3>
     <div class="events">
         <div class="event input">
@@ -99,12 +105,28 @@ pre {
 URL   = "ws://" + window.location.host + "/ws";
 TOPIC = "http://demo/";
 
+$('.reconnector .url').attr(  'placeholder', URL);
+$('.reconnector .topic').attr('placeholder', TOPIC);
+
 function loggit(info) {
     $('#log').text( $('#log').text() + info + "\n" );
 }
 
 client = new DejeClient(URL, TOPIC, { 'logger': loggit });
 client.connect();
+
+function reconnect(url, topic) {
+    window.client.session.close()
+    window.client = new DejeClient(url || URL, topic || TOPIC, { 'logger': loggit });
+    window.client.connect();
+}
+
+$('.reconnector button').click(function() {
+    reconnect(
+        $('.reconnector .url').val(),
+        $('.reconnector .topic').val()
+    );
+});
 
 function get_msg_input() {
     var data = $('#message-input').val();
