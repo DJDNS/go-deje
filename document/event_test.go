@@ -537,6 +537,55 @@ func TestEvent_getPrimitives_Set(t *testing.T) {
 	}
 }
 
+func TestEvent_getPrimitives_Delete(t *testing.T) {
+	tests := []eventToPrimitivesTest{
+		eventToPrimitivesTest{
+			"DELETE",
+			map[string]interface{}{
+				"path": []interface{}{"hello"},
+			},
+			[]state.Primitive{
+				&state.DeletePrimitive{
+					Path: []interface{}{"hello"},
+				},
+			},
+			false,
+			"Basic DELETE event with reasonable params",
+		},
+		eventToPrimitivesTest{
+			"DELETE",
+			map[string]interface{}{},
+			nil, true,
+			"DELETE with no path",
+		},
+		eventToPrimitivesTest{
+			"DELETE",
+			map[string]interface{}{
+				"path": 7,
+			},
+			nil, true,
+			"DELETE with bad path",
+		},
+	}
+	for _, test := range tests {
+		test.Run(t)
+	}
+}
+
+func TestEvent_getPrimitives_Custom(t *testing.T) {
+	tests := []eventToPrimitivesTest{
+		eventToPrimitivesTest{
+			"some custom event",
+			map[string]interface{}{},
+			nil, true,
+			"Custom events aren't supported yet",
+		},
+	}
+	for _, test := range tests {
+		test.Run(t)
+	}
+}
+
 func TestEvent_Apply(t *testing.T) {
 	d := NewDocument()
 	ev := d.NewEvent("SET")
