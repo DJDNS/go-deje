@@ -519,11 +519,14 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	doc := spt.Simple[0].GetDoc()
 	eventA := doc.NewEvent("SET")
 	eventA.Arguments["path"] = []interface{}{"items"}
-	eventA.Arguments["value"] = []interface{}{"first", "second", "third"}
+	eventA.Arguments["value"] = map[string]interface{}{
+		"first":  "thing",
+		"second": "thang",
+	}
 	eventA.Register()
 
 	eventB := doc.NewEvent("DELETE")
-	eventB.Arguments["path"] = []interface{}{"items", 1}
+	eventB.Arguments["path"] = []interface{}{"items", "second"}
 	eventB.SetParent(eventA)
 	eventB.Register()
 
@@ -549,7 +552,7 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 				},
 				map[string]interface{}{
 					"handler": "DELETE",
-					"parent":  "",
+					"parent":  eventA.Hash(),
 					"args":    eventB.Arguments,
 				},
 			},
@@ -572,7 +575,22 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	for _, ep := range expected_primitives {
 		select {
 		case primitive := <-primitives:
-			assert.Equal(t, primitive, ep)
+			switch ep.(type) {
+			case *state.SetPrimitive:
+				p, ok := primitive.(*state.SetPrimitive)
+				if !ok {
+					t.Fatalf("Type coercion - expected SET, got DELETE\n%#v\n%#v", p, ep)
+				}
+				assert.Equal(t, *ep.(*state.SetPrimitive), *p)
+			case *state.DeletePrimitive:
+				p, ok := primitive.(*state.DeletePrimitive)
+				if !ok {
+					t.Fatalf("Type coercion - expected DELETE, got SET\n%#v\n%#v", p, ep)
+				}
+				assert.Equal(t, *ep.(*state.DeletePrimitive), *p)
+			default:
+				t.Fatal("Was not any known primitive type, wtf")
+			}
 		case <-time.After(50 * time.Millisecond):
 			t.Fatal("Timed out waiting for primitive")
 		}
@@ -580,6 +598,14 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	if len(primitives) > 0 {
 		t.Fatal("Unexpected extra primitives")
 	}
+
+	expected_export := map[string]interface{}{
+		"items": map[string]interface{}{
+			"first": "thing",
+		},
+	}
+	assert.Equal(t, expected_export, spt.Simple[0].Export())
+	assert.Equal(t, expected_export, spt.Simple[1].Export())
 }
 
 func TestSimpleClient_GetDoc(t *testing.T) {

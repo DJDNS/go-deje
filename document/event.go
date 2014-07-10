@@ -210,25 +210,39 @@ func (e Event) GetChildren() EventSet {
 // as long as the event's properties are sufficient to populate
 // the struct primitive.
 func (e Event) getPrimitives() ([]state.Primitive, error) {
-	path_interface, ok := e.Arguments["path"]
-	if !ok {
-		return nil, errors.New("No path provided")
+	if e.HandlerName == "SET" || e.HandlerName == "DELETE" {
+		path_interface, ok := e.Arguments["path"]
+		if !ok {
+			return nil, errors.New("No path provided")
+		}
+		path, ok := path_interface.([]interface{})
+		if !ok {
+			return nil, errors.New("Bad path value")
+		}
+
+		if e.HandlerName == "SET" {
+			value, ok := e.Arguments["value"]
+			if !ok {
+				return nil, errors.New("No value argument provided for SET")
+			}
+			primitives := []state.Primitive{
+				&state.SetPrimitive{
+					Path:  path,
+					Value: value,
+				},
+			}
+			return primitives, nil
+		} else {
+			primitives := []state.Primitive{
+				&state.DeletePrimitive{
+					Path: path,
+				},
+			}
+			return primitives, nil
+		}
+	} else {
+		return nil, errors.New("Custom events are not supported yet")
 	}
-	path, ok := path_interface.([]interface{})
-	if !ok {
-		return nil, errors.New("Bad path value")
-	}
-	value, ok := e.Arguments["value"]
-	if !ok {
-		return nil, errors.New("No value provided")
-	}
-	primitives := []state.Primitive{
-		&state.SetPrimitive{
-			Path:  path,
-			Value: value,
-		},
-	}
-	return primitives, nil
 }
 
 // Attempt to apply this event to the current document state.
@@ -249,21 +263,27 @@ func (e Event) Apply() error {
 	return nil
 }
 
-// Attempt to navigate the DocumentState to this Event.
-//
-// Somewhat analogous to git checkout.
-func (e Event) Goto() error {
+// Internal function called by Goto, so that recursion does not
+// result in multiple state resets.
+func (e Event) gotoNoReset() error {
 	d := e.Doc
-	d.State.Reset()
 	if e.ParentHash != "" {
 		parent, ok := d.Events[e.ParentHash]
 		if !ok {
 			return errors.New("Could not get parent")
 		}
-		err := parent.Goto()
+		err := parent.gotoNoReset()
 		if err != nil {
 			return err
 		}
 	}
 	return e.Apply()
+}
+
+// Attempt to navigate the DocumentState to this Event.
+//
+// Somewhat analogous to git checkout.
+func (e Event) Goto() error {
+	e.Doc.State.Reset()
+	return e.gotoNoReset()
 }
