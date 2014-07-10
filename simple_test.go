@@ -517,50 +517,62 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	spt.Simple[1].SetPrimitiveCallback(on_primitive)
 
 	doc := spt.Simple[0].GetDoc()
-	event := doc.NewEvent("SET")
-	event.Arguments["path"] = []interface{}{"bar"}
-	event.Arguments["value"] = "baz"
-	event.Register()
+	eventA := doc.NewEvent("SET")
+	eventA.Arguments["path"] = []interface{}{"items"}
+	eventA.Arguments["value"] = []interface{}{"first", "second", "third"}
+	eventA.Register()
 
-	if err := spt.Simple[0].Promote(event); err != nil {
+	eventB := doc.NewEvent("DELETE")
+	eventB.Arguments["path"] = []interface{}{"items", 1}
+	eventB.SetParent(eventA)
+	eventB.Register()
+
+	if err := spt.Simple[0].Promote(eventB); err != nil {
 		t.Fatal(err)
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
 			"type":     "01-publish-tip",
-			"tip_hash": event.Hash(),
+			"tip_hash": eventB.Hash(),
 		},
 		map[string]interface{}{
 			"type": "01-request-history",
 		},
 		map[string]interface{}{
 			"type":     "01-publish-history",
-			"tip_hash": event.Hash(),
+			"tip_hash": eventB.Hash(),
 			"history": []interface{}{
 				map[string]interface{}{
 					"handler": "SET",
 					"parent":  "",
-					"args":    event.Arguments,
+					"args":    eventA.Arguments,
+				},
+				map[string]interface{}{
+					"handler": "DELETE",
+					"parent":  "",
+					"args":    eventB.Arguments,
 				},
 			},
 		},
 	})
 
-	expected_primitives := []state.SetPrimitive{
-		state.SetPrimitive{
+	expected_primitives := []state.Primitive{
+		&state.SetPrimitive{
 			Path:  []interface{}{},
 			Value: map[string]interface{}{},
 		},
-		state.SetPrimitive{
-			Path:  []interface{}{"bar"},
-			Value: "baz",
+		&state.SetPrimitive{
+			Path:  eventA.Arguments["path"].([]interface{}),
+			Value: eventA.Arguments["value"],
+		},
+		&state.DeletePrimitive{
+			Path: eventB.Arguments["path"].([]interface{}),
 		},
 	}
 	for _, ep := range expected_primitives {
 		select {
 		case primitive := <-primitives:
-			p := primitive.(*state.SetPrimitive)
-			assert.Equal(t, *p, ep)
+			assert.Equal(t, primitive, ep)
 		case <-time.After(50 * time.Millisecond):
 			t.Fatal("Timed out waiting for primitive")
 		}
