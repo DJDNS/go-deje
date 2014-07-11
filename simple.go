@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 
-	"github.com/campadrenalin/go-deje/document"
-	"github.com/campadrenalin/go-deje/state"
-	"github.com/campadrenalin/go-deje/util"
+	"github.com/DJDNS/go-deje/document"
+	"github.com/DJDNS/go-deje/state"
+	"github.com/DJDNS/go-deje/util"
 )
 
 // Wraps the low-level capabilities of the basic Client to provide

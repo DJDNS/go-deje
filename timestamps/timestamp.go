@@ -6,7 +6,7 @@
 package timestamps
 
 import (
-	"github.com/campadrenalin/go-deje/document"
+	"github.com/DJDNS/go-deje/document"
 	"sort"
 )
 

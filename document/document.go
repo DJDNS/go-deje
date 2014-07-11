@@ -2,7 +2,7 @@ package document
 
 import (
 	"encoding/json"
-	"github.com/campadrenalin/go-deje/state"
+	"github.com/DJDNS/go-deje/state"
 	"io"
 )
 

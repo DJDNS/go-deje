@@ -3,8 +3,8 @@ package document
 import (
 	"errors"
 
-	"github.com/campadrenalin/go-deje/state"
-	"github.com/campadrenalin/go-deje/util"
+	"github.com/DJDNS/go-deje/state"
+	"github.com/DJDNS/go-deje/util"
 )
 
 // An Event is an action that can be applied to a DEJE doc,

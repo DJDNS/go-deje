@@ -1,6 +1,6 @@
 package document
 
-import "github.com/campadrenalin/go-deje/util"
+import "github.com/DJDNS/go-deje/util"
 
 // Represents a complete set of approvals for an event.
 // Quorums act as bridges between events and timestamps,

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/campadrenalin/go-deje/state"
+	"github.com/DJDNS/go-deje/state"
 	"github.com/stretchr/testify/assert"
 )
 

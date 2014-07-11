@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/campadrenalin/go-deje"
-	state "github.com/campadrenalin/go-deje/state"
+	"github.com/DJDNS/go-deje"
+	state "github.com/DJDNS/go-deje/state"
 )
 
 var host = flag.String("host", "localhost:8080", "Router to connect to")

@@ -1,7 +1,7 @@
 package deje
 
 import (
-	"github.com/campadrenalin/go-deje/document"
+	"github.com/DJDNS/go-deje/document"
 	"github.com/jcelliott/turnpike"
 )
 
