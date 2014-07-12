@@ -201,7 +201,7 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	_non_obj_msg := "Non-{} message"
 	_no_type_param := "Message with no 'type' param"
 	_bad_tip_hash := "Message with bad 'tip_hash' param"
-	_bad_history := "History message with bad 'history' param"
+	_bad_history := "Message with bad 'history' param"
 	_clone_err := "json: cannot unmarshal bool into Go value of type document.Event"
 
 	// Cannot be Goto'd
@@ -477,9 +477,66 @@ func TestSimpleClient_PublishEvents(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-publish-events",
+			"type":   "01-publish-events",
+			"events": []interface{}{},
 		},
 	})
+}
+
+func TestSimpleClient_EventCycle(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	doc1 := spt.Simple[0].GetDoc()
+	doc2 := spt.Simple[1].GetDoc()
+
+	first_event := doc1.NewEvent("first")
+	first_event.Arguments["nonce"] = "00"
+	first_event.Register()
+	second_event := doc1.NewEvent("second")
+	second_event.Register()
+
+	assert.True(t,
+		first_event.Hash() < second_event.Hash(),
+		"Events sort according to their names",
+		first_event.Hash(),
+		second_event.Hash(),
+	)
+
+	if err := spt.Simple[1].RequestEvents(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-events",
+		},
+		map[string]interface{}{
+			"type": "01-publish-events",
+			"events": []interface{}{
+				map[string]interface{}{
+					"handler": "first",
+					"parent":  "",
+					"args": map[string]interface{}{
+						"nonce": "00",
+					},
+				},
+				map[string]interface{}{
+					"handler": "second",
+					"parent":  "",
+					"args":    map[string]interface{}{},
+				},
+			},
+		},
+	})
+
+	// Ensure that events were copied over
+	if !assert.Equal(t, 2, len(doc2.Events)) {
+		t.FailNow()
+	}
+	assert.Equal(t,
+		doc2.Events[first_event.Hash()].HandlerName,
+		first_event.HandlerName,
+	)
 }
 
 func TestSimpleClient_Promote(t *testing.T) {
