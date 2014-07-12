@@ -58,20 +58,24 @@ func TestDocument_Serialize_Broken(t *testing.T) {
 	}
 }
 
-func setupDocument() (Document, *Event, *Quorum) {
+func setupDocument() (Document, []*Event, []*Quorum) {
 	d := NewDocument()
 	d.Topic = "Frolicking"
 
+	events := make([]*Event, 1)
 	ev := d.NewEvent("some handler name")
 	ev.Arguments["arg"] = "value"
 	ev.ParentHash = "Fooblamoose"
 	ev.Register()
+	events[0] = &ev
 
+	quorums := make([]*Quorum, 1)
 	q := d.NewQuorum("some event hash")
 	q.Signatures["brian blessed"] = "BRIAAAN BLESSED!"
 	q.Register()
+	quorums[0] = &q
 
-	return d, &ev, &q
+	return d, events, quorums
 }
 
 func TestDocument_Serialize_WithStuff(t *testing.T) {
@@ -83,11 +87,11 @@ func TestDocument_Serialize_WithStuff(t *testing.T) {
 	}
 	expected := `{"topic":"Frolicking",` +
 		`"events":{` +
-		`"` + ev.GetKey() + `":{` +
+		`"` + ev[0].GetKey() + `":{` +
 		`"parent":"Fooblamoose","handler":"some handler name",` +
 		`"args":{"arg":"value"}` +
 		`}},"quorums":{` +
-		`"` + q.GetKey() + `":{` +
+		`"` + q[0].GetKey() + `":{` +
 		`"event_hash":"some event hash",` +
 		`"sigs":{"brian blessed":"BRIAAAN BLESSED!"}` +
 		`}}}` +
@@ -158,12 +162,12 @@ func TestDocument_Deserialize_WithStuff(t *testing.T) {
 	comparem(t, len(source.QuorumsByEvent), len(dest.QuorumsByEvent),
 		"Did not Register quorums")
 
-	dest_ev := dest.Events[ev.GetKey()]
-	dest_q := dest.Quorums[q.GetKey()]
-	if !dest_ev.Eq(*ev) {
+	dest_ev := dest.Events[ev[0].GetKey()]
+	dest_q := dest.Quorums[q[0].GetKey()]
+	if !dest_ev.Eq(*ev[0]) {
 		t.Fatalf("Events not equal")
 	}
-	if !dest_q.Eq(*q) {
+	if !dest_q.Eq(*q[0]) {
 		t.Fatalf("Quorums not equal")
 	}
 	comparem(t, &dest, dest_ev.Doc, "Doc pointer not set on Event")
@@ -177,6 +181,9 @@ func TestDocument_Deserialize_BadKeys(t *testing.T) {
 		`"NotRealKey":{` +
 		`"parent":"Fooblamoose","handler":"some handler name",` +
 		`"args":{"arg":"value"}` +
+		`},"AlsoNotReal":{` +
+		`"parent":"","handler":"some other handler name",` +
+		`"args":{}` +
 		`}},"quorums":{` +
 		`"NotRealKey":{` +
 		`"event_hash":"some event hash",` +
@@ -200,10 +207,10 @@ func TestDocument_Deserialize_BadKeys(t *testing.T) {
 
 	// Check that they are present under the right keys
 	_, ev, q := setupDocument()
-	if _, ok := dest.Events[ev.GetKey()]; !ok {
+	if _, ok := dest.Events[ev[0].GetKey()]; !ok {
 		t.Fatal("Event was not registered under correct key")
 	}
-	if _, ok := dest.Quorums[q.GetKey()]; !ok {
+	if _, ok := dest.Quorums[q[0].GetKey()]; !ok {
 		t.Fatal("Quorum was not registered under correct key")
 	}
 }
