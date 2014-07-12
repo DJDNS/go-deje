@@ -62,18 +62,28 @@ func setupDocument() (Document, []*Event, []*Quorum) {
 	d := NewDocument()
 	d.Topic = "Frolicking"
 
-	events := make([]*Event, 1)
-	ev := d.NewEvent("some handler name")
-	ev.Arguments["arg"] = "value"
-	ev.ParentHash = "Fooblamoose"
-	ev.Register()
-	events[0] = &ev
+	events := make([]*Event, 2)
+	ev0 := d.NewEvent("some handler name")
+	ev0.Arguments["arg"] = "value"
+	ev0.ParentHash = "Fooblamoose"
+	ev0.Register()
+	events[0] = &ev0
 
-	quorums := make([]*Quorum, 1)
-	q := d.NewQuorum("some event hash")
-	q.Signatures["brian blessed"] = "BRIAAAN BLESSED!"
-	q.Register()
-	quorums[0] = &q
+	ev1 := d.NewEvent("other handler name")
+	ev1.Arguments["cow"] = "moo"
+	ev1.Register()
+	events[1] = &ev1
+
+	quorums := make([]*Quorum, 2)
+	q0 := d.NewQuorum("some event hash")
+	q0.Signatures["brian blessed"] = "BRIAAAN BLESSED!"
+	q0.Register()
+	quorums[0] = &q0
+
+	q1 := d.NewQuorum("other event hash")
+	q1.Signatures["John Hancock"] = "<swoopy cursive>"
+	q1.Register()
+	quorums[1] = &q1
 
 	return d, events, quorums
 }
@@ -90,10 +100,16 @@ func TestDocument_Serialize_WithStuff(t *testing.T) {
 		`"` + ev[0].GetKey() + `":{` +
 		`"parent":"Fooblamoose","handler":"some handler name",` +
 		`"args":{"arg":"value"}` +
+		`},"` + ev[1].GetKey() + `":{` +
+		`"parent":"","handler":"other handler name",` +
+		`"args":{"cow":"moo"}` +
 		`}},"quorums":{` +
 		`"` + q[0].GetKey() + `":{` +
 		`"event_hash":"some event hash",` +
 		`"sigs":{"brian blessed":"BRIAAAN BLESSED!"}` +
+		`},"` + q[1].GetKey() + `":{` +
+		`"event_hash":"other event hash",` +
+		`"sigs":{"John Hancock":"\u003cswoopy cursive\u003e"}` +
 		`}}}` +
 		"\n"
 	got := buffer.String()
@@ -162,16 +178,20 @@ func TestDocument_Deserialize_WithStuff(t *testing.T) {
 	comparem(t, len(source.QuorumsByEvent), len(dest.QuorumsByEvent),
 		"Did not Register quorums")
 
-	dest_ev := dest.Events[ev[0].GetKey()]
-	dest_q := dest.Quorums[q[0].GetKey()]
-	if !dest_ev.Eq(*ev[0]) {
-		t.Fatalf("Events not equal")
+	for i := range ev {
+		dest_ev := dest.Events[ev[i].GetKey()]
+		if !dest_ev.Eq(*ev[i]) {
+			t.Fatalf("Events not equal: %s", ev[i].HandlerName)
+		}
+		comparem(t, &dest, dest_ev.Doc, "Doc pointer not set on Event")
 	}
-	if !dest_q.Eq(*q[0]) {
-		t.Fatalf("Quorums not equal")
+	for i := range q {
+		dest_q := dest.Quorums[q[i].GetKey()]
+		if !dest_q.Eq(*q[i]) {
+			t.Fatalf("Quorums not equal: %d", i)
+		}
+		comparem(t, &dest, dest_q.Doc, "Doc pointer not set on Quorum")
 	}
-	comparem(t, &dest, dest_ev.Doc, "Doc pointer not set on Event")
-	comparem(t, &dest, dest_q.Doc, "Doc pointer not set on Quorum")
 }
 
 func TestDocument_Deserialize_BadKeys(t *testing.T) {
