@@ -62,6 +62,8 @@ func setupDocument() (Document, []*Event, []*Quorum) {
 	d := NewDocument()
 	d.Topic = "Frolicking"
 
+	// These values have been adjusted to ensure that slice
+	// position reflects hash order
 	events := make([]*Event, 2)
 	ev0 := d.NewEvent("some handler name")
 	ev0.Arguments["arg"] = "value"
@@ -74,6 +76,8 @@ func setupDocument() (Document, []*Event, []*Quorum) {
 	ev1.Register()
 	events[1] = &ev1
 
+	// Same as with events - adjusted to maintain that
+	// hash order == slice order.
 	quorums := make([]*Quorum, 2)
 	q0 := d.NewQuorum("some event hash")
 	q0.Signatures["brian blessed"] = "BRIAAAN BLESSED!"
