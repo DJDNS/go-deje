@@ -2,8 +2,9 @@ package document
 
 import (
 	"encoding/json"
-	"github.com/DJDNS/go-deje/state"
 	"io"
+
+	"github.com/DJDNS/go-deje/state"
 )
 
 // A document is a single managed DEJE object, associated with
@@ -74,13 +75,13 @@ func (doc *Document) Deserialize(r io.Reader) error {
 	doc.Quorums = make(QuorumSet)
 
 	// Integrate through registration
-	for _, item := range events_copy {
-		item.Doc = doc
-		item.Register()
+	for i := range events_copy {
+		events_copy[i].Doc = doc
+		events_copy[i].Register()
 	}
-	for _, item := range quorums_copy {
-		item.Doc = doc
-		item.Register()
+	for i := range quorums_copy {
+		quorums_copy[i].Doc = doc
+		quorums_copy[i].Register()
 	}
 	return nil
 }
