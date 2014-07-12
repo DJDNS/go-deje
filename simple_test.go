@@ -468,6 +468,20 @@ func TestSimpleClient_RequestEvents(t *testing.T) {
 	})
 }
 
+func TestSimpleClient_PublishEvents(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	if err := spt.Simple[0].PublishEvents(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-publish-events",
+		},
+	})
+}
+
 func TestSimpleClient_Promote(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()

@@ -144,6 +144,12 @@ func (sc *SimpleClient) RequestEvents() error {
 	})
 }
 
+func (sc *SimpleClient) PublishEvents() error {
+	return sc.client.Publish(map[string]interface{}{
+		"type": "01-publish-events",
+	})
+}
+
 // Navigate the Document to an Event, and promote it as the tip.
 func (sc *SimpleClient) Promote(ev document.Event) error {
 	if err := ev.Goto(); err != nil {
