@@ -454,6 +454,20 @@ func TestSimpleClient_HistoryCycle(t *testing.T) {
 	})
 }
 
+func TestSimpleClient_RequestEvents(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	if err := spt.Simple[0].RequestEvents(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-events",
+		},
+	})
+}
+
 func TestSimpleClient_Promote(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
