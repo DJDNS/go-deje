@@ -1,0 +1,7 @@
+declare -r COMMAND="foo"
+declare -ra COMPARE=(
+    FILES
+    STDOUT
+    STDERR
+    CODE
+)

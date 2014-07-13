@@ -77,7 +77,8 @@ func main() {
 		usage()
 	}
 
-	if args[0] == "up" {
+	subcommand := args[0]
+	if subcommand == "up" {
 		if len(args) < 3 {
 			log.Println("Subcommand 'up' takes 2 additional args")
 			usage()
@@ -92,5 +93,8 @@ func main() {
 			log.Fatal(err)
 		}
 		log.Printf("Successfully wrote %s\n", output_filename)
+	} else {
+		log.Printf("Unknown subcommand '%s'\n", subcommand)
+		usage()
 	}
 }
