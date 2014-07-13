@@ -1,0 +1,20 @@
+#!/bin/bash -e
+
+testname=$(basename $1);
+cd tests/$testname
+echo "Running test $testname..."
+
+source ./config
+
+set +e
+../../djconvert $COMMAND >STDOUT 2>STDERR
+echo "$?" > CODE
+set -e
+
+ls -a > FILES
+
+for filename in $COMPARE; do
+    diff "$filename" "${filename}.expected";
+done
+
+echo "$testname: PASS"
