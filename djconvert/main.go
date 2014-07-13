@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -55,8 +56,23 @@ func up(input io.Reader, output io.Writer) error {
 	event.Arguments["value"] = data
 	event.Register()
 
-	if err := doc.Serialize(output); err != nil {
-		return err
+	if *pretty {
+		// Go JSON API is a bit clumsy :(
+		buf, err := json.MarshalIndent(doc, "", "    ")
+		if err != nil {
+			return err
+		}
+		n, err := fmt.Fprint(output, string(buf))
+		if err != nil {
+			return err
+		}
+		if n < len(buf) {
+			return errors.New("Didn't write all bytes to file")
+		}
+	} else {
+		if err := doc.Serialize(output); err != nil {
+			return err
+		}
 	}
 	return nil
 }
