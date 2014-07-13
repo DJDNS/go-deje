@@ -28,16 +28,13 @@ func usage() {
 	os.Exit(1)
 }
 
-func get_filehandles() (io.Reader, io.Writer, error) {
-	input_filename := "input.json"
-	output_filename := "output.json"
-
-	input, err := os.Open(input_filename)
+func get_filehandles(input_fn, output_fn string) (io.Reader, io.Writer, error) {
+	input, err := os.Open(input_fn)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	output, err := os.Create(output_filename)
+	output, err := os.Create(output_fn)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -83,8 +80,8 @@ func main() {
 			log.Println("Subcommand 'up' takes 2 additional args")
 			usage()
 		}
-		_, output_filename := args[1], args[2]
-		input, output, err := get_filehandles()
+		input_filename, output_filename := args[1], args[2]
+		input, output, err := get_filehandles(input_filename, output_filename)
 		if err != nil {
 			log.Fatal(err)
 		}
