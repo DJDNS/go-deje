@@ -4,6 +4,7 @@
 *.so
 /demo/router/router
 /demo/client/client
+/djconvert/djconvert
 
 # Folders
 _obj
@@ -28,3 +29,6 @@ _testmain.go
 
 # Coverage testing
 coverage.out
+
+# Test json files
+/djconvert/*.json
