@@ -1,0 +1,7 @@
+declare -r COMMAND="up input.json"
+declare -ra COMPARE=(
+    FILES
+    STDOUT
+    STDERR
+    CODE
+)

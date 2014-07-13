@@ -1,4 +1,4 @@
-djconvert: Not enough args, need at least a subcommand 'up' or 'down'
+djconvert: Subcommand 'up' takes 2 additional args
 
 USAGE:
 
