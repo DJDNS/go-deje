@@ -9,6 +9,9 @@ import (
 )
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("djconvert: ")
+
 	doc := document.NewDocument()
 	input_filename := "input.json"
 	output_filename := "output.json"

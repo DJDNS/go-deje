@@ -13,7 +13,7 @@ set -e
 
 ls -a > FILES
 
-for filename in $COMPARE; do
+for filename in ${COMPARE[@]}; do
     diff "$filename" "${filename}.expected";
 done
 
