@@ -1,1 +1,11 @@
-djconvert: open input.json: no such file or directory
+djconvert: Not enough args, need at least a subcommand 'up' or 'down'
+
+USAGE:
+
+    # Convert snapshot to flat-history document cache
+    djconvert up original.json deje.json
+    djconvert up original.json deje.json --pretty
+
+    # Export event in document cache to snapshot
+    djconvert down deje.json snapshot.json 89efc6
+    djconvert down deje.json snapshot.json 89efc6 --pretty
