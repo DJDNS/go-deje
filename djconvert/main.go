@@ -83,7 +83,6 @@ func main() {
 			log.Println("Subcommand 'up' takes 2 additional args")
 			usage()
 		}
-		log.Fatalf("Pretty: %#v", *pretty)
 		_, output_filename := args[1], args[2]
 		input, output, err := get_filehandles()
 		if err != nil {
