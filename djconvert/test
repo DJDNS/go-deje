@@ -6,6 +6,13 @@ echo "Running test $testname..."
 
 source ./config
 
+cleanup() {
+    if [[ -n "$CLEANUP" ]]; then
+        $CLEANUP
+    fi
+}
+
+cleanup
 set +e
 ../../djconvert $COMMAND >STDOUT 2>STDERR
 echo "$?" > CODE
@@ -16,5 +23,7 @@ ls -a > FILES
 for filename in ${COMPARE[@]}; do
     diff "$filename" "${filename}.expected";
 done
+
+cleanup
 
 echo "$testname: PASS"
