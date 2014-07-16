@@ -111,7 +111,7 @@ func main() {
 		}
 		log.Printf("Successfully wrote %s\n", output_filename)
 	} else if subcommand == "down" {
-		if len(args) < 2 {
+		if len(args) < 4 {
 			log.Println("Subcommand 'down' takes 3 additional args")
 			usage()
 		}

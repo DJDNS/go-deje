@@ -1,0 +1,7 @@
+declare -r COMMAND="down 1 2"
+declare -ra COMPARE=(
+    FILES
+    STDOUT
+    STDERR
+    CODE
+)
