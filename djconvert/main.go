@@ -115,6 +115,12 @@ func main() {
 			log.Println("Subcommand 'down' takes 3 additional args")
 			usage()
 		}
+		input_filename, output_filename, hash_prefix := args[1], args[2], args[3]
+		input, output, err := get_filehandles(input_filename, output_filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Fatal(input, output, hash_prefix)
 	} else {
 		log.Printf("Unknown subcommand '%s'\n", subcommand)
 		usage()
