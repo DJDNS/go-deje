@@ -1,0 +1,11 @@
+djconvert: Unknown subcommand 'down'
+
+USAGE:
+
+    # Convert snapshot to flat-history document cache
+    djconvert up original.json deje.json
+    djconvert --pretty up original.json deje.json
+
+    # Export event in document cache to snapshot
+    djconvert down deje.json snapshot.json 89efc6
+    djconvert --pretty down deje.json snapshot.json 89efc6
