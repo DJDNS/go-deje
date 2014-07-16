@@ -1,4 +1,4 @@
-djconvert: Unknown subcommand 'down'
+djconvert: Subcommand 'down' takes 3 additional args
 
 USAGE:
 

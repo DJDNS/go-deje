@@ -77,6 +77,11 @@ func up(input io.Reader, output io.Writer) error {
 	return nil
 }
 
+func down(input io.Reader, output io.Writer, hash_prefix string) error {
+	//doc := document.NewDocument()
+	return nil
+}
+
 var pretty = flag.Bool("pretty", false, "Pretty-print the output, for human readability")
 
 func main() {
@@ -105,6 +110,11 @@ func main() {
 			log.Fatal(err)
 		}
 		log.Printf("Successfully wrote %s\n", output_filename)
+	} else if subcommand == "down" {
+		if len(args) < 2 {
+			log.Println("Subcommand 'down' takes 3 additional args")
+			usage()
+		}
 	} else {
 		log.Printf("Unknown subcommand '%s'\n", subcommand)
 		usage()
