@@ -1,0 +1,8 @@
+declare -r COMMAND="down input.json output.json somehash"
+declare -r CLEANUP="rm -f output.json"
+declare -ra COMPARE=(
+    FILES
+    STDOUT
+    STDERR
+    CODE
+)

@@ -78,7 +78,13 @@ func up(input io.Reader, output io.Writer) error {
 }
 
 func down(input io.Reader, output io.Writer, hash_prefix string) error {
-	//doc := document.NewDocument()
+	doc := document.NewDocument()
+	doc.Deserialize(input)
+
+	_, ok := doc.Events[hash_prefix]
+	if !ok {
+		return errors.New("No such hash '" + hash_prefix + "'")
+	}
 	return nil
 }
 
@@ -120,7 +126,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Fatal(input, output, hash_prefix)
+		if err = down(input, output, hash_prefix); err != nil {
+			log.Fatal(err)
+		}
 	} else {
 		log.Printf("Unknown subcommand '%s'\n", subcommand)
 		usage()
