@@ -1,0 +1,24 @@
+{
+    "topic": "",
+    "events": {
+        "bc28e13ea2a8d16fce3ca95b317a05fdef25ce94": {
+            "parent": "",
+            "handler": "SET",
+            "args": {
+                "path": [],
+                "value": {
+                    "key1": "value1",
+                    "key2": "value2"
+                }
+            }
+        },
+        "b31d4d6a1dda5c7120a4b0953d15694a6a811f24": {
+            "parent": "bc28e13ea2a8d16fce3ca95b317a05fdef25ce94",
+            "handler": "DELETE",
+            "args": {
+                "path": ["key1"]
+            }
+        }
+    },
+    "quorums": {}
+}

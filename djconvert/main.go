@@ -45,6 +45,26 @@ func get_filehandles(input_fn, output_fn string) (io.Reader, io.Writer, error) {
 	return input, output, nil
 }
 
+func write_json(data interface{}, output io.Writer) error {
+	if *pretty {
+		// Go JSON API is a bit clumsy :(
+		buf, err := json.MarshalIndent(data, "", "    ")
+		if err != nil {
+			return err
+		}
+		n, err := fmt.Fprint(output, string(buf))
+		if err != nil {
+			return err
+		}
+		if n < len(buf) {
+			return errors.New("Didn't write all bytes to file")
+		}
+		return nil
+	} else {
+		return json.NewEncoder(output).Encode(&data)
+	}
+}
+
 func up(input io.Reader, output io.Writer) error {
 	doc := document.NewDocument()
 
@@ -58,25 +78,7 @@ func up(input io.Reader, output io.Writer) error {
 	event.Arguments["value"] = data
 	event.Register()
 
-	if *pretty {
-		// Go JSON API is a bit clumsy :(
-		buf, err := json.MarshalIndent(doc, "", "    ")
-		if err != nil {
-			return err
-		}
-		n, err := fmt.Fprint(output, string(buf))
-		if err != nil {
-			return err
-		}
-		if n < len(buf) {
-			return errors.New("Didn't write all bytes to file")
-		}
-	} else {
-		if err := doc.Serialize(output); err != nil {
-			return err
-		}
-	}
-	return nil
+	return write_json(doc, output)
 }
 
 func down(input io.Reader, output io.Writer, hash_prefix string) (error, document.Document) {
@@ -91,12 +93,7 @@ func down(input io.Reader, output io.Writer, hash_prefix string) (error, documen
 	if err := event.Goto(); err != nil {
 		return err, doc
 	}
-	data := doc.State.Export()
-	if err := json.NewEncoder(output).Encode(&data); err != nil {
-		return err, doc
-	}
-
-	return nil, doc
+	return write_json(doc.State.Export(), output), doc
 }
 
 var pretty = flag.Bool("pretty", false, "Pretty-print the output, for human readability")

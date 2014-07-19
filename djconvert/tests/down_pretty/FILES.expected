@@ -1,0 +1,14 @@
+.
+..
+CODE
+CODE.expected
+config
+FILES
+FILES.expected
+input.json
+output.json
+output.json.expected
+STDERR
+STDERR.expected
+STDOUT
+STDOUT.expected
