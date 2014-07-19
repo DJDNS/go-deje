@@ -95,6 +95,8 @@ func down(input io.Reader, output io.Writer, hash_prefix string) (error, documen
 		}
 		if len(found) == 0 {
 			return errors.New("No such hash '" + hash_prefix + "'"), doc
+		} else if len(found) > 1 {
+			return errors.New("Hash prefix '" + hash_prefix + "' is ambiguous"), doc
 		} else {
 			event = found[0]
 		}
