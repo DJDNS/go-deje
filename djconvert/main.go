@@ -8,6 +8,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
+	"strings"
 
 	"github.com/DJDNS/go-deje/document"
 )
@@ -77,15 +79,24 @@ func up(input io.Reader, output io.Writer) error {
 	return nil
 }
 
-func down(input io.Reader, output io.Writer, hash_prefix string) error {
+func down(input io.Reader, output io.Writer, hash_prefix string) (error, document.Document) {
 	doc := document.NewDocument()
 	doc.Deserialize(input)
 
-	_, ok := doc.Events[hash_prefix]
+	event, ok := doc.Events[hash_prefix]
 	if !ok {
-		return errors.New("No such hash '" + hash_prefix + "'")
+		return errors.New("No such hash '" + hash_prefix + "'"), doc
 	}
-	return nil
+
+	if err := event.Goto(); err != nil {
+		return err, doc
+	}
+	data := doc.State.Export()
+	if err := json.NewEncoder(output).Encode(&data); err != nil {
+		return err, doc
+	}
+
+	return nil, doc
 }
 
 var pretty = flag.Bool("pretty", false, "Pretty-print the output, for human readability")
@@ -126,8 +137,21 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err = down(input, output, hash_prefix); err != nil {
-			log.Fatal(err)
+		if err, doc := down(input, output, hash_prefix); err != nil {
+			log.Print(err)
+
+			keys := make([]string, len(doc.Events))
+			var i int
+			for key := range doc.Events {
+				keys[i] = key
+				i++
+			}
+			sort.Strings(keys)
+
+			log.Fatalf("Available hashes (%d):\n%s",
+				len(doc.Events),
+				strings.Join(keys, "\t\n"),
+			)
 		}
 	} else {
 		log.Printf("Unknown subcommand '%s'\n", subcommand)

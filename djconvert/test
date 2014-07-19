@@ -12,6 +12,11 @@ cleanup() {
     fi
 }
 
+fail() {
+    echo "$@" >&2
+    exit 1
+}
+
 cleanup
 set +e
 ../../djconvert $COMMAND >STDOUT 2>STDERR
@@ -21,7 +26,8 @@ set -e
 ls -a > FILES
 
 for filename in ${COMPARE[@]}; do
-    diff "$filename" "${filename}.expected";
+    diff "$filename" "${filename}.expected" \
+        || fail "Compare failed for $filename";
 done
 
 cleanup
