@@ -87,7 +87,17 @@ func down(input io.Reader, output io.Writer, hash_prefix string) (error, documen
 
 	event, ok := doc.Events[hash_prefix]
 	if !ok {
-		return errors.New("No such hash '" + hash_prefix + "'"), doc
+		found := make([]*document.Event, 0)
+		for key := range doc.Events {
+			if strings.HasPrefix(key, hash_prefix) {
+				found = append(found, doc.Events[key])
+			}
+		}
+		if len(found) == 0 {
+			return errors.New("No such hash '" + hash_prefix + "'"), doc
+		} else {
+			event = found[0]
+		}
 	}
 
 	if err := event.Goto(); err != nil {
