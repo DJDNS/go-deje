@@ -27,7 +27,6 @@ func GetRouterAndTopic(deje_url string) (router, topic string, err error) {
 	router_url.Path = "/ws"
 
 	// Topic URL manipulations
-	topic_url.Scheme = "deje"
 	if topic_url.Path == "" {
 		topic_url.Path = "/"
 	}

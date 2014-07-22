@@ -40,11 +40,45 @@ func TestSimpleClient_Open(t *testing.T) {
 	server_addr, server_closer := setupServer()
 	defer server_closer()
 
-	url := strings.Replace(server_addr, "ws://", "deje://", 1)
-	_, err := Open(url, logger)
+	url := strings.Replace(server_addr, "ws://", "deje://", 1) + "/some/topic"
+	sc, err := Open(url, logger)
 	if !assert.NoError(t, err, "Open should succeed for URL '%s'", url) {
 		t.Fail()
 	}
+
+	topic := url // The two are equal, unless deje_url is missing path component
+	if !assert.Equal(t, topic, sc.GetDoc().Topic, "Should subscribe to correct topic") {
+		t.Fail()
+	}
+
+	// Set up event in SimpleClient
+	event := sc.GetDoc().NewEvent("SET")
+	event.Arguments["path"] = []interface{}{"message"}
+	event.Arguments["value"] = "Karma incremented"
+	event.Register() // But do not Goto() yet
+
+	// raw_client used to trigger Goto over the network
+	raw_client := NewClient(topic)
+	if err := raw_client.Connect(server_addr); err != nil {
+		t.Fatal(err)
+	}
+	message := map[string]interface{}{
+		"type":     "01-publish-history",
+		"tip_hash": event.Hash(),
+		"history":  []interface{}{},
+	}
+	if !assert.NoError(t, raw_client.Publish(message)) {
+		t.Fail()
+	}
+
+	// Confirm that content has been updated
+	<-time.After(50 * time.Millisecond)
+	assert.Equal(t,
+		map[string]interface{}{
+			"message": "Karma incremented",
+		},
+		sc.Export(),
+	)
 }
 
 func TestSimpleClient_Connect(t *testing.T) {
