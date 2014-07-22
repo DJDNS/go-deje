@@ -21,14 +21,14 @@ func TestSimpleClient_NewSimpleClient(t *testing.T) {
 }
 
 func TestSimpleClient_Open_BadUrl(t *testing.T) {
-	_, err := Open("localhost:8080", nil)
+	_, err := Open("localhost:8080", nil, nil)
 	if assert.Error(t, err, "Open should have failed, due to bad URL") {
 		assert.Equal(t, err.Error(), "URL does not start with 'deje://': 'localhost:8080'")
 	}
 }
 
 func TestSimpleClient_Open_NoSuchHost(t *testing.T) {
-	_, err := Open("deje://no.such.host:8080/", nil)
+	_, err := Open("deje://no.such.host:8080/", nil, nil)
 	if assert.Error(t, err, "Open should have failed, due to unreachable host") {
 		assert.Equal(t, err.Error(), "Error connecting to websocket server: websocket.Dial ws://no.such.host:8080/ws: dial tcp: lookup no.such.host: no such host")
 	}
@@ -40,8 +40,15 @@ func TestSimpleClient_Open(t *testing.T) {
 	server_addr, server_closer := setupServer()
 	defer server_closer()
 
+	var got_a_primitive bool
+	handler := func(primitive state.Primitive) {
+		_, ok := primitive.(*state.SetPrimitive)
+		assert.True(t, ok, "Got a SetPrimitive")
+		got_a_primitive = true
+	}
+
 	url := strings.Replace(server_addr, "ws://", "deje://", 1) + "/some/topic"
-	sc, err := Open(url, logger)
+	sc, err := Open(url, logger, handler)
 	if !assert.NoError(t, err, "Open should succeed for URL '%s'", url) {
 		t.Fail()
 	}
@@ -79,6 +86,9 @@ func TestSimpleClient_Open(t *testing.T) {
 		},
 		sc.Export(),
 	)
+
+	// Confirm that OnPrimitiveCallback was called
+	assert.True(t, got_a_primitive, "Recvd a primitive, callback was called")
 }
 
 func TestSimpleClient_Connect(t *testing.T) {

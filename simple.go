@@ -35,13 +35,14 @@ func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 // The preferred way to create SimpleClients. Handles the Connect() call, and
 // uses GetRouterAndTopic() to turn a single deje://... URL into a router URL
 // and topic.
-func Open(deje_url string, logger *log.Logger) (*SimpleClient, error) {
+func Open(deje_url string, logger *log.Logger, cb state.OnPrimitiveCallback) (*SimpleClient, error) {
 	router, topic, err := GetRouterAndTopic(deje_url)
 	if err != nil {
 		return nil, err
 	}
 
 	sc := NewSimpleClient(topic, logger)
+	sc.SetPrimitiveCallback(cb)
 	if err = sc.Connect(router); err != nil {
 		return nil, err
 	}
