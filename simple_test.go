@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,6 +17,33 @@ func TestSimpleClient_NewSimpleClient(t *testing.T) {
 	sc := NewSimpleClient(topic, nil)
 	if sc.client.Doc.Topic != topic {
 		t.Fatal("Did not create encapsulated Client correctly")
+	}
+}
+
+func TestSimpleClient_Open_BadUrl(t *testing.T) {
+	_, err := Open("localhost:8080", nil)
+	if assert.Error(t, err, "Open should have failed, due to bad URL") {
+		assert.Equal(t, err.Error(), "URL does not start with 'deje://': 'localhost:8080'")
+	}
+}
+
+func TestSimpleClient_Open_NoSuchHost(t *testing.T) {
+	_, err := Open("deje://no.such.host:8080/", nil)
+	if assert.Error(t, err, "Open should have failed, due to unreachable host") {
+		assert.Equal(t, err.Error(), "Error connecting to websocket server: websocket.Dial ws://no.such.host:8080/ws: dial tcp: lookup no.such.host: no such host")
+	}
+}
+
+func TestSimpleClient_Open(t *testing.T) {
+	buffer := new(bytes.Buffer)
+	logger := log.New(buffer, "deje.SimpleClient: ", 0)
+	server_addr, server_closer := setupServer()
+	defer server_closer()
+
+	url := strings.Replace(server_addr, "ws://", "deje://", 1)
+	_, err := Open(url, logger)
+	if !assert.NoError(t, err, "Open should succeed for URL '%s'", url) {
+		t.Fail()
 	}
 }
 

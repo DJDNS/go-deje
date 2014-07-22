@@ -18,6 +18,8 @@ type SimpleClient struct {
 	logger *log.Logger
 }
 
+// Unless you want to manually specify router URL and topic separately,
+// you should probably use Open() instead of NewSimpleClient().
 func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 	raw_client := NewClient(topic)
 	simple_client := &SimpleClient{&raw_client, "", logger}
@@ -28,6 +30,22 @@ func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 		}
 	})
 	return simple_client
+}
+
+// The preferred way to create SimpleClients. Handles the Connect() call, and
+// uses GetRouterAndTopic() to turn a single deje://... URL into a router URL
+// and topic.
+func Open(deje_url string, logger *log.Logger) (*SimpleClient, error) {
+	router, topic, err := GetRouterAndTopic(deje_url)
+	if err != nil {
+		return nil, err
+	}
+
+	sc := NewSimpleClient(topic, logger)
+	if err = sc.Connect(router); err != nil {
+		return nil, err
+	}
+	return sc, nil
 }
 
 func (sc *SimpleClient) rcvEventList(parent map[string]interface{}, key string) error {
