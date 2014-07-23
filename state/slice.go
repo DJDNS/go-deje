@@ -70,10 +70,21 @@ func (c *sliceContainer) RemoveChild(key interface{}) error {
 		return err
 	}
 	delete(c.Value, key_int)
-	for key, value := range c.Value {
-		if key > key_int {
-			delete(c.Value, key)
-			c.Value[key-1] = value
+
+	// Get max index
+	var max uint
+	for k := range c.Value {
+		if k > max {
+			max = k
+		}
+	}
+
+	// Iterate from key+1 to max, decrementing all indexes after key IN ORDER
+	for k := key_int + 1; k <= max; k++ {
+		value, ok := c.Value[k]
+		if ok {
+			delete(c.Value, k)
+			c.Value[k-1] = value
 		}
 	}
 	return nil

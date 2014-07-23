@@ -3,7 +3,10 @@ package state
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // We test with valid children all over the place.
@@ -128,6 +131,43 @@ func TestSliceContainer_RemoveChild(t *testing.T) {
 	if !reflect.DeepEqual(c.Export(), expected) {
 		t.Fatalf("Expected %#v, got %#v", expected, c.Export())
 	}
+}
+
+// A bit of statistical surety that we are decrementing in the correct order.
+// https://github.com/DJDNS/go-deje/issues/30
+func TestSliceContainer_RemoveChild_Many(t *testing.T) {
+	text := "The quick brown fox jumped over the lazy dog."
+	expected := "The quick brown ox jumped over the lazy dog."
+	letters := strings.Split(text, "")
+
+	interface_letters := make([]interface{}, len(letters))
+	for i, v := range letters {
+		interface_letters[i] = v
+	}
+
+	// Turn letters slice into container, remove letter 16 (f)
+	c, err := makeSliceContainer(interface_letters)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.RemoveChild(uint(16)); err != nil {
+		t.Fatal(err)
+	}
+
+	// Reassemble into single string
+	export := c.Export().([]interface{})
+	strings_export := make([]string, len(export))
+	for i, v := range export {
+		str, ok := v.(string)
+		if !ok {
+			t.Fatalf("Bad values in array: %#v", export)
+		}
+		strings_export[i] = str
+	}
+	result := strings.Join(strings_export, "")
+
+	// Test for clobbering
+	assert.Equal(t, expected, result)
 }
 
 func TestSliceContainerExport(t *testing.T) {
