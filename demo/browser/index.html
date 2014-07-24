@@ -72,25 +72,33 @@ pre {
 <body>
     <h1>DEJE WAMP demo</h1>
     <p>Start up a few clients, and then watch the logging output ensue!</p>
+
     <h3>Callbacks</h3>
     <div class="callbacks-selection">
     </div>
+
     <h3>Reconnect</h3>
     <div class="reconnector">
         <input class="url"   type="text" placeholder="">
         <input class="topic" type="text" placeholder="">
         <button type="submit">Reconnect</button>
     </div>
-    <h3>Log</h3>
+
+    <h3>
+        Log
+        <button onclick="log_clear()" style="float:right">Clear log</button>
+    </h3>
     <div class="log-container">
         <pre id="log"></pre>
     </div>
+
     <h3>State</h3>
     <pre id="state-data"></pre>
     <div class="submitter">
         <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
         <br/><button id="message-submit">Broadcast a message</button>
     </div>
+
     <h3>Events</h3>
     <div class="events">
         <div class="event input">
@@ -100,8 +108,8 @@ pre {
             <textarea class="args" placeholder="Args (start with {})"></textarea>
         </div>
     </div>
-    <script>
 
+    <script>
 URL   = "ws://" + window.location.host + "/ws";
 TOPIC = "deje://demo/";
 
@@ -110,6 +118,10 @@ $('.reconnector .topic').attr('placeholder', TOPIC);
 
 function loggit(info) {
     $('#log').text( $('#log').text() + info + "\n" );
+}
+
+function log_clear() {
+    $('#log').text('');
 }
 
 $('.reconnector button').click(function() {
