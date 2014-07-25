@@ -9,7 +9,7 @@ package state
 // this DocumentState.
 type DocumentState struct {
 	Value       Container
-	onPrimitive *OnPrimitiveCallback
+	onPrimitive OnPrimitiveCallback
 }
 
 func NewDocumentState() *DocumentState {
@@ -36,7 +36,7 @@ type OnPrimitiveCallback func(primitive Primitive)
 
 // Set the OnPrimitiveCallback for this DocumentState.
 func (ds *DocumentState) SetPrimitiveCallback(c OnPrimitiveCallback) {
-	ds.onPrimitive = &c
+	ds.onPrimitive = c
 }
 
 // Apply a Primitive such that the callback (if set) is run.
@@ -48,7 +48,7 @@ func (ds *DocumentState) Apply(p Primitive) error {
 		return err
 	}
 	if ds.onPrimitive != nil {
-		(*ds.onPrimitive)(p)
+		ds.onPrimitive(p)
 	}
 	return nil
 }

@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewDocumentState(t *testing.T) {
@@ -116,6 +118,20 @@ func TestDocumentState_Apply_BadPrimitive(t *testing.T) {
 			len(primitives_applied),
 		)
 	}
+}
+func TestDocumentState_Apply_NilCallback(t *testing.T) {
+	ds := NewDocumentState()
+	primitive := &SetPrimitive{
+		Path:  []interface{}{"key"},
+		Value: "value",
+	}
+	ds.SetPrimitiveCallback(nil)
+
+	// Should just work with no panics or errors
+	if err := ds.Apply(primitive); err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, map[string]interface{}{"key": "value"}, ds.Export())
 }
 
 func TestDocumentState_Export(t *testing.T) {
