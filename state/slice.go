@@ -91,6 +91,12 @@ func (c *sliceContainer) RemoveChild(key interface{}) error {
 }
 
 func (c *sliceContainer) Export() interface{} {
+	// Fast - and correct - special case.
+	// The general purpose code is actually broken for empty c.Value.
+	if len(c.Value) == 0 {
+		return make([]interface{}, 0)
+	}
+
 	// Get total length of result array
 	max_key := uint(0)
 	for key, _ := range c.Value {

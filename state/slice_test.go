@@ -20,6 +20,14 @@ func TestMakeSliceContainer_InvalidChildren(t *testing.T) {
 		t.Fatal("makeSliceContainer should fail if it can't contain children")
 	}
 }
+func TestMakeSliceContainer_NoChildren(t *testing.T) {
+	original := []interface{}{}
+	sc, err := makeSliceContainer(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, original, sc.Export())
+}
 
 func TestSliceContainer_castKey_JsonNumber(t *testing.T) {
 	container, err := makeSliceContainer([]interface{}{})
