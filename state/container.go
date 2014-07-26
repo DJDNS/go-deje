@@ -2,6 +2,7 @@ package state
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -24,7 +25,9 @@ func makeContainer(value interface{}) (Container, error) {
 	if reflect.TypeOf(value) == nil {
 		return makeScalarContainer(value)
 	}
-	switch reflect.TypeOf(value).Kind() {
+
+	kind := reflect.TypeOf(value).Kind()
+	switch kind {
 	case reflect.Map:
 		as_map, ok := value.(map[string]interface{})
 		if !ok {
@@ -37,10 +40,10 @@ func makeContainer(value interface{}) (Container, error) {
 			return nil, errors.New("Cannot cast slice to []interface{}")
 		}
 		return makeSliceContainer(as_slice)
-	case reflect.Bool, reflect.Int, reflect.Uint, reflect.String:
+	case reflect.Bool, reflect.Int, reflect.Uint, reflect.String, reflect.Float64:
 		return makeScalarContainer(value)
 	default:
-		return nil, errors.New("Invalid type for containing")
+		return nil, errors.New(fmt.Sprintf("Invalid type for containing: %#v (#%v)", value, kind))
 	}
 }
 
