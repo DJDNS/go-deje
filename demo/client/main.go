@@ -32,6 +32,8 @@ func load(sc *deje.SimpleClient) {
 	if err = doc.Deserialize(file); err != nil {
 		log.Fatal(err)
 	}
+	doc.Topic = *topic
+	log.Printf("Topic: %s", doc.Topic)
 }
 
 func save(sc *deje.SimpleClient) {
