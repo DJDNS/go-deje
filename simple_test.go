@@ -526,6 +526,41 @@ func TestSimpleClient_HistoryCycle(t *testing.T) {
 	})
 }
 
+func TestSimpleClient_HistoryCycle_NilLogger(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	spt.Simple[0].logger = nil
+	spt.Simple[1].logger = nil
+
+	event := spt.Simple[1].GetDoc().NewEvent("SET")
+	event.Arguments["path"] = []interface{}{"foo"}
+	event.Arguments["value"] = "bar"
+	event.Register()
+
+	spt.Simple[1].tip = event.Hash()
+
+	if err := spt.Simple[0].RequestHistory(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-history",
+		},
+		map[string]interface{}{
+			"type":     "01-publish-history",
+			"tip_hash": event.Hash(),
+			"history": []interface{}{
+				map[string]interface{}{
+					"args":    event.Arguments,
+					"handler": "SET",
+					"parent":  "",
+				},
+			},
+		},
+	})
+}
+
 func TestSimpleClient_RequestEvents(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 1)
 	defer spt.Closer()

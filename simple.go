@@ -110,7 +110,9 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 			return err
 		}
 		sc.tip = hash
-		sc.logger.Printf("Updated content: %#v", sc.Export())
+		if sc.logger != nil {
+			sc.logger.Printf("Updated content: %#v", sc.Export())
+		}
 	case "01-request-events":
 		sc.PublishEvents()
 	case "01-publish-events":
