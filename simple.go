@@ -200,6 +200,12 @@ func (sc *SimpleClient) PublishEvents() error {
 	})
 }
 
+func (sc *SimpleClient) RequestTimestamps() error {
+	return sc.client.Publish(map[string]interface{}{
+		"type": "01-request-timestamps",
+	})
+}
+
 // Navigate the Document to an Event, and promote it as the tip.
 func (sc *SimpleClient) Promote(ev document.Event) error {
 	if err := ev.Goto(); err != nil {

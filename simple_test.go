@@ -646,6 +646,20 @@ func TestSimpleClient_EventCycle(t *testing.T) {
 	)
 }
 
+func TestSimpleClient_RequestTimestamps(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	if err := spt.Simple[0].RequestTimestamps(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-timestamps",
+		},
+	})
+}
+
 func TestSimpleClient_Promote(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
