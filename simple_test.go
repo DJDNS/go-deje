@@ -660,6 +660,33 @@ func TestSimpleClient_RequestTimestamps(t *testing.T) {
 	})
 }
 
+func TestSimpleClient_PublishTimestamps(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 1)
+	defer spt.Closer()
+
+	if err := spt.Simple[0].PublishTimestamps(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{},
+		},
+	})
+
+	doc := spt.Simple[0].GetDoc()
+	doc.Timestamps = append(doc.Timestamps, "a hash", "another hash")
+	if err := spt.Simple[0].PublishTimestamps(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{"a hash", "another hash"},
+		},
+	})
+}
+
 func TestSimpleClient_Promote(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
