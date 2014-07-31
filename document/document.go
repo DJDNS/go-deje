@@ -30,6 +30,7 @@ type Document struct {
 	EventsByParent map[string]EventSet  `json:"-"`
 	Quorums        QuorumSet            `json:"quorums"`
 	QuorumsByEvent map[string]QuorumSet `json:"-"`
+	Timestamps     []string             `json:"timestamps"`
 }
 
 // Create a new, blank Document, with fields initialized.
@@ -40,6 +41,7 @@ func NewDocument() Document {
 		EventsByParent: make(map[string]EventSet),
 		Quorums:        make(QuorumSet),
 		QuorumsByEvent: make(map[string]QuorumSet),
+		Timestamps:     make([]string, 0),
 	}
 }
 

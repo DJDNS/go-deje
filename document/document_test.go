@@ -43,7 +43,7 @@ func TestDocument_Serialize_Empty(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := `{"topic":"","events":{},"quorums":{}}` + "\n"
+	expected := `{"topic":"","events":{},"quorums":{},"timestamps":[]}` + "\n"
 	got := buffer.String()
 	if got != expected {
 		t.Fatalf("Expected %#v, got %#v", expected, got)
@@ -114,7 +114,7 @@ func TestDocument_Serialize_WithStuff(t *testing.T) {
 		`},"` + q[1].GetKey() + `":{` +
 		`"event_hash":"other event hash",` +
 		`"sigs":{"John Hancock":"\u003cswoopy cursive\u003e"}` +
-		`}}}` +
+		`}},"timestamps":[]}` +
 		"\n"
 	got := buffer.String()
 	if got != expected {

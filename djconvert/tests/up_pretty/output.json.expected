@@ -12,5 +12,6 @@
             }
         }
     },
-    "quorums": {}
+    "quorums": {},
+    "timestamps": []
 }
