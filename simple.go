@@ -237,9 +237,7 @@ func (sc *SimpleClient) Promote(ev document.Event) error {
 		return err
 	}
 	sc.tip = ev.Hash()
-	if err := sc.PublishTip(); err != nil {
-		return err
-	}
+	sc.PublishTip() // Ignore error - believe it or not, this cannot error
 
 	doc.Timestamps = append(doc.Timestamps, ev.Hash())
 	return sc.PublishTimestamps()

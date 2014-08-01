@@ -274,6 +274,7 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	_no_type_param := "Message with no 'type' param"
 	_bad_tip_hash := "Message with bad 'tip_hash' param"
 	_bad_history := "Message with bad 'history' param"
+	_bad_ts := "Message with bad 'timestamps' param"
 	_clone_err := "json: cannot unmarshal bool into Go value of type document.Event"
 
 	// Cannot be Goto'd
@@ -391,6 +392,26 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 				"tip_hash": incomplete_event.Hash(),
 			},
 			"No path provided",
+		},
+		logtest{
+			map[string]interface{}{
+				"type": "01-publish-timestamps",
+			},
+			_bad_ts,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":       "01-publish-timestamps",
+				"timestamps": "",
+			},
+			_bad_ts,
+		},
+		logtest{
+			map[string]interface{}{
+				"type":       "01-publish-timestamps",
+				"timestamps": []interface{}{"Only strings allowed!", true, false},
+			},
+			_bad_ts,
 		},
 	}
 	for _, lt := range logtests {
