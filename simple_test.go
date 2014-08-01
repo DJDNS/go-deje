@@ -687,6 +687,32 @@ func TestSimpleClient_PublishTimestamps(t *testing.T) {
 	})
 }
 
+func TestSimpleClient_TimestampCycle(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	expected_timestamps := []string{"first hash", "second hash"}
+	doc0 := spt.Simple[0].GetDoc()
+	doc1 := spt.Simple[1].GetDoc()
+	doc1.Timestamps = expected_timestamps
+
+	if err := spt.Simple[0].RequestTimestamps(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-timestamps",
+		},
+		map[string]interface{}{
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{"first hash", "second hash"},
+		},
+	})
+
+	assert.Equal(t, expected_timestamps, doc0.Timestamps)
+	assert.Equal(t, expected_timestamps, doc1.Timestamps)
+}
+
 func TestSimpleClient_Promote(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
@@ -710,6 +736,10 @@ func TestSimpleClient_Promote(t *testing.T) {
 		map[string]interface{}{
 			"type":     "01-publish-tip",
 			"tip_hash": event.Hash(),
+		},
+		map[string]interface{}{ // This race condition will go away after we get rid of tip protocol
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{event.Hash()},
 		},
 		map[string]interface{}{
 			"type": "01-request-history",
@@ -737,6 +767,10 @@ func TestSimpleClient_Promote(t *testing.T) {
 	}
 	assert.Equal(t, spt.Simple[0].Export(), expected_export)
 	assert.Equal(t, spt.Simple[1].Export(), expected_export)
+
+	expected_timestamps := []string{event.Hash()}
+	assert.Equal(t, doc1.Timestamps, expected_timestamps)
+	assert.Equal(t, doc2.Timestamps, expected_timestamps)
 }
 
 func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
@@ -770,6 +804,10 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 		map[string]interface{}{
 			"type":     "01-publish-tip",
 			"tip_hash": eventB.Hash(),
+		},
+		map[string]interface{}{
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{eventB.Hash()},
 		},
 		map[string]interface{}{
 			"type": "01-request-history",

@@ -117,6 +117,22 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 		sc.PublishEvents()
 	case "01-publish-events":
 		return sc.rcvEventList(map_ev, "events")
+	case "01-request-timestamps":
+		sc.PublishTimestamps()
+	case "01-publish-timestamps":
+		ts, ok := map_ev["timestamps"].([]interface{})
+		if !ok {
+			return errors.New("Message with bad 'timestamps' param")
+		}
+		ts_strings := make([]string, len(ts))
+		for i, timestamp := range ts {
+			ts_string, ok := timestamp.(string)
+			if !ok {
+				return errors.New("Message with bad 'timestamps' param")
+			}
+			ts_strings[i] = ts_string
+		}
+		doc.Timestamps = ts_strings
 	default:
 		return errors.New("Unfamiliar message type: '" + evtype + "'")
 	}
@@ -215,11 +231,18 @@ func (sc *SimpleClient) PublishTimestamps() error {
 
 // Navigate the Document to an Event, and promote it as the tip.
 func (sc *SimpleClient) Promote(ev document.Event) error {
+	doc := sc.GetDoc()
+
 	if err := ev.Goto(); err != nil {
 		return err
 	}
 	sc.tip = ev.Hash()
-	return sc.PublishTip()
+	if err := sc.PublishTip(); err != nil {
+		return err
+	}
+
+	doc.Timestamps = append(doc.Timestamps, ev.Hash())
+	return sc.PublishTimestamps()
 }
 
 // Set a callback for when primitives are applied to the document state.
