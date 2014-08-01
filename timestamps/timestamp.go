@@ -6,8 +6,9 @@
 package timestamps
 
 import (
-	"github.com/DJDNS/go-deje/document"
 	"sort"
+
+	"github.com/DJDNS/go-deje/document"
 )
 
 // Different types of TimestampServices can be used,
@@ -59,4 +60,19 @@ func (sts SortingTimestampService) GetTimestamps(topic string) ([]string, error)
 	// Sort and return
 	sort.Strings(timestamps)
 	return timestamps, nil
+}
+
+// A timestamp service that includes a Document pointer, and always
+// returns the doc.Timestamps list.
+//
+// Bandaid implementation for timestamps accumulated from peers.
+type PeerTimestampService struct {
+	Doc *document.Document
+}
+
+func NewPeerTimestampService(doc *document.Document) PeerTimestampService {
+	return PeerTimestampService{doc}
+}
+func (sts PeerTimestampService) GetTimestamps(topic string) ([]string, error) {
+	return sts.Doc.Timestamps, nil
 }

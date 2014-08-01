@@ -1,9 +1,11 @@
 package timestamps
 
 import (
-	"github.com/DJDNS/go-deje/document"
 	"reflect"
 	"testing"
+
+	"github.com/DJDNS/go-deje/document"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDTS_GetTimestamps(t *testing.T) {
@@ -52,4 +54,26 @@ func TestSTS_GetTimestamps(t *testing.T) {
 	if !reflect.DeepEqual(timestamps, expected_timestamps) {
 		t.Fatalf("Expected %#v, got %#v", expected_timestamps, timestamps)
 	}
+}
+
+func TestNewPTS(t *testing.T) {
+	doc := document.NewDocument()
+	doc.Topic = "furbies"
+	sts := NewPeerTimestampService(&doc)
+	assert.Equal(t, &doc, sts.Doc)
+}
+func TestPTS_GetTimestamps(t *testing.T) {
+	doc := document.NewDocument()
+	doc.Topic = "furbies"
+	sts := NewPeerTimestampService(&doc)
+
+	// The given values are event hashes. The quorum hashes will be
+	// different than these string literals.
+	doc.Timestamps = []string{"123", "456", "789"}
+
+	timestamps, err := sts.GetTimestamps(doc.Topic)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, doc.Timestamps, timestamps)
 }
