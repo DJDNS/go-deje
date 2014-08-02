@@ -78,7 +78,29 @@ func (tt *TimestampTracker) DoIteration(position int) error {
 	return nil
 }
 
-// TODO: Implement correctly
 func (tt *TimestampTracker) CompatibleWithTip(event *document.Event) bool {
-	return false
+	if event == nil {
+		return false
+	}
+	hash := event.Hash()
+	if _, ok := tt.Doc.Events[hash]; !ok {
+		return false
+	}
+
+	// Always win against no-tip
+	if tt.tip == "" {
+		return true
+	}
+
+	tip_event, ok := tt.Doc.Events[tt.tip]
+	if !ok {
+		return false
+	}
+
+	ca, err := tip_event.GetCommonAncestor(event)
+	if err != nil {
+		return false
+	}
+
+	return ca == tip_event
 }
