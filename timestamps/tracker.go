@@ -13,7 +13,6 @@ type TimestampTracker struct {
 
 	// Current iteration range
 	timestamps []string
-	position   int
 	tip        string
 }
 
@@ -51,7 +50,6 @@ func (tt *TimestampTracker) StartIteration() error {
 
 	tt.timestamps = timestamps
 	tt.tip = ""
-	tt.position = 0
 	return nil
 }
 
