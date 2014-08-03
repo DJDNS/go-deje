@@ -29,9 +29,6 @@ func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 			simple_client.logger.Println(err)
 		}
 	})
-	if false {
-		logger.Println("This will never happen")
-	}
 	return simple_client
 }
 
