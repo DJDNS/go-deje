@@ -37,6 +37,141 @@ func TestTimestampTracker_StartIteration_ServiceFailure(t *testing.T) {
 	}
 }
 
+type demoDocEvents struct {
+	Root         document.Event
+	Child        document.Event
+	Fork         document.Event
+	Orphan       document.Event
+	CannotGoto   document.Event
+	Unregistered document.Event
+}
+
+func setupEvents(doc document.Document) demoDocEvents {
+	var dde demoDocEvents
+
+	dde.Root = doc.NewEvent("SET")
+	dde.Root.Arguments["path"] = []interface{}{"key"}
+	dde.Root.Arguments["value"] = "value"
+	dde.Root.Register()
+
+	dde.Child = doc.NewEvent("SET")
+	dde.Child.Arguments["path"] = []interface{}{"other key"}
+	dde.Child.Arguments["value"] = "other value"
+	dde.Child.SetParent(dde.Root)
+	dde.Child.Register()
+
+	// Competes with dde.Child
+	dde.Fork = doc.NewEvent("SET")
+	dde.Fork.Arguments["path"] = []interface{}{"fork"}
+	dde.Fork.Arguments["value"] = "fork"
+	dde.Fork.SetParent(dde.Root)
+	dde.Fork.Register()
+
+	// No arguments
+	dde.CannotGoto = doc.NewEvent("SET")
+	dde.CannotGoto.Register()
+
+	dde.Orphan = doc.NewEvent("SET")
+	dde.Orphan.ParentHash = "foobarbaz"
+	dde.Orphan.Register()
+
+	dde.Unregistered = doc.NewEvent("foo")
+
+	return dde
+}
+
+type trackerScenarioSetup func() TimestampTracker
+type trackerScenario struct {
+	Description string
+	Builder     trackerScenarioSetup
+	Timestamps  []string
+	Position    int
+	Output      error
+	StartTip    string
+	EndTip      string
+}
+
+func tsbuilderRaw() TimestampTracker {
+	doc := document.NewDocument()
+	service := NewPeerTimestampService(&doc)
+	return NewTimestampTracker(&doc, service)
+}
+
+func tsbuilderNormal() TimestampTracker {
+	doc := document.NewDocument()
+	service := NewPeerTimestampService(&doc)
+
+	setupEvents(doc)
+
+	return NewTimestampTracker(&doc, service)
+}
+
+func TestTimestampTracker_DoIteration(t *testing.T) {
+	// For hash info
+	dde := setupEvents(document.NewDocument())
+
+	scenarios := []trackerScenario{
+		trackerScenario{
+			Description: "No timestamps, therefore bad index",
+			Builder:     tsbuilderRaw,
+			Timestamps:  []string{},
+			Position:    0,
+			Output:      errors.New("Bad position"),
+			StartTip:    "",
+			EndTip:      "",
+		},
+		trackerScenario{
+			Description: "Timestamp references missing event",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{dde.Unregistered.Hash()},
+			Position:    0,
+			Output:      errors.New("No such event"),
+			StartTip:    "",
+			EndTip:      "",
+		},
+		trackerScenario{
+			Description: "Incompatible branch",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{dde.Root.Hash()},
+			Position:    0,
+			Output:      errors.New("Event is not compatible with and ahead of tip"),
+			StartTip:    dde.Child.Hash(),
+			EndTip:      dde.Child.Hash(),
+		},
+		trackerScenario{
+			Description: "Goto() failure",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{dde.CannotGoto.Hash()},
+			Position:    0,
+			Output:      errors.New("No path provided"),
+			StartTip:    "",
+			EndTip:      "",
+		},
+		trackerScenario{
+			Description: "Success",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{dde.Root.Hash(), dde.Child.Hash()},
+			Position:    1,
+			Output:      nil,
+			StartTip:    dde.Child.Hash(),
+			EndTip:      dde.Child.Hash(),
+		},
+	}
+	for i, scenario := range scenarios {
+		tracker := scenario.Builder()
+		tracker.Doc.Timestamps = scenario.Timestamps
+		tracker.StartIteration()
+		tracker.tip = scenario.StartTip
+
+		assert.Equal(t,
+			scenario.Output,
+			tracker.DoIteration(scenario.Position),
+			"Scenario %d (%s)", i, scenario.Description,
+		)
+		assert.Equal(t, scenario.EndTip, tracker.tip)
+	}
+}
+
 type compatibleTest struct {
 	Tip            string
 	ComparedEvent  *document.Event
@@ -47,30 +182,7 @@ type compatibleTest struct {
 func TestTimestampTracker_CompatibleWithTip(t *testing.T) {
 	doc := document.NewDocument()
 	tracker := NewTimestampTracker(&doc, nil)
-
-	evRoot := doc.NewEvent("SET")
-	evRoot.Arguments["path"] = []interface{}{"key"}
-	evRoot.Arguments["value"] = "value"
-	evRoot.Register()
-
-	evChild := doc.NewEvent("SET")
-	evChild.Arguments["path"] = []interface{}{"other key"}
-	evChild.Arguments["value"] = "other value"
-	evChild.SetParent(evRoot)
-	evChild.Register()
-
-	// Competes with evChild
-	evFork := doc.NewEvent("SET")
-	evFork.Arguments["path"] = []interface{}{"fork"}
-	evFork.Arguments["value"] = "fork"
-	evFork.SetParent(evRoot)
-	evFork.Register()
-
-	evBadParentHash := doc.NewEvent("SET")
-	evBadParentHash.ParentHash = "foobarbaz"
-	evBadParentHash.Register()
-
-	evUnregistered := doc.NewEvent("foo")
+	dde := setupEvents(doc)
 
 	tests := []compatibleTest{
 		compatibleTest{
@@ -81,43 +193,43 @@ func TestTimestampTracker_CompatibleWithTip(t *testing.T) {
 		},
 		compatibleTest{
 			Tip:            "",
-			ComparedEvent:  &evUnregistered,
+			ComparedEvent:  &dde.Unregistered,
 			ExpectedResult: false,
 			Description:    "An unregistered event",
 		},
 		compatibleTest{
 			Tip:            "",
-			ComparedEvent:  &evRoot,
+			ComparedEvent:  &dde.Root,
 			ExpectedResult: true,
 			Description:    "Any registered event vs no-tip",
 		},
 		compatibleTest{
-			Tip:            evRoot.Hash(),
-			ComparedEvent:  &evChild,
+			Tip:            dde.Root.Hash(),
+			ComparedEvent:  &dde.Child,
 			ExpectedResult: true,
 			Description:    "Child of root event",
 		},
 		compatibleTest{
-			Tip:            evChild.Hash(),
-			ComparedEvent:  &evRoot,
+			Tip:            dde.Child.Hash(),
+			ComparedEvent:  &dde.Root,
 			ExpectedResult: false,
 			Description:    "Parent of tip event",
 		},
 		compatibleTest{
-			Tip:            evChild.Hash(),
-			ComparedEvent:  &evFork,
+			Tip:            dde.Child.Hash(),
+			ComparedEvent:  &dde.Fork,
 			ExpectedResult: false,
 			Description:    "Incompatible forks",
 		},
 		compatibleTest{
 			Tip:            "foobar",
-			ComparedEvent:  &evRoot,
+			ComparedEvent:  &dde.Root,
 			ExpectedResult: false,
 			Description:    "Some random broken tip value",
 		},
 		compatibleTest{
-			Tip:            evRoot.Hash(),
-			ComparedEvent:  &evBadParentHash,
+			Tip:            dde.Root.Hash(),
+			ComparedEvent:  &dde.Orphan,
 			ExpectedResult: false,
 			Description:    "Bad or missing heritage",
 		},

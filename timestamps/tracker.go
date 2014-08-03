@@ -55,7 +55,7 @@ func (tt *TimestampTracker) StartIteration() error {
 
 // Single iteration of finder. If it succeeds, updates the tip.
 func (tt *TimestampTracker) DoIteration(position int) error {
-	if position < 0 || position > len(tt.timestamps) {
+	if position < 0 || position >= len(tt.timestamps) {
 		return errors.New("Bad position")
 	}
 
