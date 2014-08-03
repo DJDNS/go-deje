@@ -70,9 +70,8 @@ func TestSimpleClient_Open(t *testing.T) {
 		t.Fatal(err)
 	}
 	message := map[string]interface{}{
-		"type":     "01-publish-history",
-		"tip_hash": event.Hash(),
-		"history":  []interface{}{},
+		"type":       "01-publish-timestamps",
+		"timestamps": []interface{}{event.Hash()},
 	}
 	if !assert.NoError(t, raw_client.Publish(message)) {
 		t.Fail()
@@ -305,8 +304,6 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	}
 
 	// Confirm that we still respond well to legit data afterwards
-	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
-	spt.Simple[1].tip = "some hash"
 	if err := spt.Simple[0].RequestTimestamps(); err != nil {
 		t.Fatal(err)
 	}
@@ -532,7 +529,7 @@ func TestSimpleClient_Promote(t *testing.T) {
 		t.Fatal(err)
 	}
 	spt.Expect(t, []interface{}{
-		map[string]interface{}{ // This race condition will go away after we get rid of tip protocol
+		map[string]interface{}{
 			"type":       "01-publish-timestamps",
 			"timestamps": []interface{}{event.Hash()},
 		},
@@ -551,8 +548,8 @@ func TestSimpleClient_Promote(t *testing.T) {
 		},
 	})
 
-	assert.Equal(t, spt.Simple[0].tip, event.Hash())
-	assert.Equal(t, spt.Simple[1].tip, event.Hash())
+	assert.Equal(t, spt.Simple[0].Tip, event.Hash())
+	assert.Equal(t, spt.Simple[1].Tip, event.Hash())
 	assert.Equal(t, *doc1.Events[event.Hash()], event)
 	assert.Equal(t, *doc2.Events[event.Hash()], event)
 

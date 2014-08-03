@@ -7,14 +7,17 @@ import (
 
 	"github.com/DJDNS/go-deje/document"
 	"github.com/DJDNS/go-deje/state"
+	"github.com/DJDNS/go-deje/timestamps"
 	"github.com/DJDNS/go-deje/util"
 )
 
 // Wraps the low-level capabilities of the basic Client to provide
 // an easier, more useful API to downstream code.
 type SimpleClient struct {
+	Tip string // tip event hash
+
 	client *Client
-	tip    string
+	tt     timestamps.TimestampTracker
 	logger *log.Logger
 }
 
@@ -22,7 +25,13 @@ type SimpleClient struct {
 // you should probably use Open() instead of NewSimpleClient().
 func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 	raw_client := NewClient(topic)
-	simple_client := &SimpleClient{&raw_client, "", logger}
+	doc := raw_client.Doc
+	simple_client := &SimpleClient{
+		"",
+		&raw_client,
+		timestamps.NewTimestampTracker(doc, timestamps.NewPeerTimestampService(doc)),
+		logger,
+	}
 	raw_client.SetEventCallback(func(event interface{}) {
 		err := simple_client.onRcv(event)
 		if err != nil && simple_client.logger != nil {
@@ -63,6 +72,7 @@ func (sc *SimpleClient) rcvEventList(parent map[string]interface{}, key string) 
 		}
 		doc_ev.Register()
 	}
+	sc.ReTip()
 	return nil
 }
 
@@ -107,6 +117,8 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 		}
 		if unfamiliar {
 			sc.RequestEvents()
+		} else {
+			sc.ReTip()
 		}
 	default:
 		return errors.New("Unfamiliar message type: '" + evtype + "'")
@@ -114,13 +126,17 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 	return nil
 }
 
-// Connect and immediately request the tip event hash.
+// Connect and immediately request timestamps.
 func (sc *SimpleClient) Connect(url string) error {
 	err := sc.client.Connect(url)
 	if err != nil {
 		return err
 	}
 	return sc.RequestTimestamps()
+}
+
+func (sc *SimpleClient) ReTip() {
+	sc.Tip = sc.tt.GoToLatest(sc.logger)
 }
 
 func (sc *SimpleClient) RequestEvents() error {
@@ -171,9 +187,9 @@ func (sc *SimpleClient) Promote(ev document.Event) error {
 	if err := ev.Goto(); err != nil {
 		return err
 	}
-	sc.tip = ev.Hash()
 
 	doc.Timestamps = append(doc.Timestamps, ev.Hash())
+	sc.ReTip()
 	return sc.PublishTimestamps()
 }
 
