@@ -222,13 +222,13 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	_unf_msg_type := "Unfamiliar message type: "
 	_non_obj_msg := "Non-{} message"
 	_no_type_param := "Message with no 'type' param"
-	_bad_tip_hash := "Message with bad 'tip_hash' param"
-	_bad_history := "Message with bad 'history' param"
+	//_bad_tip_hash := "Message with bad 'tip_hash' param"
+	//_bad_history := "Message with bad 'history' param"
 	_bad_ts := "Message with bad 'timestamps' param"
-	_clone_err := "json: cannot unmarshal bool into Go value of type document.Event"
+	//_clone_err := "json: cannot unmarshal bool into Go value of type document.Event"
 
 	// Cannot be Goto'd
-	incomplete_event := spt.Simple[0].GetDoc().NewEvent("SET")
+	//incomplete_event := spt.Simple[0].GetDoc().NewEvent("SET")
 
 	// Send a series of bad data
 	// (can't do numbers, floating point eq fails)
@@ -278,70 +278,6 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 		logtest{
 			map[string]interface{}{},
 			_no_type_param,
-		},
-		logtest{
-			map[string]interface{}{
-				"type": "01-publish-tip",
-			},
-			_bad_tip_hash,
-		},
-		logtest{
-			map[string]interface{}{
-				"type": "01-publish-history",
-			},
-			_bad_history,
-		},
-		logtest{
-			map[string]interface{}{
-				"type":    "01-publish-history",
-				"history": true,
-			},
-			_bad_history,
-		},
-		logtest{
-			map[string]interface{}{
-				"type":    "01-publish-history",
-				"history": []interface{}{true},
-			},
-			_clone_err,
-		},
-		logtest{
-			map[string]interface{}{
-				"type":    "01-publish-history",
-				"history": []interface{}{},
-			},
-			_bad_tip_hash,
-		},
-		logtest{
-			map[string]interface{}{
-				"type":     "01-publish-history",
-				"history":  []interface{}{},
-				"tip_hash": true,
-			},
-			_bad_tip_hash,
-		},
-		logtest{
-			map[string]interface{}{
-				"type":     "01-publish-history",
-				"history":  []interface{}{},
-				"tip_hash": "foomatic",
-			},
-			"Unknown event foomatic",
-		},
-		logtest{
-			map[string]interface{}{
-				"type": "01-publish-history",
-				"history": []interface{}{
-					// Restate incomplete_event as raw JSON
-					map[string]interface{}{
-						"args":    map[string]interface{}{},
-						"handler": "SET",
-						"parent":  "",
-					},
-				},
-				"tip_hash": incomplete_event.Hash(),
-			},
-			"No path provided",
 		},
 		logtest{
 			map[string]interface{}{
