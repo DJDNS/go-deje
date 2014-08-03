@@ -1,7 +1,9 @@
 package timestamps
 
 import (
+	"bytes"
 	"errors"
+	"log"
 	"testing"
 
 	"github.com/DJDNS/go-deje/document"
@@ -81,12 +83,20 @@ func setupEvents(doc document.Document) demoDocEvents {
 }
 
 type trackerScenarioSetup func() TimestampTracker
-type trackerScenario struct {
+type trackerDoIterationScenario struct {
 	Description string
 	Builder     trackerScenarioSetup
 	Timestamps  []string
 	Position    int
 	Output      error
+	StartTip    string
+	EndTip      string
+}
+type trackerGoToLatestScenario struct {
+	Description string
+	Builder     trackerScenarioSetup
+	Timestamps  []string
+	LogOutput   string
 	StartTip    string
 	EndTip      string
 }
@@ -105,13 +115,113 @@ func tsbuilderNormal() TimestampTracker {
 
 	return NewTimestampTracker(&doc, service)
 }
+func tsbuilderFails() TimestampTracker {
+	doc := document.NewDocument()
+	service := failingTimestampService("tsbuilderFails() service breaks on purpose")
+	return NewTimestampTracker(&doc, service)
+}
+
+func TestTimestampTracker_GoToLatest(t *testing.T) {
+	// For hash info
+	dde := setupEvents(document.NewDocument())
+
+	scenarios := []trackerGoToLatestScenario{
+		trackerGoToLatestScenario{
+			Description: "No timestamps, therefore no change",
+			Builder:     tsbuilderRaw,
+			Timestamps:  []string{},
+			LogOutput:   "",
+			StartTip:    "",
+			EndTip:      "",
+		},
+		trackerGoToLatestScenario{
+			Description: "StartIteration fails",
+			Builder:     tsbuilderFails,
+			Timestamps:  []string{},
+			LogOutput:   "test_logger: tsbuilderFails() service breaks on purpose\n",
+			StartTip:    "",
+			EndTip:      "",
+		},
+		trackerGoToLatestScenario{
+			Description: "StartIteration fails when already at a tip",
+			Builder:     tsbuilderFails,
+			Timestamps:  []string{},
+			LogOutput:   "test_logger: tsbuilderFails() service breaks on purpose\n",
+			StartTip:    "abc",
+			EndTip:      "abc",
+		},
+		trackerGoToLatestScenario{
+			Description: "Failure on one timestamp",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{"xyz"},
+			LogOutput:   "test_logger: Error on iteration 0 (current tip: ''):\ntest_logger: No such event\n",
+			StartTip:    "",
+			EndTip:      "",
+		},
+		trackerGoToLatestScenario{
+			Description: "Success on one timestamp",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{dde.Root.Hash()},
+			LogOutput:   "",
+			StartTip:    dde.Root.Hash(),
+			EndTip:      dde.Root.Hash(),
+		},
+		trackerGoToLatestScenario{
+			Description: "Failure does not impede or destroy progress",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{"abc", dde.Root.Hash(), "xyz"},
+			LogOutput:   "test_logger: Error on iteration 0 (current tip: ''):\ntest_logger: No such event\ntest_logger: Error on iteration 2 (current tip: '" + dde.Root.Hash() + "'):\ntest_logger: No such event\n",
+			StartTip:    dde.Root.Hash(),
+			EndTip:      dde.Root.Hash(),
+		},
+		trackerGoToLatestScenario{
+			Description: "First fork wins",
+			Builder:     tsbuilderNormal,
+			Timestamps:  []string{dde.Root.Hash(), dde.Child.Hash(), dde.Fork.Hash()},
+			LogOutput:   "test_logger: Error on iteration 2 (current tip: '" + dde.Child.Hash() + "'):\ntest_logger: Event is not compatible with and ahead of tip\n",
+			StartTip:    dde.Child.Hash(),
+			EndTip:      dde.Child.Hash(),
+		},
+	}
+	for i, scenario := range scenarios {
+		buf := new(bytes.Buffer)
+		logger := log.New(buf, "test_logger: ", 0)
+
+		tracker := scenario.Builder()
+		tracker.Doc.Timestamps = scenario.Timestamps
+		tracker.StartIteration()
+		tracker.tip = scenario.StartTip
+
+		assert.Equal(t,
+			scenario.EndTip,
+			tracker.GoToLatest(logger),
+			"Scenario %d (%s)", i, scenario.Description,
+		)
+		assert.Equal(t, scenario.EndTip, tracker.tip)
+		assert.Equal(t, scenario.LogOutput, buf.String())
+	}
+}
+func TestTimestampTracker_GoToLatest_NilLogger(t *testing.T) {
+	// Test StartIteration failure
+	doc := document.NewDocument()
+	service := failingTimestampService("tsbuilderFails() service breaks on purpose")
+	tracker := NewTimestampTracker(&doc, service)
+
+	assert.Equal(t, "", tracker.GoToLatest(nil))
+
+	// Test DoIteration failure
+	tracker.Service = NewPeerTimestampService(&doc)
+	doc.Timestamps = []string{"This hash does not exist"}
+
+	assert.Equal(t, "", tracker.GoToLatest(nil))
+}
 
 func TestTimestampTracker_DoIteration(t *testing.T) {
 	// For hash info
 	dde := setupEvents(document.NewDocument())
 
-	scenarios := []trackerScenario{
-		trackerScenario{
+	scenarios := []trackerDoIterationScenario{
+		trackerDoIterationScenario{
 			Description: "No timestamps, therefore bad index",
 			Builder:     tsbuilderRaw,
 			Timestamps:  []string{},
@@ -120,7 +230,7 @@ func TestTimestampTracker_DoIteration(t *testing.T) {
 			StartTip:    "",
 			EndTip:      "",
 		},
-		trackerScenario{
+		trackerDoIterationScenario{
 			Description: "Timestamp references missing event",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.Unregistered.Hash()},
@@ -129,7 +239,7 @@ func TestTimestampTracker_DoIteration(t *testing.T) {
 			StartTip:    "",
 			EndTip:      "",
 		},
-		trackerScenario{
+		trackerDoIterationScenario{
 			Description: "Incompatible branch",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.Root.Hash()},
@@ -138,7 +248,7 @@ func TestTimestampTracker_DoIteration(t *testing.T) {
 			StartTip:    dde.Child.Hash(),
 			EndTip:      dde.Child.Hash(),
 		},
-		trackerScenario{
+		trackerDoIterationScenario{
 			Description: "Goto() failure",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.CannotGoto.Hash()},
@@ -147,7 +257,7 @@ func TestTimestampTracker_DoIteration(t *testing.T) {
 			StartTip:    "",
 			EndTip:      "",
 		},
-		trackerScenario{
+		trackerDoIterationScenario{
 			Description: "Success",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.Root.Hash(), dde.Child.Hash()},

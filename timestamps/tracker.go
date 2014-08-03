@@ -29,7 +29,7 @@ func (tt *TimestampTracker) GoToLatest(logger *log.Logger) string {
 		if logger != nil {
 			logger.Println(err)
 		}
-		return ""
+		return tt.tip
 	}
 	for p := range tt.timestamps {
 		err := tt.DoIteration(p)
