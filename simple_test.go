@@ -197,56 +197,6 @@ func (spt simpleProtoTest) Expect(t *testing.T, messages []interface{}) {
 	}
 }
 
-func TestSimpleClient_RequestTip(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 1)
-	defer spt.Closer()
-
-	if err := spt.Simple[0].RequestTip(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type": "01-request-tip",
-		},
-	})
-}
-
-func TestSimpleClient_PublishTip(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 1)
-	defer spt.Closer()
-
-	spt.Simple[0].tip = "some hash"
-	if err := spt.Simple[0].PublishTip(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type":     "01-publish-tip",
-			"tip_hash": "some hash",
-		},
-	})
-}
-
-func TestSimpleClient_TipCycle(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 2)
-	defer spt.Closer()
-
-	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
-	spt.Simple[1].tip = "some hash"
-	if err := spt.Simple[0].RequestTip(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type": "01-request-tip",
-		},
-		map[string]interface{}{
-			"type":     "01-publish-tip",
-			"tip_hash": "some hash",
-		},
-	})
-}
-
 type logtest struct {
 	Message interface{}
 	Logline string
@@ -421,163 +371,16 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	// Confirm that we still respond well to legit data afterwards
 	spt.Simple[0].tip = "some hash" // Make sure requesting client does not ask for history
 	spt.Simple[1].tip = "some hash"
-	if err := spt.Simple[0].RequestTip(); err != nil {
+	if err := spt.Simple[0].RequestTimestamps(); err != nil {
 		t.Fatal(err)
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-tip",
+			"type": "01-request-timestamps",
 		},
 		map[string]interface{}{
-			"type":     "01-publish-tip",
-			"tip_hash": "some hash",
-		},
-	})
-}
-
-func TestSimpleClient_RequestHistory(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 1)
-	defer spt.Closer()
-
-	if err := spt.Simple[0].RequestHistory(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type": "01-request-history",
-		},
-	})
-}
-
-func TestSimpleClient_PublishHistory_NoHistory(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 1)
-	defer spt.Closer()
-
-	if err := spt.Simple[0].PublishHistory(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": "",
-			"error":    "not-found",
-		},
-	})
-}
-
-func TestSimpleClient_PublishHistory_IncompleteHistory(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 1)
-	defer spt.Closer()
-
-	// Add a bit of history, but never register root
-	doc := spt.Simple[0].GetDoc()
-	root := doc.NewEvent("handler name")
-	child := doc.NewEvent("other handler")
-	child.SetParent(root)
-	child.Register()
-	spt.Simple[0].tip = child.Hash()
-
-	if err := spt.Simple[0].PublishHistory(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": child.Hash(),
-			"error":    "root-not-found",
-		},
-	})
-}
-
-func TestSimpleClient_PublishHistory_FullHistory(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 1)
-	defer spt.Closer()
-
-	// Add full history
-	doc := spt.Simple[0].GetDoc()
-	root := doc.NewEvent("root")
-	child := doc.NewEvent("child")
-	child.SetParent(root)
-	root.Register()
-	child.Register()
-	spt.Simple[0].tip = child.Hash()
-
-	if err := spt.Simple[0].PublishHistory(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": child.Hash(),
-			"history": []interface{}{
-				map[string]interface{}{
-					"handler": "root",
-					"parent":  "",
-					"args":    map[string]interface{}{},
-				},
-				map[string]interface{}{
-					"handler": "child",
-					"parent":  root.Hash(),
-					"args":    map[string]interface{}{},
-				},
-			},
-		},
-	})
-}
-
-// Can test a simple failure, because we cover (more complex) success
-// in other tests already.
-func TestSimpleClient_HistoryCycle(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 2)
-	defer spt.Closer()
-
-	spt.Simple[1].tip = "some hash"
-	if err := spt.Simple[0].RequestHistory(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type": "01-request-history",
-		},
-		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": "some hash",
-			"error":    "not-found",
-		},
-	})
-}
-
-func TestSimpleClient_HistoryCycle_NilLogger(t *testing.T) {
-	spt := setupSimpleProtocolTest(t, 2)
-	defer spt.Closer()
-
-	spt.Simple[0].logger = nil
-	spt.Simple[1].logger = nil
-
-	event := spt.Simple[1].GetDoc().NewEvent("SET")
-	event.Arguments["path"] = []interface{}{"foo"}
-	event.Arguments["value"] = "bar"
-	event.Register()
-
-	spt.Simple[1].tip = event.Hash()
-
-	if err := spt.Simple[0].RequestHistory(); err != nil {
-		t.Fatal(err)
-	}
-	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type": "01-request-history",
-		},
-		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": event.Hash(),
-			"history": []interface{}{
-				map[string]interface{}{
-					"args":    event.Arguments,
-					"handler": "SET",
-					"parent":  "",
-				},
-			},
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{},
 		},
 	})
 }
