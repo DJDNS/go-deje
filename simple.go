@@ -98,6 +98,16 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 			ts_strings[i] = ts_string
 		}
 		doc.Timestamps = ts_strings
+
+		var unfamiliar bool
+		for _, ts_string := range doc.Timestamps {
+			if _, ok := doc.Events[ts_string]; !ok {
+				unfamiliar = true
+			}
+		}
+		if unfamiliar {
+			sc.RequestEvents()
+		}
 	default:
 		return errors.New("Unfamiliar message type: '" + evtype + "'")
 	}

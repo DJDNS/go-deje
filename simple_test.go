@@ -120,7 +120,7 @@ func TestSimpleClient_Connect(t *testing.T) {
 
 	// Ensure that RequestTip was broadcast
 	expected := map[string]interface{}{
-		"type": "01-request-tip",
+		"type": "01-request-timestamps",
 	}
 	select {
 	case event := <-events_rcvd:
@@ -451,11 +451,18 @@ func TestSimpleClient_TimestampCycle(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 2)
 	defer spt.Closer()
 
-	expected_timestamps := []string{"first hash", "second hash"}
 	doc0 := spt.Simple[0].GetDoc()
 	doc1 := spt.Simple[1].GetDoc()
+
+	evFirst := doc1.NewEvent("first")
+	evFirst.Register()
+	evSecond := doc1.NewEvent("second")
+	evSecond.Register()
+
+	expected_timestamps := []string{evFirst.Hash(), evSecond.Hash()}
 	doc1.Timestamps = expected_timestamps
 
+	// First time, events are foreign to doc0
 	if err := spt.Simple[0].RequestTimestamps(); err != nil {
 		t.Fatal(err)
 	}
@@ -465,12 +472,44 @@ func TestSimpleClient_TimestampCycle(t *testing.T) {
 		},
 		map[string]interface{}{
 			"type":       "01-publish-timestamps",
-			"timestamps": []interface{}{"first hash", "second hash"},
+			"timestamps": []interface{}{evFirst.Hash(), evSecond.Hash()},
+		},
+		map[string]interface{}{
+			"type": "01-request-events",
+		},
+		map[string]interface{}{
+			"type": "01-publish-events",
+			"events": []interface{}{
+				map[string]interface{}{
+					"handler": "second",
+					"parent":  "",
+					"args":    map[string]interface{}{},
+				},
+				map[string]interface{}{
+					"parent":  "",
+					"args":    map[string]interface{}{},
+					"handler": "first",
+				},
+			},
 		},
 	})
 
 	assert.Equal(t, expected_timestamps, doc0.Timestamps)
 	assert.Equal(t, expected_timestamps, doc1.Timestamps)
+
+	// Second time, events are known to doc0, no need to request events
+	if err := spt.Simple[0].RequestTimestamps(); err != nil {
+		t.Fatal(err)
+	}
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type": "01-request-timestamps",
+		},
+		map[string]interface{}{
+			"type":       "01-publish-timestamps",
+			"timestamps": []interface{}{evFirst.Hash(), evSecond.Hash()},
+		},
+	})
 }
 
 func TestSimpleClient_Promote(t *testing.T) {
@@ -493,21 +532,16 @@ func TestSimpleClient_Promote(t *testing.T) {
 		t.Fatal(err)
 	}
 	spt.Expect(t, []interface{}{
-		map[string]interface{}{
-			"type":     "01-publish-tip",
-			"tip_hash": event.Hash(),
-		},
 		map[string]interface{}{ // This race condition will go away after we get rid of tip protocol
 			"type":       "01-publish-timestamps",
 			"timestamps": []interface{}{event.Hash()},
 		},
 		map[string]interface{}{
-			"type": "01-request-history",
+			"type": "01-request-events",
 		},
 		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": event.Hash(),
-			"history": []interface{}{
+			"type": "01-publish-events",
+			"events": []interface{}{
 				map[string]interface{}{
 					"handler": "SET",
 					"parent":  "",
@@ -562,29 +596,24 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type":     "01-publish-tip",
-			"tip_hash": eventB.Hash(),
-		},
-		map[string]interface{}{
 			"type":       "01-publish-timestamps",
 			"timestamps": []interface{}{eventB.Hash()},
 		},
 		map[string]interface{}{
-			"type": "01-request-history",
+			"type": "01-request-events",
 		},
 		map[string]interface{}{
-			"type":     "01-publish-history",
-			"tip_hash": eventB.Hash(),
-			"history": []interface{}{
-				map[string]interface{}{
-					"handler": "SET",
-					"parent":  "",
-					"args":    eventA.Arguments,
-				},
+			"type": "01-publish-events",
+			"events": []interface{}{
 				map[string]interface{}{
 					"handler": "DELETE",
 					"parent":  eventA.Hash(),
 					"args":    eventB.Arguments,
+				},
+				map[string]interface{}{
+					"handler": "SET",
+					"parent":  "",
+					"args":    eventA.Arguments,
 				},
 			},
 		},
