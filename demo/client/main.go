@@ -34,6 +34,8 @@ func load(sc *deje.SimpleClient) {
 	}
 	doc.Topic = *topic
 	log.Printf("Topic: %s", doc.Topic)
+	sc.ReTip()
+	log.Printf("Tip: %s", sc.Tip)
 }
 
 func save(sc *deje.SimpleClient) {
@@ -93,7 +95,7 @@ func main() {
 	flag.Parse()
 	url := "ws://" + *host + "/ws"
 	logger := log.New(os.Stderr, "deje.SimpleClient: ", 0)
-	io_loop_commander := make(chan string)
+	io_loop_commander := make(chan string, 4)
 	io_loop_closer := make(Closer)
 
 	sc := deje.NewSimpleClient(*topic, logger)

@@ -32,7 +32,9 @@ func (tt *TimestampTracker) GoToLatest(logger *log.Logger) string {
 		return tt.tip
 	}
 	for p := range tt.timestamps {
+		logger.Printf("Iteration %d (%s)", p, tt.timestamps[p])
 		err := tt.DoIteration(p)
+		logger.Printf("Finished iteration %d (%s)", p, tt.timestamps[p])
 		if err != nil && logger != nil {
 			logger.Printf("Error on iteration %d (current tip: '%s'):\n", p, tt.tip)
 			logger.Println(err)
