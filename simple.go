@@ -88,13 +88,13 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 
 	doc := sc.GetDoc()
 	switch evtype {
-	case "01-request-events":
+	case "02-request-events":
 		sc.PublishEvents()
-	case "01-publish-events":
+	case "02-publish-events":
 		return sc.rcvEventList(map_ev, "events")
-	case "01-request-timestamps":
+	case "02-request-timestamps":
 		sc.PublishTimestamps()
-	case "01-publish-timestamps":
+	case "02-publish-timestamps":
 		ts, ok := map_ev["timestamps"].([]interface{})
 		if !ok {
 			return errors.New("Message with bad 'timestamps' param")
@@ -141,7 +141,7 @@ func (sc *SimpleClient) ReTip() {
 
 func (sc *SimpleClient) RequestEvents() error {
 	return sc.client.Publish(map[string]interface{}{
-		"type": "01-request-events",
+		"type": "02-request-events",
 	})
 }
 
@@ -162,20 +162,20 @@ func (sc *SimpleClient) PublishEvents() error {
 	}
 
 	return sc.client.Publish(map[string]interface{}{
-		"type":   "01-publish-events",
+		"type":   "02-publish-events",
 		"events": events,
 	})
 }
 
 func (sc *SimpleClient) RequestTimestamps() error {
 	return sc.client.Publish(map[string]interface{}{
-		"type": "01-request-timestamps",
+		"type": "02-request-timestamps",
 	})
 }
 
 func (sc *SimpleClient) PublishTimestamps() error {
 	return sc.client.Publish(map[string]interface{}{
-		"type":       "01-publish-timestamps",
+		"type":       "02-publish-timestamps",
 		"timestamps": sc.GetDoc().Timestamps,
 	})
 }

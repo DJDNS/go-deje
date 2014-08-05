@@ -70,7 +70,7 @@ func TestSimpleClient_Open(t *testing.T) {
 		t.Fatal(err)
 	}
 	message := map[string]interface{}{
-		"type":       "01-publish-timestamps",
+		"type":       "02-publish-timestamps",
 		"timestamps": []interface{}{event.Hash()},
 	}
 	if !assert.NoError(t, raw_client.Publish(message)) {
@@ -119,7 +119,7 @@ func TestSimpleClient_Connect(t *testing.T) {
 
 	// Ensure that RequestTip was broadcast
 	expected := map[string]interface{}{
-		"type": "01-request-timestamps",
+		"type": "02-request-timestamps",
 	}
 	select {
 	case event := <-events_rcvd:
@@ -279,33 +279,33 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 		},
 		logtest{
 			map[string]interface{}{
-				"type": "01-publish-events",
+				"type": "02-publish-events",
 			},
 			_bad_events,
 		},
 		logtest{
 			map[string]interface{}{
-				"type":   "01-publish-events",
+				"type":   "02-publish-events",
 				"events": []interface{}{true},
 			},
 			_clone_err,
 		},
 		logtest{
 			map[string]interface{}{
-				"type": "01-publish-timestamps",
+				"type": "02-publish-timestamps",
 			},
 			_bad_ts,
 		},
 		logtest{
 			map[string]interface{}{
-				"type":       "01-publish-timestamps",
+				"type":       "02-publish-timestamps",
 				"timestamps": "",
 			},
 			_bad_ts,
 		},
 		logtest{
 			map[string]interface{}{
-				"type":       "01-publish-timestamps",
+				"type":       "02-publish-timestamps",
 				"timestamps": []interface{}{"Only strings allowed!", true, false},
 			},
 			_bad_ts,
@@ -321,10 +321,10 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-timestamps",
+			"type": "02-request-timestamps",
 		},
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{},
 		},
 	})
@@ -339,7 +339,7 @@ func TestSimpleClient_RequestEvents(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-events",
+			"type": "02-request-events",
 		},
 	})
 }
@@ -353,7 +353,7 @@ func TestSimpleClient_PublishEvents(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type":   "01-publish-events",
+			"type":   "02-publish-events",
 			"events": []interface{}{},
 		},
 	})
@@ -384,10 +384,10 @@ func TestSimpleClient_EventCycle(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-events",
+			"type": "02-request-events",
 		},
 		map[string]interface{}{
-			"type": "01-publish-events",
+			"type": "02-publish-events",
 			"events": []interface{}{
 				map[string]interface{}{
 					"handler": "first",
@@ -424,7 +424,7 @@ func TestSimpleClient_RequestTimestamps(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-timestamps",
+			"type": "02-request-timestamps",
 		},
 	})
 }
@@ -438,7 +438,7 @@ func TestSimpleClient_PublishTimestamps(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{},
 		},
 	})
@@ -450,7 +450,7 @@ func TestSimpleClient_PublishTimestamps(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{"a hash", "another hash"},
 		},
 	})
@@ -477,17 +477,17 @@ func TestSimpleClient_TimestampCycle(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-timestamps",
+			"type": "02-request-timestamps",
 		},
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{evFirst.Hash(), evSecond.Hash()},
 		},
 		map[string]interface{}{
-			"type": "01-request-events",
+			"type": "02-request-events",
 		},
 		map[string]interface{}{
-			"type": "01-publish-events",
+			"type": "02-publish-events",
 			"events": []interface{}{
 				map[string]interface{}{
 					"handler": "second",
@@ -512,10 +512,10 @@ func TestSimpleClient_TimestampCycle(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type": "01-request-timestamps",
+			"type": "02-request-timestamps",
 		},
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{evFirst.Hash(), evSecond.Hash()},
 		},
 	})
@@ -542,14 +542,14 @@ func TestSimpleClient_Promote(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{event.Hash()},
 		},
 		map[string]interface{}{
-			"type": "01-request-events",
+			"type": "02-request-events",
 		},
 		map[string]interface{}{
-			"type": "01-publish-events",
+			"type": "02-publish-events",
 			"events": []interface{}{
 				map[string]interface{}{
 					"handler": "SET",
@@ -605,14 +605,14 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	}
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
-			"type":       "01-publish-timestamps",
+			"type":       "02-publish-timestamps",
 			"timestamps": []interface{}{eventB.Hash()},
 		},
 		map[string]interface{}{
-			"type": "01-request-events",
+			"type": "02-request-events",
 		},
 		map[string]interface{}{
-			"type": "01-publish-events",
+			"type": "02-publish-events",
 			"events": []interface{}{
 				map[string]interface{}{
 					"handler": "DELETE",
