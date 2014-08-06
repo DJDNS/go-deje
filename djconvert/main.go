@@ -78,6 +78,8 @@ func up(input io.Reader, output io.Writer) error {
 	event.Arguments["value"] = data
 	event.Register()
 
+	doc.Timestamps = append(doc.Timestamps, event.Hash())
+
 	return write_json(doc, output)
 }
 
