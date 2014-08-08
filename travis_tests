@@ -16,3 +16,5 @@ test $(go test -cover ./... 2>&1 | grep -v '100.0%\|demo\|djconvert' | tee /dev/
 # go test -race ./...
 
 cd djconvert && make test
+
+cd ../serial_tester && ./run

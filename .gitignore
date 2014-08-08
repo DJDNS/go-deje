@@ -5,6 +5,7 @@
 /demo/router/router
 /demo/client/client
 /djconvert/djconvert
+/serial_tester/serial_tester
 
 # Folders
 _obj
