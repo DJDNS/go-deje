@@ -1,3 +1,6 @@
 [submodule "demo/browser/js-deje"]
 	path = demo/browser/js-deje
 	url = https://github.com/DJDNS/js-deje.git
+[submodule "serial_tester/deje-serialization-tests"]
+	path = serial_tester/deje-serialization-tests
+	url = https://github.com/DJDNS/deje-serialization-tests.git
