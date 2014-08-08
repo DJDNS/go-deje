@@ -16,10 +16,18 @@ func deserializeDocument(r io.Reader) (interface{}, error) {
 	err := doc.Deserialize(r)
 	return doc, err
 }
+func deserializeEvent(r io.Reader) (interface{}, error) {
+	event := document.Event{}
+	decoder := json.NewDecoder(r)
+	err := decoder.Decode(&event)
+	return event, err
+}
 func deserializeInput(object_type string, r io.Reader) (interface{}, error) {
 	switch object_type {
 	case "document":
 		return deserializeDocument(r)
+	case "event":
+		return deserializeEvent(r)
 	default:
 		return nil, errors.New("No such object type: " + object_type)
 	}
