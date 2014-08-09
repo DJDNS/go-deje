@@ -54,9 +54,23 @@ $('#message-submit').click(function(){
 });
 
 function render_state() {
+    var chooser = $('#timestamps-chooser span');
+    chooser.empty();
+    for (var t=0; t<client.timestamps.length; t++) {
+        if ( t > 0 ) {
+            chooser.append(',');
+        }
+        $('<a/>', {
+            href: '#',
+            text: JSON.stringify(client.timestamps[t])
+        })
+        .addClass('event')
+        .data('hash', client.timestamps[t])
+        .click(goto_event_by_element)
+        .appendTo(chooser);
+    }
     $('#state-data').text(
-        "timestamps: " + JSON.stringify(client.timestamps) + "\n\n"
-        + "hash: '" + client.state.hash + "'\n\n"
+        "hash: '" + client.state.hash + "'\n\n"
         + JSON.stringify(client.state.content, null, 4)
     );
 }

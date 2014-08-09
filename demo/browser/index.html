@@ -26,6 +26,12 @@ pre {
     min-height: 5em;
 }
 
+#timestamps-chooser {
+    font-family: monospace;
+    font-size: 12px;
+    margin: 10px;
+}
+
 .events {
     width: 80%;
     padding-left: 10px;
@@ -91,6 +97,7 @@ pre {
     </div>
 
     <h3>State</h3>
+    <div id="timestamps-chooser">timestamps: [<span></span>]</div>
     <pre id="state-data"></pre>
     <div class="submitter">
         <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
