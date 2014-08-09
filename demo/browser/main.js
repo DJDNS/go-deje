@@ -70,6 +70,10 @@ $('.js-edit-timestamps').click(function(){
     );
     return false;
 });
+$('.js-clear-timestamps').click(function(){
+    client.setTimestamps([]);
+    return false;
+});
 
 function render_state() {
     var chooser = $('#timestamps-chooser span');
