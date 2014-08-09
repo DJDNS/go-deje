@@ -33,37 +33,35 @@ func deserializeInput(object_type string, r io.Reader) (interface{}, error) {
 	}
 }
 
-func formatPretty4(object interface{}, w io.Writer) error {
-	b, err := json.MarshalIndent(object, "", "    ")
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(b)
-	return err
+func formatPretty4(object interface{}) ([]byte, error) {
+	return json.MarshalIndent(object, "", "    ")
 }
-func formatCompact(object interface{}, w io.Writer) error {
-	encoder := json.NewEncoder(w)
-	return encoder.Encode(object)
+func formatCompact(object interface{}) ([]byte, error) {
+	return json.Marshal(object)
 }
-func formatHash(object interface{}, w io.Writer) error {
+func formatHash(object interface{}) ([]byte, error) {
 	hash, err := util.HashObject(object)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write([]byte(hash))
-	return err
+	return []byte(hash), err
 }
 func serializeOutput(format string, object interface{}, w io.Writer) error {
+	var buf []byte
+	var err error
+
 	switch format {
 	case "pretty4":
-		return formatPretty4(object, w)
+		buf, err = formatPretty4(object)
 	case "compact":
-		return formatCompact(object, w)
+		buf, err = formatCompact(object)
 	case "hash":
-		return formatHash(object, w)
+		buf, err = formatHash(object)
 	default:
-		return errors.New("No such format: " + format)
+		err = errors.New("No such format: " + format)
 	}
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(buf)
+	return err
 }
 
 func main() {
