@@ -52,6 +52,12 @@ $('#message-submit').click(function(){
         client.publish(data);
     }
 });
+$('#message-listen').click(function(){
+    var data = get_msg_input()
+    if (data != undefined) {
+        client.cb_managers.msg.run(client.topic, data);
+    }
+});
 
 function render_state() {
     var chooser = $('#timestamps-chooser span');
