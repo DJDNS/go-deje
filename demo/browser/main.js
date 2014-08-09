@@ -59,6 +59,18 @@ $('#message-listen').click(function(){
     }
 });
 
+$('.js-edit-timestamps').click(function(){
+    var per_ts_prefix = '\n        ';
+    $('#message-input').val('{\n' +
+        '    "instructions": "Edit as desired, then click the *Listen to the voices* button below.",\n' +
+        '    "type": "02-publish-timestamps",\n' +
+        '    "timestamps": [' + ((client.timestamps.length > 0) ? per_ts_prefix : '') +
+         client.timestamps.map(JSON.stringify).join(',' + per_ts_prefix) +
+         ((client.timestamps.length > 0) ? '\n    ' : '') + ']\n}'
+    );
+    return false;
+});
+
 function render_state() {
     var chooser = $('#timestamps-chooser span');
     chooser.empty();
