@@ -150,7 +150,7 @@ function render_event(ev) {
 }
 
 function render_events() {
-    $(".event").not(".input").remove();
+    $(".events .event").not(".input").remove();
     var history = client.getHistory();
     for (var i = 0; i<history.length; i++) {
         var ev = history[i];
