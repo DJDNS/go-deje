@@ -154,7 +154,7 @@ func TestTimestampTracker_GoToLatest(t *testing.T) {
 			Description: "Failure on one timestamp",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{"xyz"},
-			LogOutput:   "test_logger: Error on iteration 0 (current tip: ''):\ntest_logger: No such event\n",
+			LogOutput:   "test_logger: Error on iteration 0 ('' -> 'xyz'):\ntest_logger: No such event\n",
 			StartTip:    "",
 			EndTip:      "",
 		},
@@ -170,7 +170,7 @@ func TestTimestampTracker_GoToLatest(t *testing.T) {
 			Description: "Failure does not impede or destroy progress",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{"abc", dde.Root.Hash(), "xyz"},
-			LogOutput:   "test_logger: Error on iteration 0 (current tip: ''):\ntest_logger: No such event\ntest_logger: Error on iteration 2 (current tip: '" + dde.Root.Hash() + "'):\ntest_logger: No such event\n",
+			LogOutput:   "test_logger: Error on iteration 0 ('' -> 'abc'):\ntest_logger: No such event\ntest_logger: Error on iteration 2 ('" + dde.Root.Hash() + "' -> 'xyz'):\ntest_logger: No such event\n",
 			StartTip:    dde.Root.Hash(),
 			EndTip:      dde.Root.Hash(),
 		},
@@ -178,7 +178,7 @@ func TestTimestampTracker_GoToLatest(t *testing.T) {
 			Description: "First fork wins",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.Root.Hash(), dde.Child.Hash(), dde.Fork.Hash()},
-			LogOutput:   "test_logger: Error on iteration 2 (current tip: '" + dde.Child.Hash() + "'):\ntest_logger: Event is not compatible with and ahead of tip\n",
+			LogOutput:   "test_logger: Error on iteration 2 ('" + dde.Child.Hash() + "' -> '" + dde.Fork.Hash() + "'):\ntest_logger: Event is not compatible with and ahead of tip\n",
 			StartTip:    dde.Child.Hash(),
 			EndTip:      dde.Child.Hash(),
 		},
@@ -197,8 +197,8 @@ func TestTimestampTracker_GoToLatest(t *testing.T) {
 			tracker.GoToLatest(logger),
 			"Scenario %d (%s)", i, scenario.Description,
 		)
-		assert.Equal(t, scenario.EndTip, tracker.tip)
-		assert.Equal(t, scenario.LogOutput, buf.String())
+		assert.Equal(t, scenario.EndTip, tracker.tip, scenario.Description)
+		assert.Equal(t, scenario.LogOutput, buf.String(), scenario.Description)
 	}
 }
 func TestTimestampTracker_GoToLatest_NilLogger(t *testing.T) {
