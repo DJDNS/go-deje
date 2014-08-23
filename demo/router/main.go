@@ -1,17 +1,23 @@
 package main
 
 import (
-	"bitbucket.org/kardianos/osext"
-	"github.com/jcelliott/turnpike"
 	"log"
 	"net/http"
+	"os"
 	"path"
+
+	"github.com/jcelliott/turnpike"
 )
 
 func main() {
 	server := turnpike.NewServer()
-	exc_path, _ := osext.Executable()
-	static_path := path.Join(path.Dir(exc_path), "..", "browser")
+	gopath_dir := os.Getenv("GOPATH")
+	host_location := []string{
+		gopath_dir,
+		"src", "github.com", "DJDNS", "go-deje",
+		"demo", "browser",
+	}
+	static_path := path.Join(host_location...)
 
 	http.Handle("/ws", server.Handler)
 	http.Handle("/", http.FileServer(http.Dir(static_path)))
