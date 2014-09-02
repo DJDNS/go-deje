@@ -9,7 +9,7 @@ go-deje requires you to be running a Bitcoin daemon, or at least point to one on
 
 ## DEJE Next
 
- * Uses IRC as a communications bus - actually more efficient, because of all the many-recipient messages involved in the consensus algorithm.
+ * Uses WAMP as a communications bus - actually more efficient, because of all the many-recipient messages involved in the consensus algorithm.
  * Uses Bitcoin blockchain as a distributed timestamping service - with a bit of work, could be swapped out for any comparable service.
  * Simpler protocol and serialization format. No subscriptions, no snapshots.
  * Two layers of protection: document acceptor consensus, and blockchain-based checkpoint ordering.
@@ -19,9 +19,7 @@ This protocol's flagship use will be a decentralized DNS database, but it has ma
 
 ### Data model
 
-A document is made of a [DAG][dag] of events, each of which is an action signed by its author. It also has quorum objects, which periodically tie the dominant event chain into the external timestamping service.
-
-A document has in its events, its quorums, and an IRC channel location. During bootstrapping, we start with the IRC location, request download URLs, and download these files. We also check the timestamping service for all relevant timestamps. Even if we get bad data in one or all the files, it will only manifest as irrelevant data (and a known absence of important data).
+A document is made of a [DAG][dag] of events, each of which is an action signed by its author. It also has timestamps, which use an external timestamping service, which bind events to a specific order.
 
 The state structure, which is constructed from the application of a series of events upon an initial starting state, represents the contents of the document at the given point in time/history. This state is a JSON-compatible object, which includes metacontent such as the event handlers and permissions information.
 
@@ -35,15 +33,11 @@ The secondary reasoning is it allows for efficient expression of actions that ar
 
 Finally, it allows conceptually atomic (indivisible) changes to be atomic in the implementation. If you are expressing one *conceptual* change in the form of a bunch of low-level events, and someone builds off your halfway-broadcast event chain, and *their* chain becomes the official one... well, you just orphaned half of something that was intended to be transactional. That's one of the worst kinds of surprises, short of [sugar-free gummy bears][bears].
 
-#### Quorum
-
-Represents a full approval of an event, which acts as a bridge into the external timestamping service.
-
 #### Timestamp
 
-A single timestamp in the external timestamping service. Imposes a mostly-reasonable, somewhat-arbitrary order on when quorums happened, and this order allows us to pick a single official chain of events.
+A single timestamp in the external timestamping service. Imposes a mostly-reasonable, somewhat-arbitrary order on when events happened, and this order allows us to pick a single official chain of events.
 
-Timestamps are ordered first by their blockheight (timestamps in earlier blocks always happen before timestamps in later blocks), and then by a string sort of their hashes (as a tiebreaker for multiple timestamps in a single block).
+Timestamps are ordered first by their blockheight (timestamps in earlier blocks always happen before timestamps in later blocks), then by vote count, and then by a string sort of their hashes (as a tiebreaker for multiple timestamps in a single block).
 
 This allows for odd orders of confirmation sometimes - a child event may be confirmed earlier than its parent, for example - but this is harmless, those events will only be applied once.
 
@@ -51,17 +45,10 @@ This allows for odd orders of confirmation sometimes - a child event may be conf
 
 We get all the timestamps for the document. Then we apply the following algorithm, iterating through timestamps in serialization order:
 
- * Get quorum and event info for TS.
- * If TS is valid, apply events as necessary to catch up to TS.
- * Continue until you run out of timestamps.
+ * Get event data from peers, including ancestors.
+ * Is the event a fast-forward of the current tip? If not, drop it.
 
-A TS may be invalid for any of the following reasons:
-
- * Quorum is not valid according to list of acceptors at the time.
- * Event chain is not compatible with chain already accepted so far (orphan fork).
- * Any of the events fail while applying (roll back to last known good state).
-
-This leaves us with a single event chain, a linked-list subset of the original event tree. The correct latest event is the last one in this list.
+Then just traverse the chain of the tip's history, ignore any events that are invalid, and there you go.
 
 [dag]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 [bears]: http://www.amazon.com/Haribo-Gummy-Candy-Sugarless-5-Pound/dp/B000EVQWKC/

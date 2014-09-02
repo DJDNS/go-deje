@@ -1,1 +1,1 @@
-{"topic":"deje://localhost:8080/root","events":{"14a46a3a8a88c5b55c86fc6bf39739166ef13674":{"parent":"17172371106169d58bb21a224e726a15181a51c6","handler":"SET","args":{"path":["branches",0,"targets"],"value":[]}}},"quorums":{}}
+{"topic":"deje://localhost:8080/root","events":{"14a46a3a8a88c5b55c86fc6bf39739166ef13674":{"parent":"17172371106169d58bb21a224e726a15181a51c6","handler":"SET","args":{"path":["branches",0,"targets"],"value":[]}}}}
