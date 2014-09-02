@@ -18,12 +18,6 @@ func TestNewDocument(t *testing.T) {
 	if d.EventsByParent == nil {
 		t.Fatal("d.EventsByParent == nil")
 	}
-	if d.Quorums == nil {
-		t.Fatal("d.Quorums == nil")
-	}
-	if d.QuorumsByEvent == nil {
-		t.Fatal("d.QuorumsByEvent == nil")
-	}
 }
 
 // Use this type to instigate failures in the JSON module
@@ -43,7 +37,7 @@ func TestDocument_Serialize_Empty(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := `{"topic":"","events":{},"quorums":{},"timestamps":[]}` + "\n"
+	expected := `{"topic":"","events":{},"timestamps":[]}` + "\n"
 	got := buffer.String()
 	if got != expected {
 		t.Fatalf("Expected %#v, got %#v", expected, got)
@@ -58,7 +52,7 @@ func TestDocument_Serialize_Broken(t *testing.T) {
 	}
 }
 
-func setupDocument() (Document, []*Event, []*Quorum) {
+func setupDocument() (Document, []*Event) {
 	d := NewDocument()
 	d.Topic = "Frolicking"
 
@@ -76,25 +70,12 @@ func setupDocument() (Document, []*Event, []*Quorum) {
 	ev1.Register()
 	events[1] = &ev1
 
-	// Same as with events - adjusted to maintain that
-	// hash order == slice order.
-	quorums := make([]*Quorum, 2)
-	q0 := d.NewQuorum("some event hash")
-	q0.Signatures["brian blessed"] = "BRIAAAN BLESSED!"
-	q0.Register()
-	quorums[0] = &q0
-
-	q1 := d.NewQuorum("other event hash")
-	q1.Signatures["John Hancock"] = "<swoopy cursive>"
-	q1.Register()
-	quorums[1] = &q1
-
-	return d, events, quorums
+	return d, events
 }
 
 func TestDocument_Serialize_WithStuff(t *testing.T) {
 	var buffer bytes.Buffer
-	d, ev, q := setupDocument()
+	d, ev := setupDocument()
 
 	if err := d.Serialize(&buffer); err != nil {
 		t.Fatal(err)
@@ -107,13 +88,6 @@ func TestDocument_Serialize_WithStuff(t *testing.T) {
 		`},"` + ev[1].GetKey() + `":{` +
 		`"parent":"","handler":"other handler name",` +
 		`"args":{"cow":"moo"}` +
-		`}},"quorums":{` +
-		`"` + q[0].GetKey() + `":{` +
-		`"event_hash":"some event hash",` +
-		`"sigs":{"brian blessed":"BRIAAAN BLESSED!"}` +
-		`},"` + q[1].GetKey() + `":{` +
-		`"event_hash":"other event hash",` +
-		`"sigs":{"John Hancock":"\u003cswoopy cursive\u003e"}` +
 		`}},"timestamps":[]}` +
 		"\n"
 	got := buffer.String()
@@ -158,12 +132,11 @@ func TestDocument_Deserialize_EmptyObject(t *testing.T) {
 	}
 	comparem(t, "", d.Topic, "Topic not set properly")
 	comparem(t, 0, len(d.Events), "Events not set properly")
-	comparem(t, 0, len(d.Quorums), "Quorums not set properly")
 }
 
 func TestDocument_Deserialize_WithStuff(t *testing.T) {
 	var buffer bytes.Buffer
-	source, ev, q := setupDocument()
+	source, ev := setupDocument()
 	if err := source.Serialize(&buffer); err != nil {
 		t.Fatal(err)
 	}
@@ -177,10 +150,6 @@ func TestDocument_Deserialize_WithStuff(t *testing.T) {
 		"Wrong number of events")
 	comparem(t, len(source.EventsByParent), len(dest.EventsByParent),
 		"Did not Register events")
-	comparem(t, len(source.Quorums), len(dest.Quorums),
-		"Wrong number of quorums")
-	comparem(t, len(source.QuorumsByEvent), len(dest.QuorumsByEvent),
-		"Did not Register quorums")
 
 	for i := range ev {
 		dest_ev := dest.Events[ev[i].GetKey()]
@@ -188,13 +157,6 @@ func TestDocument_Deserialize_WithStuff(t *testing.T) {
 			t.Fatalf("Events not equal: %s", ev[i].HandlerName)
 		}
 		comparem(t, &dest, dest_ev.Doc, "Doc pointer not set on Event")
-	}
-	for i := range q {
-		dest_q := dest.Quorums[q[i].GetKey()]
-		if !dest_q.Eq(*q[i]) {
-			t.Fatalf("Quorums not equal: %d", i)
-		}
-		comparem(t, &dest, dest_q.Doc, "Doc pointer not set on Quorum")
 	}
 }
 
@@ -208,10 +170,6 @@ func TestDocument_Deserialize_BadKeys(t *testing.T) {
 		`},"AlsoNotReal":{` +
 		`"parent":"","handler":"some other handler name",` +
 		`"args":{}` +
-		`}},"quorums":{` +
-		`"NotRealKey":{` +
-		`"event_hash":"some event hash",` +
-		`"sigs":{"brian blessed":"BRIAAAN BLESSED!"}` +
 		`}}}` +
 		"\n",
 	)
@@ -225,16 +183,10 @@ func TestDocument_Deserialize_BadKeys(t *testing.T) {
 	if _, ok := dest.Events["NotRealKey"]; ok {
 		t.Fatal("Left an Event in under a bad key!")
 	}
-	if _, ok := dest.Quorums["NotRealKey"]; ok {
-		t.Fatal("Left a Quorum in under a bad key!")
-	}
 
 	// Check that they are present under the right keys
-	_, ev, q := setupDocument()
+	_, ev := setupDocument()
 	if _, ok := dest.Events[ev[0].GetKey()]; !ok {
 		t.Fatal("Event was not registered under correct key")
-	}
-	if _, ok := dest.Quorums[q[0].GetKey()]; !ok {
-		t.Fatal("Quorum was not registered under correct key")
 	}
 }

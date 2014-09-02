@@ -26,11 +26,9 @@ type Document struct {
 	//
 	// Please just use the Thing.Register() and Thing.Unregister()
 	// methods, and when it comes to these fields, LOOK BUT DON'T TOUCH.
-	Events         EventSet             `json:"events"`
-	EventsByParent map[string]EventSet  `json:"-"`
-	Quorums        QuorumSet            `json:"quorums"`
-	QuorumsByEvent map[string]QuorumSet `json:"-"`
-	Timestamps     []string             `json:"timestamps"`
+	Events         EventSet            `json:"events"`
+	EventsByParent map[string]EventSet `json:"-"`
+	Timestamps     []string            `json:"timestamps"`
 }
 
 // Create a new, blank Document, with fields initialized.
@@ -39,8 +37,6 @@ func NewDocument() Document {
 		State:          state.NewDocumentState(),
 		Events:         make(EventSet),
 		EventsByParent: make(map[string]EventSet),
-		Quorums:        make(QuorumSet),
-		QuorumsByEvent: make(map[string]QuorumSet),
 		Timestamps:     make([]string, 0),
 	}
 }
@@ -67,23 +63,10 @@ func (doc *Document) Deserialize(r io.Reader) error {
 	}
 	doc.Events = make(EventSet)
 
-	// Same for Quorums
-	index = 0
-	quorums_copy := make([]Quorum, len(doc.Quorums))
-	for _, item := range doc.Quorums {
-		quorums_copy[index] = *item
-		index++
-	}
-	doc.Quorums = make(QuorumSet)
-
 	// Integrate through registration
 	for i := range events_copy {
 		events_copy[i].Doc = doc
 		events_copy[i].Register()
-	}
-	for i := range quorums_copy {
-		quorums_copy[i].Doc = doc
-		quorums_copy[i].Register()
 	}
 	return nil
 }
