@@ -32,10 +32,10 @@ func (tss DummyTimestampService) GetTimestamps(topic string) ([]string, error) {
 }
 
 // A timestamp service that includes a Document pointer, and always
-// returns the sorted list of quorum hashes when you call GetTimestamps.
+// returns the sorted list of event hashes when you call GetTimestamps.
 //
 // This is a useful approximation of real behavior for network-free
-// testing, because the number of quorums will be small, and real
+// testing, because the number of events will be small, and real
 // timestamp services use hash sorting in any situation where the exact
 // timing between two timestamps is ambiguous (multiple timestamps in the
 // same block).
@@ -47,7 +47,7 @@ func NewSortingTimestampService(doc document.Document) SortingTimestampService {
 	return SortingTimestampService{doc}
 }
 func (sts SortingTimestampService) GetTimestamps(topic string) ([]string, error) {
-	items := sts.Doc.Quorums
+	items := sts.Doc.Events
 	timestamps := make([]string, len(items))
 
 	// Extract keys as list

@@ -35,10 +35,10 @@ func TestSTS_GetTimestamps(t *testing.T) {
 	doc.Topic = "furbies"
 	sts := NewSortingTimestampService(doc)
 
-	// The given values are event hashes. The quorum hashes will be
-	// different than these string literals.
+	// The given values are event "types".
+	// Hashes will be different than these string literals.
 	for _, evhash := range []string{"123", "456", "789"} {
-		q := doc.NewQuorum(evhash)
+		q := doc.NewEvent(evhash)
 		q.Register()
 	}
 
@@ -47,9 +47,9 @@ func TestSTS_GetTimestamps(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected_timestamps := []string{
-		"5d3b9fa37c8145112882e77b1aa5db9477dab734",
-		"e211156f9d2c736a6d1718246216f97974ca9585",
-		"fce5d4ea3a4e2c130657bf97b286b16f54da6850",
+		"2303adf72049c8f0d2dd3c38d47775f9e0b0458d",
+		"5d0d0d82f38428c33802403af6fdf27e82fcd4bc",
+		"f35ae012679b73922225d21834bf962f2c8f1145",
 	}
 	if !reflect.DeepEqual(timestamps, expected_timestamps) {
 		t.Fatalf("Expected %#v, got %#v", expected_timestamps, timestamps)
@@ -67,8 +67,6 @@ func TestPTS_GetTimestamps(t *testing.T) {
 	doc.Topic = "furbies"
 	sts := NewPeerTimestampService(&doc)
 
-	// The given values are event hashes. The quorum hashes will be
-	// different than these string literals.
 	doc.Timestamps = []string{"123", "456", "789"}
 
 	timestamps, err := sts.GetTimestamps(doc.Topic)
