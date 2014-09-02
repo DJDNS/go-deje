@@ -37,7 +37,7 @@ func TestDocument_Serialize_Empty(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := `{"topic":"","events":{},"timestamps":[]}` + "\n"
+	expected := `{"events":{},"timestamps":[]}` + "\n"
 	got := buffer.String()
 	if got != expected {
 		t.Fatalf("Expected %#v, got %#v", expected, got)
@@ -54,7 +54,6 @@ func TestDocument_Serialize_Broken(t *testing.T) {
 
 func setupDocument() (Document, []*Event) {
 	d := NewDocument()
-	d.Topic = "Frolicking"
 
 	// These values have been adjusted to ensure that slice
 	// position reflects hash order
@@ -80,7 +79,7 @@ func TestDocument_Serialize_WithStuff(t *testing.T) {
 	if err := d.Serialize(&buffer); err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"topic":"Frolicking",` +
+	expected := `{` +
 		`"events":{` +
 		`"` + ev[0].GetKey() + `":{` +
 		`"parent":"Fooblamoose","handler":"some handler name",` +
@@ -130,7 +129,6 @@ func TestDocument_Deserialize_EmptyObject(t *testing.T) {
 	if err := d.Deserialize(&buffer); err != nil {
 		t.Fatal(err)
 	}
-	comparem(t, "", d.Topic, "Topic not set properly")
 	comparem(t, 0, len(d.Events), "Events not set properly")
 }
 
@@ -145,7 +143,6 @@ func TestDocument_Deserialize_WithStuff(t *testing.T) {
 	if err := dest.Deserialize(&buffer); err != nil {
 		t.Fatal(err)
 	}
-	comparem(t, source.Topic, dest.Topic, "Topic not set properly")
 	comparem(t, len(source.Events), len(dest.Events),
 		"Wrong number of events")
 	comparem(t, len(source.EventsByParent), len(dest.EventsByParent),
@@ -162,7 +159,7 @@ func TestDocument_Deserialize_WithStuff(t *testing.T) {
 
 func TestDocument_Deserialize_BadKeys(t *testing.T) {
 	var buffer bytes.Buffer
-	buffer.WriteString(`{"topic":"Frolicking",` +
+	buffer.WriteString(`{` +
 		`"events":{` +
 		`"NotRealKey":{` +
 		`"parent":"Fooblamoose","handler":"some handler name",` +

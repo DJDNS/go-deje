@@ -16,7 +16,6 @@ import (
 // Bitcoin ledger is the result of playing through the transactions
 // in every block of the longest valid blockchain.
 type Document struct {
-	Topic string               `json:"topic"`
 	State *state.DocumentState `json:"-"`
 
 	// Do not modify the contents of the following fields!
