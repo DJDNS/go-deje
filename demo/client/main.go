@@ -32,8 +32,7 @@ func load(sc *deje.SimpleClient) {
 	if err = doc.Deserialize(file); err != nil {
 		log.Fatal(err)
 	}
-	doc.Topic = *topic
-	log.Printf("Topic: %s", doc.Topic)
+	log.Printf("Topic: %s", sc.GetTopic())
 	sc.ReTip()
 	log.Printf("Tip: %s", sc.Tip)
 }

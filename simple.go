@@ -203,6 +203,11 @@ func (sc *SimpleClient) GetDoc() *document.Document {
 	return sc.client.Doc
 }
 
+// Get the Topic of the underlying Client.
+func (sc *SimpleClient) GetTopic() string {
+	return sc.client.Topic
+}
+
 // Return the current contents of the document.
 func (sc *SimpleClient) Export() interface{} {
 	return sc.client.Doc.State.Export()

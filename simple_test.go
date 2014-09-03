@@ -688,6 +688,12 @@ func TestSimpleClient_GetDoc(t *testing.T) {
 	}
 }
 
+func TestSimpleClient_GetTopic(t *testing.T) {
+	topic := "http://example.com/deje/some-doc"
+	client := NewSimpleClient(topic, nil)
+	assert.Equal(t, topic, client.GetTopic())
+}
+
 func TestSimpleClient_Export(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
 	client := NewSimpleClient(topic, nil)
