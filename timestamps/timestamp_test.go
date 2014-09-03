@@ -10,7 +10,7 @@ import (
 
 func TestDTS_GetTimestamps(t *testing.T) {
 	dts := DummyTimestampService{}
-	stamps, err := dts.GetTimestamps("Interstella")
+	stamps, err := dts.GetTimestamps()
 	if len(stamps) != 0 {
 		t.Fatalf(
 			"Expected empty timestamp array, has %d elements",
@@ -24,7 +24,6 @@ func TestDTS_GetTimestamps(t *testing.T) {
 
 func TestNewSTS(t *testing.T) {
 	doc := document.NewDocument()
-	doc.Topic = "furbies"
 	sts := NewSortingTimestampService(doc)
 	if !reflect.DeepEqual(sts.Doc, doc) {
 		t.Fatalf("%#v != %#v", sts.Doc, doc)
@@ -32,7 +31,6 @@ func TestNewSTS(t *testing.T) {
 }
 func TestSTS_GetTimestamps(t *testing.T) {
 	doc := document.NewDocument()
-	doc.Topic = "furbies"
 	sts := NewSortingTimestampService(doc)
 
 	// The given values are event "types".
@@ -42,7 +40,7 @@ func TestSTS_GetTimestamps(t *testing.T) {
 		q.Register()
 	}
 
-	timestamps, err := sts.GetTimestamps(doc.Topic)
+	timestamps, err := sts.GetTimestamps()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,18 +56,16 @@ func TestSTS_GetTimestamps(t *testing.T) {
 
 func TestNewPTS(t *testing.T) {
 	doc := document.NewDocument()
-	doc.Topic = "furbies"
 	sts := NewPeerTimestampService(&doc)
 	assert.Equal(t, &doc, sts.Doc)
 }
 func TestPTS_GetTimestamps(t *testing.T) {
 	doc := document.NewDocument()
-	doc.Topic = "furbies"
 	sts := NewPeerTimestampService(&doc)
 
 	doc.Timestamps = []string{"123", "456", "789"}
 
-	timestamps, err := sts.GetTimestamps(doc.Topic)
+	timestamps, err := sts.GetTimestamps()
 	if err != nil {
 		t.Fatal(err)
 	}

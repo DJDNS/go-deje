@@ -21,13 +21,13 @@ import (
 // See https://en.bitcoin.it/wiki/API_reference_%28JSON-RPC%29
 // for more information about this API.
 type TimestampService interface {
-	GetTimestamps(topic string) ([]string, error)
+	GetTimestamps() ([]string, error)
 }
 
 // Always successfully returns an empty timestamp list.
 type DummyTimestampService struct{}
 
-func (tss DummyTimestampService) GetTimestamps(topic string) ([]string, error) {
+func (tss DummyTimestampService) GetTimestamps() ([]string, error) {
 	return make([]string, 0), nil
 }
 
@@ -46,7 +46,7 @@ type SortingTimestampService struct {
 func NewSortingTimestampService(doc document.Document) SortingTimestampService {
 	return SortingTimestampService{doc}
 }
-func (sts SortingTimestampService) GetTimestamps(topic string) ([]string, error) {
+func (sts SortingTimestampService) GetTimestamps() ([]string, error) {
 	items := sts.Doc.Events
 	timestamps := make([]string, len(items))
 
@@ -73,6 +73,6 @@ type PeerTimestampService struct {
 func NewPeerTimestampService(doc *document.Document) PeerTimestampService {
 	return PeerTimestampService{doc}
 }
-func (sts PeerTimestampService) GetTimestamps(topic string) ([]string, error) {
+func (sts PeerTimestampService) GetTimestamps() ([]string, error) {
 	return sts.Doc.Timestamps, nil
 }

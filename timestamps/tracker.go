@@ -44,7 +44,7 @@ func (tt *TimestampTracker) GoToLatest(logger *log.Logger) string {
 
 // Set up to find tip event - reset finder state.
 func (tt *TimestampTracker) StartIteration() error {
-	timestamps, err := tt.Service.GetTimestamps(tt.Doc.Topic)
+	timestamps, err := tt.Service.GetTimestamps()
 	if err != nil {
 		return err
 	}

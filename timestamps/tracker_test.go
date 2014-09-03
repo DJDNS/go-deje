@@ -25,7 +25,7 @@ func TestTimestampTracker_StartIteration(t *testing.T) {
 
 type failingTimestampService string
 
-func (fts failingTimestampService) GetTimestamps(topic string) ([]string, error) {
+func (fts failingTimestampService) GetTimestamps() ([]string, error) {
 	return nil, errors.New(string(fts))
 }
 
