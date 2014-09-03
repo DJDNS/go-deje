@@ -1,20 +1,21 @@
 package deje
 
 import (
-	"github.com/jcelliott/turnpike"
 	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/jcelliott/turnpike"
 )
 
 func TestClient_NewClient(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
 	client := NewClient(topic)
 
-	if client.Doc.Topic != topic {
-		t.Fatalf("Expected topic '%s', got '%s'", topic, client.Doc.Topic)
+	if client.Topic != topic {
+		t.Fatalf("Expected topic '%s', got '%s'", topic, client.Topic)
 	}
 
 	if client.tpClient == nil {

@@ -15,7 +15,7 @@ import (
 func TestSimpleClient_NewSimpleClient(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
 	sc := NewSimpleClient(topic, nil)
-	if sc.client.Doc.Topic != topic {
+	if sc.client.Topic != topic {
 		t.Fatal("Did not create encapsulated Client correctly")
 	}
 }
@@ -54,7 +54,7 @@ func TestSimpleClient_Open(t *testing.T) {
 	}
 
 	topic := url // The two are equal, unless deje_url is missing path component
-	if !assert.Equal(t, topic, sc.GetDoc().Topic, "Should subscribe to correct topic") {
+	if !assert.Equal(t, topic, sc.client.Topic, "Should subscribe to correct topic") {
 		t.Fail()
 	}
 

@@ -7,7 +7,8 @@ import (
 
 // Contains a document and a WAMP connection.
 type Client struct {
-	Doc *document.Document
+	Doc   *document.Document
+	Topic string
 
 	onEvent  *OnEventCallback
 	tpClient *turnpike.Client
@@ -15,9 +16,9 @@ type Client struct {
 
 func NewClient(topic string) Client {
 	doc := document.NewDocument()
-	doc.Topic = topic
 	return Client{
 		Doc:      &doc,
+		Topic:    topic,
 		tpClient: turnpike.NewClient(),
 	}
 }
@@ -45,7 +46,7 @@ func (c *Client) SetEventCallback(callback OnEventCallback) {
 // value.
 func (c *Client) Publish(event interface{}) error {
 	return c.tpClient.PublishExcludeMe(
-		c.Doc.Topic,
+		c.Topic,
 		event,
 	)
 }
@@ -63,5 +64,5 @@ func (c *Client) Connect(url string) error {
 			(*c.onEvent)(event)
 		}
 	}
-	return c.tpClient.Subscribe(c.Doc.Topic, handler)
+	return c.tpClient.Subscribe(c.Topic, handler)
 }
