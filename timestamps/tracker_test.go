@@ -1,42 +1,17 @@
 package timestamps
 
 import (
-	"bytes"
 	"errors"
-	"log"
 	"testing"
 
 	"github.com/DJDNS/go-deje/document"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTimestampTracker_StartIteration(t *testing.T) {
-	doc := document.NewDocument()
-	service := NewPeerTimestampService(&doc)
-	tracker := NewTimestampTracker(&doc, service)
-
-	tracker.timestamps = []string{"1", "2", "3"}
-	tracker.tip = "marshmallow"
-
-	assert.NoError(t, tracker.StartIteration())
-	assert.Equal(t, doc.Timestamps, tracker.timestamps)
-	assert.Equal(t, "", tracker.tip)
-}
-
 type failingTimestampService string
 
 func (fts failingTimestampService) GetTimestamps() ([]string, error) {
 	return nil, errors.New(string(fts))
-}
-
-func TestTimestampTracker_StartIteration_ServiceFailure(t *testing.T) {
-	doc := document.NewDocument()
-	service := failingTimestampService("Failure message")
-	tracker := NewTimestampTracker(&doc, service)
-
-	if err := tracker.StartIteration(); assert.Error(t, err) {
-		assert.Equal(t, "Failure message", err.Error())
-	}
 }
 
 type demoDocEvents struct {
@@ -83,28 +58,12 @@ func setupEvents(doc document.Document) demoDocEvents {
 }
 
 type trackerScenarioSetup func() TimestampTracker
-type trackerDoIterationScenario struct {
+type trackerFindLatestScenario struct {
 	Description string
 	Builder     trackerScenarioSetup
 	Timestamps  []string
-	Position    int
-	Output      error
-	StartTip    string
-	EndTip      string
-}
-type trackerGoToLatestScenario struct {
-	Description string
-	Builder     trackerScenarioSetup
-	Timestamps  []string
-	LogOutput   string
-	StartTip    string
-	EndTip      string
-}
-
-func tsbuilderRaw() TimestampTracker {
-	doc := document.NewDocument()
-	service := NewPeerTimestampService(&doc)
-	return NewTimestampTracker(&doc, service)
+	Error       string
+	TipHash     string
 }
 
 func tsbuilderNormal() TimestampTracker {
@@ -121,164 +80,72 @@ func tsbuilderFails() TimestampTracker {
 	return NewTimestampTracker(&doc, service)
 }
 
-func TestTimestampTracker_GoToLatest(t *testing.T) {
+func TestTimestampTracker_FindLatest(t *testing.T) {
 	// For hash info
 	dde := setupEvents(document.NewDocument())
 
-	scenarios := []trackerGoToLatestScenario{
-		trackerGoToLatestScenario{
+	scenarios := []trackerFindLatestScenario{
+		trackerFindLatestScenario{
 			Description: "No timestamps, therefore no change",
-			Builder:     tsbuilderRaw,
+			Builder:     tsbuilderNormal,
 			Timestamps:  []string{},
-			LogOutput:   "",
-			StartTip:    "",
-			EndTip:      "",
+			Error:       "",
+			TipHash:     "",
 		},
-		trackerGoToLatestScenario{
-			Description: "StartIteration fails",
+		trackerFindLatestScenario{
+			Description: "GetTimestamps fails",
 			Builder:     tsbuilderFails,
 			Timestamps:  []string{},
-			LogOutput:   "test_logger: tsbuilderFails() service breaks on purpose\n",
-			StartTip:    "",
-			EndTip:      "",
+			Error:       "tsbuilderFails() service breaks on purpose",
+			TipHash:     "",
 		},
-		trackerGoToLatestScenario{
-			Description: "StartIteration fails when already at a tip",
-			Builder:     tsbuilderFails,
-			Timestamps:  []string{},
-			LogOutput:   "test_logger: tsbuilderFails() service breaks on purpose\n",
-			StartTip:    "abc",
-			EndTip:      "abc",
-		},
-		trackerGoToLatestScenario{
+		trackerFindLatestScenario{
 			Description: "Failure on one timestamp",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{"xyz"},
-			LogOutput:   "test_logger: Error on iteration 0 ('' -> 'xyz'):\ntest_logger: No such event\n",
-			StartTip:    "",
-			EndTip:      "",
+			Error:       "",
+			TipHash:     "",
 		},
-		trackerGoToLatestScenario{
+		trackerFindLatestScenario{
 			Description: "Success on one timestamp",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.Root.Hash()},
-			LogOutput:   "",
-			StartTip:    dde.Root.Hash(),
-			EndTip:      dde.Root.Hash(),
+			Error:       "",
+			TipHash:     dde.Root.Hash(),
 		},
-		trackerGoToLatestScenario{
+		trackerFindLatestScenario{
 			Description: "Failure does not impede or destroy progress",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{"abc", dde.Root.Hash(), "xyz"},
-			LogOutput:   "test_logger: Error on iteration 0 ('' -> 'abc'):\ntest_logger: No such event\ntest_logger: Error on iteration 2 ('" + dde.Root.Hash() + "' -> 'xyz'):\ntest_logger: No such event\n",
-			StartTip:    dde.Root.Hash(),
-			EndTip:      dde.Root.Hash(),
+			Error:       "",
+			TipHash:     dde.Root.Hash(),
 		},
-		trackerGoToLatestScenario{
+		trackerFindLatestScenario{
 			Description: "First fork wins",
 			Builder:     tsbuilderNormal,
 			Timestamps:  []string{dde.Root.Hash(), dde.Child.Hash(), dde.Fork.Hash()},
-			LogOutput:   "test_logger: Error on iteration 2 ('" + dde.Child.Hash() + "' -> '" + dde.Fork.Hash() + "'):\ntest_logger: Event is not compatible with and ahead of tip\n",
-			StartTip:    dde.Child.Hash(),
-			EndTip:      dde.Child.Hash(),
-		},
-	}
-	for i, scenario := range scenarios {
-		buf := new(bytes.Buffer)
-		logger := log.New(buf, "test_logger: ", 0)
-
-		tracker := scenario.Builder()
-		tracker.Doc.Timestamps = scenario.Timestamps
-		tracker.StartIteration()
-		tracker.tip = scenario.StartTip
-
-		assert.Equal(t,
-			scenario.EndTip,
-			tracker.GoToLatest(logger),
-			"Scenario %d (%s)", i, scenario.Description,
-		)
-		assert.Equal(t, scenario.EndTip, tracker.tip, scenario.Description)
-		assert.Equal(t, scenario.LogOutput, buf.String(), scenario.Description)
-	}
-}
-func TestTimestampTracker_GoToLatest_NilLogger(t *testing.T) {
-	// Test StartIteration failure
-	doc := document.NewDocument()
-	service := failingTimestampService("tsbuilderFails() service breaks on purpose")
-	tracker := NewTimestampTracker(&doc, service)
-
-	assert.Equal(t, "", tracker.GoToLatest(nil))
-
-	// Test DoIteration failure
-	tracker.Service = NewPeerTimestampService(&doc)
-	doc.Timestamps = []string{"This hash does not exist"}
-
-	assert.Equal(t, "", tracker.GoToLatest(nil))
-}
-
-func TestTimestampTracker_DoIteration(t *testing.T) {
-	// For hash info
-	dde := setupEvents(document.NewDocument())
-
-	scenarios := []trackerDoIterationScenario{
-		trackerDoIterationScenario{
-			Description: "No timestamps, therefore bad index",
-			Builder:     tsbuilderRaw,
-			Timestamps:  []string{},
-			Position:    0,
-			Output:      errors.New("Bad position"),
-			StartTip:    "",
-			EndTip:      "",
-		},
-		trackerDoIterationScenario{
-			Description: "Timestamp references missing event",
-			Builder:     tsbuilderNormal,
-			Timestamps:  []string{dde.Unregistered.Hash()},
-			Position:    0,
-			Output:      errors.New("No such event"),
-			StartTip:    "",
-			EndTip:      "",
-		},
-		trackerDoIterationScenario{
-			Description: "Incompatible branch",
-			Builder:     tsbuilderNormal,
-			Timestamps:  []string{dde.Root.Hash()},
-			Position:    0,
-			Output:      errors.New("Event is not compatible with and ahead of tip"),
-			StartTip:    dde.Child.Hash(),
-			EndTip:      dde.Child.Hash(),
-		},
-		trackerDoIterationScenario{
-			Description: "Goto() failure",
-			Builder:     tsbuilderNormal,
-			Timestamps:  []string{dde.CannotGoto.Hash()},
-			Position:    0,
-			Output:      errors.New("No path provided"),
-			StartTip:    "",
-			EndTip:      "",
-		},
-		trackerDoIterationScenario{
-			Description: "Success",
-			Builder:     tsbuilderNormal,
-			Timestamps:  []string{dde.Root.Hash(), dde.Child.Hash()},
-			Position:    1,
-			Output:      nil,
-			StartTip:    dde.Child.Hash(),
-			EndTip:      dde.Child.Hash(),
+			Error:       "",
+			TipHash:     dde.Child.Hash(),
 		},
 	}
 	for i, scenario := range scenarios {
 		tracker := scenario.Builder()
 		tracker.Doc.Timestamps = scenario.Timestamps
-		tracker.StartIteration()
-		tracker.tip = scenario.StartTip
 
-		assert.Equal(t,
-			scenario.Output,
-			tracker.DoIteration(scenario.Position),
-			"Scenario %d (%s)", i, scenario.Description,
-		)
-		assert.Equal(t, scenario.EndTip, tracker.tip)
+		event, err := tracker.FindLatest()
+		var hash string
+		if event != nil {
+			hash = event.Hash()
+		}
+
+		assert.Equal(t, scenario.TipHash, hash, "Scenario %d (%s)", i, scenario.Description)
+		if scenario.Error != "" {
+			if assert.Error(t, err, scenario.Description) {
+				assert.Equal(t, scenario.Error, err.Error())
+			}
+		} else {
+			assert.NoError(t, err, scenario.Description)
+		}
 	}
 }
 
