@@ -34,8 +34,8 @@ func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 	}
 	raw_client.SetEventCallback(func(event interface{}) {
 		err := simple_client.onRcv(event)
-		if err != nil && simple_client.logger != nil {
-			simple_client.logger.Println(err)
+		if err != nil {
+			simple_client.Log(err)
 		}
 	})
 	return simple_client
@@ -135,11 +135,17 @@ func (sc *SimpleClient) Connect(url string) error {
 	return sc.RequestTimestamps()
 }
 
+func (sc *SimpleClient) Log(args ...interface{}) {
+	if sc.logger != nil {
+		sc.logger.Println(args...)
+	}
+}
+
 func (sc *SimpleClient) ReTip() {
 	var err error
 	sc.Tip, err = sc.tt.FindLatest()
-	if err != nil && sc.logger != nil {
-		sc.logger.Println(err)
+	if err != nil {
+		sc.Log(err)
 	}
 
 	if sc.Tip != nil {

@@ -2,6 +2,7 @@ package deje
 
 import (
 	"bytes"
+	"errors"
 	"log"
 	"reflect"
 	"strings"
@@ -133,6 +134,22 @@ func TestSimpleClient_Connect(t *testing.T) {
 	if len(events_rcvd) != 0 {
 		t.Fatal("Wrong number of events received")
 	}
+}
+
+type failingTimestampService string
+
+func (f failingTimestampService) GetTimestamps() ([]string, error) {
+	return nil, errors.New(string(f))
+}
+
+func TestSimpleClient_ReTip_Fail(t *testing.T) {
+	buffer := new(bytes.Buffer)
+	logger := log.New(buffer, "retip_test: ", 0)
+	sc := NewSimpleClient("deje://demo/", logger)
+	sc.tt.Service = failingTimestampService("Bad service for retip")
+
+	sc.ReTip()
+	assert.Equal(t, "retip_test: Bad service for retip\n", buffer.String())
 }
 
 type simpleProtoTest struct {
