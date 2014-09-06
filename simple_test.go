@@ -560,10 +560,11 @@ func TestSimpleClient_Promote(t *testing.T) {
 		},
 	})
 
-	assert.Equal(t, spt.Simple[0].Tip, event.Hash())
-	assert.Equal(t, spt.Simple[1].Tip, event.Hash())
-	assert.Equal(t, *doc1.Events[event.Hash()], event)
-	assert.Equal(t, *doc2.Events[event.Hash()], event)
+	hash := event.Hash()
+	assert.Equal(t, spt.Simple[0].Tip.Hash(), hash)
+	assert.Equal(t, spt.Simple[1].Tip.Hash(), hash)
+	assert.Equal(t, doc1.Events[hash].Hash(), hash)
+	assert.Equal(t, doc2.Events[hash].Hash(), hash)
 
 	expected_export := map[string]interface{}{
 		"bar": "baz",

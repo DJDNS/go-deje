@@ -14,7 +14,7 @@ import (
 // Wraps the low-level capabilities of the basic Client to provide
 // an easier, more useful API to downstream code.
 type SimpleClient struct {
-	Tip string // tip event hash
+	Tip *document.Event
 
 	client *Client
 	tt     timestamps.TimestampTracker
@@ -27,7 +27,7 @@ func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 	raw_client := NewClient(topic)
 	doc := raw_client.Doc
 	simple_client := &SimpleClient{
-		"",
+		nil,
 		&raw_client,
 		timestamps.NewTimestampTracker(doc, timestamps.NewPeerTimestampService(doc)),
 		logger,
@@ -136,7 +136,15 @@ func (sc *SimpleClient) Connect(url string) error {
 }
 
 func (sc *SimpleClient) ReTip() {
-	sc.Tip = sc.tt.GoToLatest(sc.logger)
+	var err error
+	sc.Tip, err = sc.tt.FindLatest()
+	if err != nil && sc.logger != nil {
+		sc.logger.Println(err)
+	}
+
+	if sc.Tip != nil {
+		sc.Tip.Goto()
+	}
 }
 
 func (sc *SimpleClient) RequestEvents() error {
