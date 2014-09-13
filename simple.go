@@ -154,7 +154,7 @@ func (sc *SimpleClient) ReTip() {
 }
 
 func (sc *SimpleClient) RequestEvents() error {
-	return sc.client.Publish(map[string]interface{}{
+	return sc.Publish(map[string]interface{}{
 		"type": "02-request-events",
 	})
 }
@@ -175,23 +175,27 @@ func (sc *SimpleClient) PublishEvents() error {
 		events[i] = doc.Events[hash]
 	}
 
-	return sc.client.Publish(map[string]interface{}{
+	return sc.Publish(map[string]interface{}{
 		"type":   "02-publish-events",
 		"events": events,
 	})
 }
 
 func (sc *SimpleClient) RequestTimestamps() error {
-	return sc.client.Publish(map[string]interface{}{
+	return sc.Publish(map[string]interface{}{
 		"type": "02-request-timestamps",
 	})
 }
 
 func (sc *SimpleClient) PublishTimestamps() error {
-	return sc.client.Publish(map[string]interface{}{
+	return sc.Publish(map[string]interface{}{
 		"type":       "02-publish-timestamps",
 		"timestamps": sc.GetDoc().Timestamps,
 	})
+}
+
+func (sc *SimpleClient) Publish(data interface{}) error {
+	return sc.client.Publish(data)
 }
 
 // Navigate the Document to an Event, and promote it as the tip.
