@@ -120,6 +120,8 @@ func (sc *SimpleClient) onRcv(event interface{}) error {
 		} else {
 			sc.ReTip()
 		}
+	case "log":
+		// Do nothing
 	default:
 		return errors.New("Unfamiliar message type: '" + evtype + "'")
 	}

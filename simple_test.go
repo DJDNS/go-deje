@@ -226,7 +226,10 @@ func (lt logtest) Run(t *testing.T, spt simpleProtoTest) {
 	}
 	spt.Expect(t, []interface{}{lt.Message})
 
-	expected_log := "deje.SimpleClient: " + lt.Logline + "\n"
+	var expected_log string
+	if lt.Logline != "" {
+		expected_log = "deje.SimpleClient: " + lt.Logline + "\n"
+	}
 	assert.Equal(t, expected_log, spt.Logs[1].String())
 }
 
@@ -326,6 +329,12 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 				"timestamps": []interface{}{"Only strings allowed!", true, false},
 			},
 			_bad_ts,
+		},
+		logtest{
+			map[string]interface{}{
+				"type": "log",
+			},
+			"",
 		},
 	}
 	for _, lt := range logtests {
