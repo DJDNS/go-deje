@@ -19,6 +19,8 @@ type SimpleClient struct {
 	client *Client
 	tt     timestamps.TimestampTracker
 	logger *log.Logger
+
+	onReTipCallback OnReTipCallback
 }
 
 // Unless you want to manually specify router URL and topic separately,
@@ -31,6 +33,7 @@ func NewSimpleClient(topic string, logger *log.Logger) *SimpleClient {
 		&raw_client,
 		timestamps.NewTimestampTracker(doc, timestamps.NewPeerTimestampService(doc)),
 		logger,
+		nil,
 	}
 	raw_client.SetEventCallback(func(event interface{}) {
 		err := simple_client.onRcv(event)
@@ -153,6 +156,10 @@ func (sc *SimpleClient) ReTip() {
 	if sc.Tip != nil {
 		sc.Tip.Goto()
 	}
+
+	if sc.onReTipCallback != nil {
+		sc.onReTipCallback(sc.Tip)
+	}
 }
 
 func (sc *SimpleClient) RequestEvents() error {
@@ -216,6 +223,15 @@ func (sc *SimpleClient) Promote(ev document.Event) error {
 // Set a callback for when primitives are applied to the document state.
 func (sc *SimpleClient) SetPrimitiveCallback(c state.OnPrimitiveCallback) {
 	sc.GetDoc().State.SetPrimitiveCallback(c)
+}
+
+// An optional callback to be called whenever we reanalyze which event is tip.
+type OnReTipCallback func(*document.Event)
+
+// Set a callback for when we reanalyze which event is tip. This may be called
+// multiple times with the same result tip.
+func (sc *SimpleClient) SetRetipCallback(c OnReTipCallback) {
+	sc.onReTipCallback = c
 }
 
 // Get the Document object owned by this Client.

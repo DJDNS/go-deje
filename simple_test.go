@@ -9,9 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DJDNS/go-deje/document"
 	"github.com/DJDNS/go-deje/state"
 	"github.com/stretchr/testify/assert"
 )
+
+var timeout = 50 * time.Millisecond
 
 func TestSimpleClient_NewSimpleClient(t *testing.T) {
 	topic := "http://example.com/deje/some-doc"
@@ -702,6 +705,66 @@ func TestSimpleClient_SetPrimitiveCallback(t *testing.T) {
 	}
 	assert.Equal(t, expected_export, spt.Simple[0].Export())
 	assert.Equal(t, expected_export, spt.Simple[1].Export())
+}
+
+func TestSimpleClient_SetRetipCallback(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	// Very basic setup for both scenarios
+	tips := make(chan *document.Event, 10)
+	callback := func(ev *document.Event) {
+		tips <- ev
+	}
+	spt.Simple[0].SetRetipCallback(callback)
+
+	// Test with no data
+	spt.Simple[0].ReTip()
+	select {
+	case tip := <-tips:
+		assert.Equal(t, (*document.Event)(nil), tip, "Before there are any timestamps, tip should be nil")
+	case <-time.After(timeout):
+		t.Fatalf("Timed out waiting for callback")
+	}
+
+	// Set up peer
+	doc := spt.Simple[1].GetDoc()
+	event := doc.NewEvent("SET")
+	event.Arguments["path"] = []interface{}{"foo"}
+	event.Arguments["value"] = "bar"
+	event.Register()
+	doc.Timestamps = []string{event.Hash()}
+
+	// Start a flow of syncronization, observe tips that are callback'd
+	spt.Simple[1].Promote(event)
+	spt.Expect(t, []interface{}{
+		map[string]interface{}{
+			"type":       "02-publish-timestamps",
+			"timestamps": []interface{}{event.Hash(), event.Hash()},
+		},
+		map[string]interface{}{
+			"type": "02-request-events",
+		},
+		map[string]interface{}{
+			"type": "02-publish-events",
+			"events": []interface{}{
+				map[string]interface{}{
+					"parent":  "",
+					"handler": "SET",
+					"args":    event.Arguments,
+				},
+			},
+		},
+	})
+	select {
+	case tip := <-tips:
+		if !assert.NotEqual(t, (*document.Event)(nil), tip, "tip is not nil") {
+			t.FailNow()
+		}
+		assert.Equal(t, event.Hash(), tip.Hash(), "Same tip for both peers")
+	case <-time.After(timeout):
+		t.Fatalf("Timed out waiting for callback")
+	}
 }
 
 func TestSimpleClient_GetDoc(t *testing.T) {
