@@ -728,12 +728,10 @@ func TestSimpleClient_SetRetipCallback(t *testing.T) {
 	}
 
 	// Set up peer
-	doc := spt.Simple[1].GetDoc()
-	event := doc.NewEvent("SET")
+	event := spt.Simple[1].GetDoc().NewEvent("SET")
 	event.Arguments["path"] = []interface{}{"foo"}
 	event.Arguments["value"] = "bar"
 	event.Register()
-	doc.Timestamps = []string{event.Hash()}
 
 	// Start a flow of syncronization, observe tips that are callback'd
 	spt.Simple[1].Promote(event)
