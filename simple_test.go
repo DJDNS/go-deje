@@ -359,6 +359,56 @@ func TestSimpleClient_Rcv_BadMsg(t *testing.T) {
 	})
 }
 
+func TestSimpleClient_ResetStateForNilTimestamps(t *testing.T) {
+	spt := setupSimpleProtocolTest(t, 2)
+	defer spt.Closer()
+
+	doc := spt.Simple[0].GetDoc()
+	event := doc.NewEvent("SET")
+	event.Arguments["path"] = []interface{}{"foo"}
+	event.Arguments["value"] = "bar"
+	event.Register()
+	doc.Timestamps = []string{event.Hash()}
+	spt.Simple[0].ReTip()
+
+	// Confirm that the tip is set for both clients
+	assert.Equal(t, &event, spt.Simple[0].Tip)
+	assert.Equal(t, (*document.Event)(nil), spt.Simple[1].Tip)
+
+	// A little setup to make sure we're also getting the proper primitive
+	primitives := make(chan state.Primitive, 10)
+	spt.Simple[0].SetPrimitiveCallback(func(p state.Primitive) {
+		primitives <- p
+	})
+
+	// Set Simple0's timestamps from Simple1 (which has [])
+	if err := spt.Simple[1].PublishTimestamps(); err != nil {
+		t.Fatalf("%v", err)
+	}
+
+	// Confirm that we get exactly one primitive, for state reset
+	select {
+	case p := <-primitives:
+		assert.Equal(t, state.SetPrimitive{
+			Path:  []interface{}{},
+			Value: map[string]interface{}{},
+		},
+			*(p.(*state.SetPrimitive)),
+		)
+	case <-time.After(timeout):
+		t.Fatalf("Timed out")
+	}
+	select {
+	case p := <-primitives:
+		t.Fatalf("Extra primitive: %v", p)
+	case <-time.After(timeout):
+		// pass
+	}
+
+	// Confirm contents
+	assert.Equal(t, map[string]interface{}{}, spt.Simple[0].Export())
+}
+
 func TestSimpleClient_RequestEvents(t *testing.T) {
 	spt := setupSimpleProtocolTest(t, 1)
 	defer spt.Closer()

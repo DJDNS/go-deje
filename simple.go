@@ -155,6 +155,8 @@ func (sc *SimpleClient) ReTip() {
 
 	if sc.Tip != nil {
 		sc.Tip.Goto()
+	} else {
+		sc.GetDoc().State.Reset()
 	}
 
 	if sc.onReTipCallback != nil {
