@@ -738,7 +738,7 @@ func TestSimpleClient_SetRetipCallback(t *testing.T) {
 	spt.Expect(t, []interface{}{
 		map[string]interface{}{
 			"type":       "02-publish-timestamps",
-			"timestamps": []interface{}{event.Hash(), event.Hash()},
+			"timestamps": []interface{}{event.Hash()},
 		},
 		map[string]interface{}{
 			"type": "02-request-events",
