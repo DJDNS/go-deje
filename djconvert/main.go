@@ -134,7 +134,7 @@ func main() {
 	} else if args["down"] == true {
 		input_filename := args["<source>"].(string)
 		output_filename := args["<target>"].(string)
-		hash_prefix := args["<hash-prefix>"].(string)
+		hash_prefix := args["<event-hash>"].(string)
 
 		input, output, err := get_filehandles(input_filename, output_filename)
 		if err != nil {

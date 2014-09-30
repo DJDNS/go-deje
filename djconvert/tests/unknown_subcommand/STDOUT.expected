@@ -1,0 +1,5 @@
+Usage:
+    djconvert up <source> <target> [--pretty]
+    djconvert down <source> <target> <event-hash> [--pretty]
+    djconvert -h | --help
+    djconvert --version
