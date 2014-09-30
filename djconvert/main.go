@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -12,24 +11,23 @@ import (
 	"strings"
 
 	"github.com/DJDNS/go-deje/document"
+	"github.com/docopt/docopt-go"
 )
 
-var usage_string = `
-USAGE:
+var version = "djconvert 0.0.13"
+var usage_string = `djconvert - Converts files to and from DocCache format.
 
-    # Convert snapshot to flat-history document cache
-    djconvert up original.json deje.json
-    djconvert --pretty up original.json deje.json
+Usage:
+    djconvert up <source> <target> [--pretty]
+    djconvert down <source> <target> <event-hash> [--pretty]
+    djconvert -h | --help
+    djconvert --version
 
-    # Export event in document cache to snapshot
-    djconvert down deje.json snapshot.json 89efc6
-    djconvert --pretty down deje.json snapshot.json 89efc6
+Options:
+    --pretty      Pretty-print JSON in output file.
+    -h --help     Show this message.
+    --version     Show version info.
 `
-
-func usage() {
-	fmt.Fprint(os.Stderr, usage_string)
-	os.Exit(1)
-}
 
 func get_filehandles(input_fn, output_fn string) (io.Reader, io.Writer, error) {
 	input, err := os.Open(input_fn)
@@ -45,8 +43,8 @@ func get_filehandles(input_fn, output_fn string) (io.Reader, io.Writer, error) {
 	return input, output, nil
 }
 
-func write_json(data interface{}, output io.Writer) error {
-	if *pretty {
+func write_json(data interface{}, output io.Writer, pretty bool) error {
+	if pretty {
 		// Go JSON API is a bit clumsy :(
 		buf, err := json.MarshalIndent(data, "", "    ")
 		if err != nil {
@@ -65,7 +63,7 @@ func write_json(data interface{}, output io.Writer) error {
 	}
 }
 
-func up(input io.Reader, output io.Writer) error {
+func up(input io.Reader, output io.Writer, pretty bool) error {
 	doc := document.NewDocument()
 
 	var data interface{}
@@ -80,10 +78,10 @@ func up(input io.Reader, output io.Writer) error {
 
 	doc.Timestamps = append(doc.Timestamps, event.Hash())
 
-	return write_json(doc, output)
+	return write_json(doc, output, pretty)
 }
 
-func down(input io.Reader, output io.Writer, hash_prefix string) (error, document.Document) {
+func down(input io.Reader, output io.Writer, hash_prefix string, pretty bool) (error, document.Document) {
 	doc := document.NewDocument()
 	doc.Deserialize(input)
 
@@ -107,48 +105,42 @@ func down(input io.Reader, output io.Writer, hash_prefix string) (error, documen
 	if err := event.Goto(); err != nil {
 		return err, doc
 	}
-	return write_json(doc.State.Export(), output), doc
+	return write_json(doc.State.Export(), output, pretty), doc
 }
-
-var pretty = flag.Bool("pretty", false, "Pretty-print the output, for human readability")
 
 func main() {
 	log.SetFlags(0)
 	log.SetPrefix("djconvert: ")
-	flag.Parse()
-	args := flag.Args()
 
-	if len(args) < 1 {
-		log.Println("Not enough args, need at least a subcommand 'up' or 'down'")
-		usage()
+	args, err := docopt.Parse(usage_string, nil, true, version, false, true)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	subcommand := args[0]
-	if subcommand == "up" {
-		if len(args) < 3 {
-			log.Println("Subcommand 'up' takes 2 additional args")
-			usage()
-		}
-		input_filename, output_filename := args[1], args[2]
+	var pretty bool = args["--pretty"].(bool)
+
+	if args["up"] == true {
+		input_filename := args["<source>"].(string)
+		output_filename := args["<target>"].(string)
+
 		input, output, err := get_filehandles(input_filename, output_filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err = up(input, output); err != nil {
+		if err = up(input, output, pretty); err != nil {
 			log.Fatal(err)
 		}
 		log.Printf("Successfully wrote %s\n", output_filename)
-	} else if subcommand == "down" {
-		if len(args) < 4 {
-			log.Println("Subcommand 'down' takes 3 additional args")
-			usage()
-		}
-		input_filename, output_filename, hash_prefix := args[1], args[2], args[3]
+	} else if args["down"] == true {
+		input_filename := args["<source>"].(string)
+		output_filename := args["<target>"].(string)
+		hash_prefix := args["<hash-prefix>"].(string)
+
 		input, output, err := get_filehandles(input_filename, output_filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err, doc := down(input, output, hash_prefix); err != nil {
+		if err, doc := down(input, output, hash_prefix, pretty); err != nil {
 			log.Print(err)
 
 			keys := make([]string, len(doc.Events))
@@ -164,8 +156,5 @@ func main() {
 				strings.Join(keys, "\t\n"),
 			)
 		}
-	} else {
-		log.Printf("Unknown subcommand '%s'\n", subcommand)
-		usage()
 	}
 }
