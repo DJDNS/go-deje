@@ -32,9 +32,9 @@ func TestSimpleClient_Open_BadUrl(t *testing.T) {
 }
 
 func TestSimpleClient_Open_NoSuchHost(t *testing.T) {
-	_, err := Open("deje://no.such.host:8080/", nil, nil)
+	_, err := Open("deje://no-such-host:8080/", nil, nil)
 	if assert.Error(t, err, "Open should have failed, due to unreachable host") {
-		assert.Equal(t, err.Error(), "Error connecting to websocket server: websocket.Dial ws://no.such.host:8080/ws: dial tcp: lookup no.such.host: no such host")
+		assert.Equal(t, err.Error(), "Error connecting to websocket server: websocket.Dial ws://no-such-host:8080/ws: dial tcp: lookup no-such-host: no such host")
 	}
 }
 
