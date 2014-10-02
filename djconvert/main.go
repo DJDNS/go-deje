@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/DJDNS/djdns/app"
+	"github.com/DJDNS/go-deje/djconvert/app"
 )
 
 func main() {
