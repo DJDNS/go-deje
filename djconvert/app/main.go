@@ -46,7 +46,6 @@ func Main(argv []string, exit bool, log_writer io.Writer) {
 		command = func() error {
 			return DoCommandUp(input, output)
 		}
-		//logger.Printf("Successfully wrote %s\n", output_filename)
 	} else if args["down"] == true {
 		hash_prefix := args["<event-hash>"].(string)
 		command = func() error {
@@ -74,6 +73,7 @@ func Main(argv []string, exit bool, log_writer io.Writer) {
 	if err := command(); err != nil {
 		logger.Fatal(err)
 	}
+	logger.Printf("Successfully wrote %s\n", output_filename)
 }
 
 func getFilehandles(input_fn, output_fn string, pretty bool) (io.Reader, JsonWriter, error) {
