@@ -4,8 +4,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"sort"
-	"strings"
 
 	"github.com/docopt/docopt.go"
 )
@@ -33,49 +31,52 @@ func Main(argv []string, exit bool, log_writer io.Writer) {
 		logger.Fatal(err)
 	}
 
-	var pretty bool = args["--pretty"].(bool)
+	input_filename := args["<source>"].(string)
+	output_filename := args["<target>"].(string)
+	pretty := args["--pretty"].(bool)
+
+	input, output, err := getFilehandles(input_filename, output_filename, pretty)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	var command func() error
 
 	if args["up"] == true {
-		input_filename := args["<source>"].(string)
-		output_filename := args["<target>"].(string)
-
-		input, output, err := get_filehandles(input_filename, output_filename)
-		if err != nil {
-			logger.Fatal(err)
+		command = func() error {
+			return DoCommandUp(input, output)
 		}
-		if err = up(input, output, pretty); err != nil {
-			logger.Fatal(err)
-		}
-		logger.Printf("Successfully wrote %s\n", output_filename)
+		//logger.Printf("Successfully wrote %s\n", output_filename)
 	} else if args["down"] == true {
-		input_filename := args["<source>"].(string)
-		output_filename := args["<target>"].(string)
 		hash_prefix := args["<event-hash>"].(string)
-
-		input, output, err := get_filehandles(input_filename, output_filename)
-		if err != nil {
-			logger.Fatal(err)
+		command = func() error {
+			return DoCommandDown(input, output, hash_prefix)
 		}
-		if err, doc := down(input, output, hash_prefix, pretty); err != nil {
-			logger.Print(err)
+		/*
+			if err := DoCommandDown(input, output, hash_prefix); err != nil {
+				logger.Print(err)
 
-			keys := make([]string, len(doc.Events))
-			var i int
-			for key := range doc.Events {
-				keys[i] = key
-				i++
+				keys := make([]string, len(doc.Events))
+				var i int
+				for key := range doc.Events {
+					keys[i] = key
+					i++
+				}
+				sort.Strings(keys)
+
+				logger.Fatalf("Available hashes (%d):\n%s",
+					len(doc.Events),
+					strings.Join(keys, "\t\n"),
+				)
 			}
-			sort.Strings(keys)
-
-			logger.Fatalf("Available hashes (%d):\n%s",
-				len(doc.Events),
-				strings.Join(keys, "\t\n"),
-			)
-		}
+		*/
+	}
+	if err := command(); err != nil {
+		logger.Fatal(err)
 	}
 }
 
-func getFilehandles(input_fn, output_fn) (io.Reader, JsonWriter, error) {
+func getFilehandles(input_fn, output_fn string, pretty bool) (io.Reader, JsonWriter, error) {
 	input, err := os.Open(input_fn)
 	if err != nil {
 		return nil, nil, err
@@ -86,5 +87,5 @@ func getFilehandles(input_fn, output_fn) (io.Reader, JsonWriter, error) {
 		return nil, nil, err
 	}
 
-	return input, NewJsonWriter(output), nil
+	return input, NewJsonWriter(output, pretty), nil
 }

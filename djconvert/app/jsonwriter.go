@@ -11,7 +11,7 @@ type JsonWriter interface {
 	Write(data interface{}) error
 }
 
-func NewJsonWriter(w io.Writer, pretty bool) {
+func NewJsonWriter(w io.Writer, pretty bool) JsonWriter {
 	if pretty {
 		return PrettyJsonWriter{w}
 	} else {
