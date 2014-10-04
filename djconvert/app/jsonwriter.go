@@ -29,7 +29,7 @@ func (jw PrettyJsonWriter) Write(data interface{}) error {
 	if err != nil {
 		return err
 	}
-	n, err := fmt.Fprint(jw.w, string(buf))
+	n, err := fmt.Fprintf(jw.w, "%s\n", string(buf))
 	if err != nil {
 		return err
 	}

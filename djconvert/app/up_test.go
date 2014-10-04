@@ -32,7 +32,7 @@ func TestDoCommandUp(t *testing.T) {
     "timestamps": [
         "41a772b775b1c4afbbfb42b7a91b3031a712ab42"
     ]
-}`
+}` + "\n"
 	assert.NoError(t, DoCommandUp(reader, writer))
 	assert.Equal(t, expected_output, buf.String())
 }

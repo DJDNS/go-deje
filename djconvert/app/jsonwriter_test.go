@@ -27,7 +27,7 @@ func TestJsonWriter(t *testing.T) {
     {
         "bobby": "singer"
     }
-]`,
+]` + "\n",
 		},
 		{
 			false,

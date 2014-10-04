@@ -51,24 +51,6 @@ func Main(argv []string, exit bool, log_writer io.Writer) {
 		command = func() error {
 			return DoCommandDown(input, output, hash_prefix)
 		}
-		/*
-			if err := DoCommandDown(input, output, hash_prefix); err != nil {
-				logger.Print(err)
-
-				keys := make([]string, len(doc.Events))
-				var i int
-				for key := range doc.Events {
-					keys[i] = key
-					i++
-				}
-				sort.Strings(keys)
-
-				logger.Fatalf("Available hashes (%d):\n%s",
-					len(doc.Events),
-					strings.Join(keys, "\t\n"),
-				)
-			}
-		*/
 	}
 	if err := command(); err != nil {
 		logger.Fatal(err)
