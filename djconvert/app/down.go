@@ -31,9 +31,13 @@ func (hpe HashPrefixError) GetEventHashesAvailable() []string {
 func (hpe HashPrefixError) Error() string {
 	keys := hpe.GetEventHashesAvailable()
 
-	return fmt.Sprintf("%s: %s\n\nAvailable hashes (%d):\n%s",
+	var hash_list string
+	if len(keys) != 0 {
+		hash_list = "\t" + strings.Join(keys, "\n\t")
+	}
+	return fmt.Sprintf("%s: '%s'\n\nAvailable hashes (%d):\n%s",
 		hpe.Problem, hpe.Prefix,
-		len(keys), strings.Join(keys, "\t\n"),
+		len(keys), hash_list,
 	)
 }
 
@@ -63,7 +67,9 @@ func GetEventByPrefix(doc *document.Document, hash_prefix string) (*document.Eve
 
 func DoCommandDown(input io.Reader, output JsonWriter, hash_prefix string) error {
 	doc := document.NewDocument()
-	doc.Deserialize(input)
+	if err := doc.Deserialize(input); err != nil {
+		return err
+	}
 
 	event, err := GetEventByPrefix(&doc, hash_prefix)
 	if err != nil {
