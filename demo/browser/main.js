@@ -12,6 +12,8 @@ require.config({
 var client;
 var URL   = "ws://" + window.location.host + "/ws";
 var TOPIC = "deje://demo/";
+var log_data = [];
+var log_filter_value = "";
 
 $('.reconnector .url').attr(  'placeholder', URL);
 $('.reconnector .topic').attr('placeholder', TOPIC);
@@ -22,13 +24,28 @@ function __placeholder(name){
     }
 }
 
+function contains_filter_value(item) {
+    return item.toLowerCase().contains(log_filter_value.toLowerCase());
+}
+function log_display() {
+    $('#log').text( log_data.filter(contains_filter_value).join("\n") );
+}
+
 function loggit(info) {
-    $('#log').text( $('#log').text() + info + "\n" );
+    log_data.push(info);
+    log_display();
 }
 
 function log_clear() {
-    $('#log').text('');
+    log_data = [];
+    log_display();
 }
+
+function log_filter() {
+    log_filter_value = $('#log_filter').val();
+    log_display();
+}
+$('#log_filter').on('change keydown keyup', log_filter)
 
 $('.reconnector button').click(function() {
     reconnect(
