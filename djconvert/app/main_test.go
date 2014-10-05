@@ -13,21 +13,115 @@ import (
 
 func TestMain(t *testing.T) {
 	tests := []struct {
-		Args        []string
-		ExpectError bool
+		Args           []string
+		ExpectError    bool
+		ExpectedOutput map[string]string
 	}{
 		// No arguments
 		{
+			[]string{},
+			true,
+			map[string]string{},
+		},
+		// Bad arguments
+		{
 			[]string{"foo"},
 			true,
+			map[string]string{},
+		},
+		// Insufficient arguments
+		{
+			[]string{"up"},
+			true,
+			map[string]string{},
+		},
+		// Bad file locations
+		{
+			[]string{"up", "{{ .Dir }}", "."},
+			true,
+			map[string]string{},
+		},
+		// Up not pretty
+		{
+			[]string{"up",
+				"{{ .Dir }}/input_hello_world.json",
+				"{{ .Dir }}/doc.json",
+			},
+			false,
+			map[string]string{"doc.json": `{"events":{"aa582b4df04ba01af5205e702d4d16ed0b2c0705":{"parent":"","handler":"SET","args":{"path":[],"value":{"hello":"world"}}}},"timestamps":["aa582b4df04ba01af5205e702d4d16ed0b2c0705"]}` + "\n"},
+		},
+		// Up pretty
+		{
+			[]string{"up",
+				"{{ .Dir }}/input_hello_world.json",
+				"{{ .Dir }}/doc.json",
+				"--pretty",
+			},
+			false,
+			map[string]string{"doc.json": `{
+    "events": {
+        "aa582b4df04ba01af5205e702d4d16ed0b2c0705": {
+            "parent": "",
+            "handler": "SET",
+            "args": {
+                "path": [],
+                "value": {
+                    "hello": "world"
+                }
+            }
+        }
+    },
+    "timestamps": [
+        "aa582b4df04ba01af5205e702d4d16ed0b2c0705"
+    ]
+}` + "\n"},
+		},
+		// Down not pretty
+		{
+			[]string{"down",
+				"{{ .Dir }}/doc_hello_world.json",
+				"{{ .Dir }}/static.json",
+				"aa58",
+			},
+			false,
+			map[string]string{"static.json": `{"hello":"world"}` + "\n"},
+		},
+		// Down pretty
+		{
+			[]string{"down",
+				"{{ .Dir }}/doc_hello_world.json",
+				"{{ .Dir }}/static.json",
+				"aa58",
+				"--pretty",
+			},
+			false,
+			map[string]string{"static.json": `{
+    "hello": "world"
+}` + "\n"},
 		},
 	}
 	for _, test := range tests {
+		dir := setupTestDir(t)
+		defer removeTestDir(t, dir)
+
+		for i, arg := range test.Args {
+			arg_transformed, err := tmplExecute(arg, dir,
+				struct{ Dir string }{dir})
+			if err != nil {
+				t.Fatal(err)
+			}
+			test.Args[i] = arg_transformed
+		}
+
 		err := Main(test.Args, false)
 		if test.ExpectError {
-			assert.NoError(t, err)
-		} else {
 			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+		}
+
+		for filename, content := range test.ExpectedOutput {
+			assertFileHasContent(t, path.Join(dir, filename), content)
 		}
 	}
 }
@@ -142,6 +236,7 @@ func setupTestDir(t *testing.T) string {
 	// Set up files
 	files := map[string]string{
 		"input_hello_world.json": `{ "hello": "world" }`,
+		"doc_hello_world.json":   `{"events":{"aa582b4df04ba01af5205e702d4d16ed0b2c0705":{"parent":"","handler":"SET","args":{"path":[],"value":{"hello":"world"}}}},"timestamps":["aa582b4df04ba01af5205e702d4d16ed0b2c0705"]}` + "\n",
 	}
 	for filename, content := range files {
 		fullpath := path.Join(dir, filename)
