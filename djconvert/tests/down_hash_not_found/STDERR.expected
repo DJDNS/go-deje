@@ -1,2 +1,3 @@
-djconvert: No such hash 'somehash'
-djconvert: Available hashes (0):
+djconvert: No such event: 'somehash'
+
+Available hashes (0):
