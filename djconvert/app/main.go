@@ -2,10 +2,9 @@ package app
 
 import (
 	"io"
-	"log"
 	"os"
 
-	"github.com/docopt/docopt.go"
+	"github.com/docopt/docopt-go"
 )
 
 var version = "djconvert 0.0.13"
@@ -22,13 +21,14 @@ Options:
     -h --help     Show this message.
     --version     Show version info.
 `
+var do_help = true
+var options_first = false
 
-func Main(argv []string, exit bool, log_writer io.Writer) {
-	logger := log.New(log_writer, "djconvert: ", 0)
-
-	args, err := docopt.Parse(usage_string, nil, true, version, false, true)
+func Main(argv []string, exit bool) error {
+	do_help = exit
+	args, err := docopt.Parse(usage_string, argv, do_help, version, options_first, exit)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	input_filename := args["<source>"].(string)
@@ -37,25 +37,15 @@ func Main(argv []string, exit bool, log_writer io.Writer) {
 
 	input, output, err := getFilehandles(input_filename, output_filename, pretty)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
-
-	var command func() error
 
 	if args["up"] == true {
-		command = func() error {
-			return DoCommandUp(input, output)
-		}
-	} else if args["down"] == true {
+		return DoCommandUp(input, output)
+	} else {
 		hash_prefix := args["<event-hash>"].(string)
-		command = func() error {
-			return DoCommandDown(input, output, hash_prefix)
-		}
+		return DoCommandDown(input, output, hash_prefix)
 	}
-	if err := command(); err != nil {
-		logger.Fatal(err)
-	}
-	logger.Printf("Successfully wrote %s\n", output_filename)
 }
 
 func getFilehandles(input_fn, output_fn string, pretty bool) (io.Reader, JsonWriter, error) {

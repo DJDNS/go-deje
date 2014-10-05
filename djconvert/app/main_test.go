@@ -11,6 +11,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMain(t *testing.T) {
+	tests := []struct {
+		Args        []string
+		ExpectError bool
+	}{
+		// No arguments
+		{
+			[]string{"foo"},
+			true,
+		},
+	}
+	for _, test := range tests {
+		err := Main(test.Args, false)
+		if test.ExpectError {
+			assert.NoError(t, err)
+		} else {
+			assert.Error(t, err)
+		}
+	}
+}
+
 func TestGetFilehandles(t *testing.T) {
 	tests := []struct {
 		InputFilename  string
