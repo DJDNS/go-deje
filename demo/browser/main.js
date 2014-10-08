@@ -10,22 +10,14 @@ require.config({
     }
 });
 
-require(['jquery', 'deje/event', 'deje/client', 'log'], function($, DejeEvent, DejeClient, Logger) {
+require(['jquery', 'deje/event', 'log', 'connector'], function($, DejeEvent, Logger, Connector) {
     var client;
     var URL   = "ws://" + window.location.host + "/ws";
     var TOPIC = "deje://demo/";
 
-    $('.reconnector .url').attr(  'placeholder', URL);
-    $('.reconnector .topic').attr('placeholder', TOPIC);
-
     var logger = new Logger('#log', '#log_filter');
-
-    $('.reconnector button').click(function() {
-        reconnect(
-            $('.reconnector .url').val(),
-            $('.reconnector .topic').val()
-        );
-    });
+    var connector = new Connector(URL, TOPIC, logger)
+        .setup_interface('.reconnector');
 
     function get_msg_input() {
         var data = $('#message-input').val();
@@ -64,89 +56,6 @@ require(['jquery', 'deje/event', 'deje/client', 'log'], function($, DejeEvent, D
         client.setTimestamps([]);
         return false;
     });
-
-    function render_state() {
-        var chooser = $('#timestamps-chooser span');
-        chooser.empty();
-        for (var t=0; t<client.timestamps.length; t++) {
-            if ( t > 0 ) {
-                chooser.append(',');
-            }
-            $('<a/>', {
-                href: '#',
-                text: JSON.stringify(client.timestamps[t])
-            })
-            .addClass('event')
-            .data('hash', client.timestamps[t])
-            .click(goto_event_by_element)
-            .appendTo(chooser);
-        }
-        $('#state-data').text(
-            "hash: '" + client.state.hash + "'\n\n"
-            + JSON.stringify(client.state.content, null, 4)
-        );
-    }
-
-    function render_callbacks() {
-        var root = $('.callbacks-selection');
-        root.empty();
-        var on_change = function() {
-            var callback = $(this).data("callback");
-            callback.enabled = $(this).is(":checked");
-        };
-        for (var m in client.cb_managers) {
-            var manager = client.cb_managers[m];
-            for (var c in manager.callbacks) {
-                var callback = manager.callbacks[c];
-                var checkbox = $(document.createElement('input'))
-                    .attr('type', 'checkbox')
-                    .attr('checked', callback.enabled)
-                    .data('callback', callback)
-                    .change(on_change);
-                var label = $(document.createElement('label'))
-                    .append(checkbox)
-                    .append("on_" + m + " :: " + c);
-                root.append(label);
-                root.append("<br>");
-            }
-        }
-    }
-
-    function render_event(ev) {
-        var ev_hash = ev.getHash();
-        var ev_content = ev.getContent();
-
-        var element = $(document.createElement('div'))
-            .addClass('event')
-            .data('hash', ev_hash);
-        var promote_button = $(document.createElement('button'))
-            .text("Promote")
-            .click(promote_event_by_element);
-        var goto_button = $(document.createElement('button'))
-            .text("Goto")
-            .click(goto_event_by_element);
-        var hash_bar = $(document.createElement('div'))
-            .addClass('hash')
-            .text(ev_hash)
-            .append(promote_button)
-            .append(goto_button);
-        var content = $(document.createElement('pre'))
-            .addClass('content')
-            .text( JSON.stringify(ev_content, null, 4) );
-
-        element.append(hash_bar);
-        element.append(content);
-        return element;
-    }
-
-    function render_events() {
-        $(".events .event").not(".input").remove();
-        var history = client.getHistory();
-        for (var i = 0; i<history.length; i++) {
-            var ev = history[i];
-            $(".events").prepend(render_event(ev));
-        }
-    }
 
     function promote_event_by_hash(hash) {
         ev = client.getEvent(hash);
@@ -189,25 +98,9 @@ require(['jquery', 'deje/event', 'deje/client', 'log'], function($, DejeEvent, D
         client.storeEvent(new DejeEvent(content));
     }
 
-    reconnect = function(url, topic) {
-        if (client && client.session) {
-            client.session.close()
-        }
-        client = new DejeClient(url || URL, topic || TOPIC, { 'logger': logger.append.bind(logger) });
-        client.connect();
-        window.client = client;
-
-        client.cb_managers.store_event.add('render_events', render_events);
-        client.cb_managers.goto_event.add('render_state', render_state);
-        client.cb_managers.update_ts.add('render_state', render_state);
-
-        render_events();
-        render_state();
-        render_callbacks();
-    }
 
     $(document).ready(function() {
-        reconnect();
+        connector.reconnect();
     });
 
 });

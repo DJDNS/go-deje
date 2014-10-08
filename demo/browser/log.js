@@ -30,6 +30,9 @@ define(['jquery'], function($) {
         this.display();
     }
     Logger.prototype.__contains_filter_value = function(item) {
+        if (item == undefined) {
+            return;
+        }
         return item.toLowerCase().contains( this.filter_value.toLowerCase() );
     }
 
