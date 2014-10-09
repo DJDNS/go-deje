@@ -5,15 +5,16 @@ define(['jquery'], function($) {
         this.connector = connector;
 
         this.root.find('.msg-submit').click(function() {
-            var data = self.get_msg_input()
+            var data = self.get_msg_input();
             if (data != undefined) {
                 self.connector.client.publish(data);
             }
         });
         this.root.find('.msg-listen').click(function() {
-            var data = self.get_msg_input()
+            var data = self.get_msg_input();
+            var client = self.connector.client;
             if (data != undefined) {
-                self.connector.client.cb_managers.msg.run(client.topic, data);
+                client.cb_managers.msg.run(client.topic, data);
             }
         });
     }

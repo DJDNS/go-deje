@@ -23,7 +23,7 @@
 
     <h3>
         Log
-        <button onclick="log_clear()" style="float:right">Clear log</button>
+        <button id="log_clear" style="float:right">Clear log</button>
         <input id="log_filter" style="float:right" placeholder="Filter log"></input>
     </h3>
     <div class="log-container">
@@ -46,7 +46,7 @@
     <h3>Events</h3>
     <div class="events">
         <div class="event input">
-            <div class="hash">Create new event <button onclick="save_event()">Finish</button></div>
+            <div class="hash">Create new event <button class="finish">Finish</button></div>
             <input class="parent" placeholder="Parent Hash"/><br/>
             <input class="handler" placeholder="Handler Name"/><br/>
             <textarea class="args" placeholder="Args (start with {})"></textarea>

@@ -1,6 +1,6 @@
 define(['jquery'], function($) {
 
-    function Logger(element, filter_input) {
+    function Logger(element, filter_input, clear_button) {
         var self = this;
 
         this.data = [];
@@ -11,6 +11,7 @@ define(['jquery'], function($) {
             'change keydown keyup',
             function() { self.set_filter( $(this).val() ); }
         );
+        this.clear_button = $(clear_button).click( this.clear.bind(this) );
     }
     Logger.prototype.display = function() {
         var callback = this.__contains_filter_value.bind(this);

@@ -12,11 +12,10 @@ require.config({
 
 require(['jquery', 'deje/event', 'log', 'connector', 'injector'],
         function($, DejeEvent, Logger, Connector, Injector) {
-    var client;
     var URL   = "ws://" + window.location.host + "/ws";
     var TOPIC = "deje://demo/";
 
-    var logger = new Logger('#log', '#log_filter');
+    var logger = new Logger('#log', '#log_filter', '#log_clear');
     var connector = new Connector(URL, TOPIC, logger)
         .setup_interface('.reconnector');
     var injector = new Injector('.submitter', connector);
