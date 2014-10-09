@@ -10,7 +10,8 @@ require.config({
     }
 });
 
-require(['jquery', 'deje/event', 'log', 'connector'], function($, DejeEvent, Logger, Connector) {
+require(['jquery', 'deje/event', 'log', 'connector', 'injector'],
+        function($, DejeEvent, Logger, Connector, Injector) {
     var client;
     var URL   = "ws://" + window.location.host + "/ws";
     var TOPIC = "deje://demo/";
@@ -18,28 +19,7 @@ require(['jquery', 'deje/event', 'log', 'connector'], function($, DejeEvent, Log
     var logger = new Logger('#log', '#log_filter');
     var connector = new Connector(URL, TOPIC, logger)
         .setup_interface('.reconnector');
-
-    function get_msg_input() {
-        var data = $('#message-input').val();
-        try {
-            return JSON.parse(data);
-        } catch (e) {
-            return logger.append("<your browser>: Message is not valid JSON")
-        }
-    }
-
-    $('#message-submit').click(function(){
-        var data = get_msg_input()
-        if (data != undefined) {
-            client.publish(data);
-        }
-    });
-    $('#message-listen').click(function(){
-        var data = get_msg_input()
-        if (data != undefined) {
-            client.cb_managers.msg.run(client.topic, data);
-        }
-    });
+    var injector = new Injector('.submitter', connector);
 
     $('.js-edit-timestamps').click(function(){
         var per_ts_prefix = '\n        ';

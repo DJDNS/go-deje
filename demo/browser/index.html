@@ -2,73 +2,7 @@
 <html>
 <head>
     <title>DEJE WAMP demo</title>
-    <style>
-
-.log-container {
-    background-color: #CCC;
-    border: 2px solid black;
-    width: 100%;
-    min-height: 200px;
-    border-radius: 10px;
-}
-
-pre {
-    margin: 10px;
-}
-
-.submitter {
-    width: 100%;
-    margin-top: 1em;
-}
-
-#message-input {
-    width: 100%;
-    min-height: 5em;
-}
-
-#timestamps-chooser {
-    font-family: monospace;
-    font-size: 12px;
-    margin: 10px;
-}
-
-.events {
-    width: 80%;
-    padding-left: 10px;
-    padding-bottom: 10px;
-    background-color: #DDD;
-}
-
-.event {
-    margin: 15px 10px;
-    background-color: white;
-}
-
-.event .hash {
-    padding: 10px;
-    background-color: #2B2;
-    width: 100%;
-}
-
-.event .hash button {
-    float: right;
-}
-
-.event .content {
-    width: 100%;
-    padding: 5px;
-}
-
-.event input {
-    width: 400px;
-}
-
-.event textarea {
-    width: 600px;
-    min-height: 100px;
-}
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="/main.css">
     <script src="/require.js" data-main="main"></script>
 </head>
 
@@ -103,10 +37,10 @@ pre {
     )</div>
     <pre id="state-data"></pre>
     <div class="submitter">
-        <textarea id="message-input" placeholder="JSON data to broadcast"></textarea>
+        <textarea class="msg-input" placeholder="JSON data to broadcast"></textarea>
         <br/>
-        <button id="message-submit">Broadcast a message</button>
-        <button id="message-listen">Listen to the voices</button>
+        <button class="msg-submit">Broadcast a message</button>
+        <button class="msg-listen">Listen to the voices</button>
     </div>
 
     <h3>Events</h3>
