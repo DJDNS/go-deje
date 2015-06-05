@@ -2,4 +2,6 @@ image: go1.2
 env:
   - GOPATH=/var/cache/drone
 script:
+  - go get -d -v -t ./...
+  - go get golang.org/x/tools/cmd/cover
   - ./travis_tests
